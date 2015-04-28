@@ -108,11 +108,12 @@ def main():
     
     args = parser.parse_args()
     
+    table = load_table(args.table) # "HIV/otu_table_neg.biom"
+    
     # make new output directory and change to it
     os.makedirs(args.output)
     os.chdir(args.output)
     
-    table = load_table(args.table) # "HIV/otu_table_neg.biom"
     edge_counts = subsample_trees(table, args.reps, args.sub_size)
     master_edges = make_master_edges(table)
     make_edge_plots(master_edges, edge_counts)

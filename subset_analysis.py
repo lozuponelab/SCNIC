@@ -3,6 +3,8 @@ from itertools import combinations
 import random
 from module_maker import *
 from collections import Counter
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import cPickle
 import argparse

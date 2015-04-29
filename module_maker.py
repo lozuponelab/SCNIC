@@ -42,7 +42,7 @@ def plot_networkx(graph):
     plt.show()
 
 
-def filter_rel_abund(table, min_samples=None, min_percent=None):
+def filter_rel_abund(table, min_samples=None, min_percent=None, to_file=True):
     """filter relative abundance table"""
     table = table.copy()
     # first sample filter
@@ -72,9 +72,10 @@ def filter_rel_abund(table, min_samples=None, min_percent=None):
     # if min_percent != None:
     #    table.filter([i for i in table.ids(axis='observation') \
     #                 if sum(table.data(i, axis='observation')) > min_percent], axis='observation')
-
-    #table.to_json('filter_rel_abund',open("filtered_rel_abund.biom",'w'))
-    open("filtered_rel_abund.txt", 'w').write(table.to_tsv())
+    
+    if to_file == True:
+        table.to_json('filter_rel_abund',open("filtered_rel_abund.biom",'w'))
+        # open("filtered_rel_abund.txt", 'w').write(table.to_tsv())
 
     return table
 
@@ -193,8 +194,6 @@ def main():
 
     # make correlation network
     net = make_net_from_correls(correls)
-    net.graph['correl_method'] = str(args.correl_method)
-    net.graph['p_adjust'] = str(args.p_adjust)
 
     # make modules
     net, cliques = make_modules(net)

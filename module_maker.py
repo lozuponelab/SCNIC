@@ -42,7 +42,7 @@ def plot_networkx(graph):
     plt.show()
 
 
-def filter_rel_abund(table, min_samples=None, min_percent=None, to_file=True):
+def filter_table(table, min_samples=None, to_file=True):
     """filter relative abundance table"""
     table = table.copy()
     # first sample filter
@@ -50,31 +50,9 @@ def filter_rel_abund(table, min_samples=None, min_percent=None, to_file=True):
         to_keep = [i for i in table.ids(axis='observation') \
                    if sum(table.data(i, axis='observation') != 0) >= min_samples]
         table.filter(to_keep, axis='observation')
-
-    if min_percent != None:
-        # set values below min_percent to zero
-        for i in xrange(table.shape[0]):
-            for j in xrange(table.shape[1]):
-                if table.matrix_data[i, j] <= min_percent:
-                    table.matrix_data[i, j] = 0
-
-        # filter out rows of all zeroes
-        nonzero = [i for i in table.ids(axis='observation') \
-                   if sum(table.data(i, axis='observation')) != 0]
-        table.filter(nonzero, axis='observation')
-
-        # second sample filter
-        if min_samples != None:
-            above_min = [i for i in table.ids(axis='observation') \
-                         if sum(table.data(i, axis='observation') != 0) >= min_samples]
-            table.filter(above_min, axis='observation')
-
-    # if min_percent != None:
-    #    table.filter([i for i in table.ids(axis='observation') \
-    #                 if sum(table.data(i, axis='observation')) > min_percent], axis='observation')
     
     if to_file == True:
-        table.to_json('filter_rel_abund',open("filtered_rel_abund.biom",'w'))
+        table.to_json('filter_table',open("filtered_tab.biom",'w'))
         # open("filtered_rel_abund.txt", 'w').write(table.to_tsv())
 
     return table
@@ -166,8 +144,6 @@ def main():
     parser.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
     parser.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     parser.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
-    parser.add_argument("-n", "--min_percent",
-                        help="minimum precent relative abundance of sample", type=float)
     args = parser.parse_args()
 
     # correlation and p-value adjustment methods
@@ -185,11 +161,10 @@ def main():
     os.chdir(args.output)
 
     # convert to relative abundance and filter
-    rel_table = table.norm(inplace=False)
-    rel_table = filter_rel_abund(rel_table, args.min_sample, args.min_percent)
+    table_filt = filter_table(table, args.min_sample)
 
     # correlate feature
-    correls, correl_header = paired_correlations_from_table(rel_table, correl_method, p_adjust)
+    correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
     print_delimited('correls.txt', correls, correl_header)
 
     # make correlation network

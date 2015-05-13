@@ -21,7 +21,6 @@ def make_master_edges(table):
 
 def subsample_trees(table, reps, k, pkl_out = 'subsampled_edges.pkl'):
     """input count table, number of subsamples, size of subsamples, pkl output"""
-    table.norm()
     
     # subsample
     samps = table.ids()
@@ -32,7 +31,7 @@ def subsample_trees(table, reps, k, pkl_out = 'subsampled_edges.pkl'):
     for count, i in enumerate(combs):
         sub_table = table.filter(samps[list(i)], inplace=False)
         # require observations to be in atleast 1/3 of samples
-        sub_table = filter_rel_abund(sub_table, min_samples=sub_table.shape[1]/3)
+        sub_table = filter_table(sub_table, min_samples=sub_table.shape[1]/3)
         correls, correl_header = \
             paired_correlations_from_table(sub_table, spearmanr, bh_adjust)
         net = make_net_from_correls(correls)
@@ -50,7 +49,6 @@ def bootstrap(sample):
     return sample[resample_ind]
 
 def bootstrap_trees(table, reps, pkl_out = 'bootstrapped_edges.pkl'):
-    table.norm()
     
     # subsample
     samps = table.ids()
@@ -59,7 +57,7 @@ def bootstrap_trees(table, reps, pkl_out = 'bootstrapped_edges.pkl'):
     for i in xrange(0,reps):
         sub_table = table.filter(bootstrap(table.ids()), inplace=False)
         # require observations to be in atleast 1/3 of samples
-        sub_table = filter_rel_abund(sub_table, min_samples=sub_table.shape[1]/3)
+        sub_table = filter_table(sub_table, min_samples=sub_table.shape[1]/3)
         correls, correl_header = \
             paired_correlations_from_table(sub_table, spearmanr, bh_adjust)
         net = make_net_from_correls(correls)

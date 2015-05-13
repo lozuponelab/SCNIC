@@ -158,6 +158,7 @@ def main():
 
     # get features to be correlated
     table = load_table(args.input)
+    print "Table loaded"
 
     # make new output directory and change to it
     os.makedirs(args.output)
@@ -165,22 +166,27 @@ def main():
 
     # convert to relative abundance and filter
     table_filt = filter_table(table, args.min_sample)
+    print "Table filtered"
 
     # correlate feature
     correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
     print_delimited('correls.txt', correls, correl_header)
+    print "Features Correlated"
 
     # make correlation network
     net = make_net_from_correls(correls)
+    print "Network Generated"
 
     # make modules
     net, cliques = make_modules(net)
+    print "Modules Formed"
 
     # print network
     nx.write_gml(net, 'conetwork.gml')
 
     # collapse modules
     coll_table = collapse_modules(table, cliques[3])
+    print "Table Collapsed"
 
     # print new table
     coll_table.to_json('make_modules.py', open('collapsed.biom', 'w'))

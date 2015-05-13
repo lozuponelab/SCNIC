@@ -8,21 +8,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import cPickle
 import argparse
-
-
-def main1():
-    table = load_table("HIV/otu_table_neg.biom")
-    table.norm()
-    table = filter_rel_abund(table, min_samples=8)
-    samps = table.ids()
-    edges = list()
-
-    for i in combinations(range(0, 25), 20):
-        sub_table = table.filter(samps[list(i)], inplace=False)
-        correls, correl_header = \
-            paired_correlations_from_table(sub_table, spearmanr, bh_adjust)
-        net = make_net_from_correls(correls)
-        edges.append(net.edges())
+import numpy as np
+import sys
 
 def make_master_edges(table):
     """input count table"""
@@ -45,7 +32,7 @@ def subsample_trees(table, reps, k, pkl_out = 'subsampled_edges.pkl'):
     for count, i in enumerate(combs):
         sub_table = table.filter(samps[list(i)], inplace=False)
         # require observations to be in atleast 1/3 of samples
-        sub_table = filter_rel_abund(table, min_samples=table.shape[1]/3)
+        sub_table = filter_rel_abund(sub_table, min_samples=sub_table.shape[1]/3)
         correls, correl_header = \
             paired_correlations_from_table(sub_table, spearmanr, bh_adjust)
         net = make_net_from_correls(correls)
@@ -58,8 +45,32 @@ def subsample_trees(table, reps, k, pkl_out = 'subsampled_edges.pkl'):
     
     return edge_counts
 
+def bootstrap(sample):
+    resample_ind = np.floor(np.random.rand(len(sample))*len(sample)).astype(int)
+    return sample[resample_ind]
+
 def bootstrap_trees(table, reps, pkl_out = 'bootstrapped_edges.pkl'):
-    pass
+    table.norm()
+    
+    # subsample
+    samps = table.ids()
+    edge_counts = Counter()
+
+    for i in xrange(0,reps):
+        sub_table = table.filter(bootstrap(table.ids()), inplace=False)
+        # require observations to be in atleast 1/3 of samples
+        sub_table = filter_rel_abund(sub_table, min_samples=sub_table.shape[1]/3)
+        correls, correl_header = \
+            paired_correlations_from_table(sub_table, spearmanr, bh_adjust)
+        net = make_net_from_correls(correls)
+        edge_counts.update(net.edges())
+        print i    
+
+    # dump edges found to file
+    with open(pkl_out, 'wb') as pkl:
+        cPickle.dump(edge_counts, pkl)
+    
+    return edge_counts
 
 def make_edge_plots(master_edges, edge_counts):
     # make plot of all edges
@@ -107,8 +118,19 @@ def main():
     parser.add_argument("-o", "--output", help="new output folder")
     parser.add_argument("-r", "--reps", help="repetitions", default=100, type=int)
     parser.add_argument("-a", "--sub_size", help="sub-sample size", type=int)
+    parser.add_argument("-b", "--bootstrap", help="run bootstrapped", action='store_true', default=False)
     
     args = parser.parse_args()
+    
+    # check not bootstrap or subsize selected
+    if args.sub_size == None and args.bootstrap == False:
+        print "Need to give a resampling method"
+        sys.exit()
+    
+    # check not bootstrap and subsize selected
+    if args.sub_size != None and args.bootstrap != False:
+        print "Only one resampling method may be given"
+        sys.exit()
     
     table = load_table(args.table) # "HIV/otu_table_neg.biom"
     
@@ -116,7 +138,13 @@ def main():
     os.makedirs(args.output)
     os.chdir(args.output)
     
-    edge_counts = subsample_trees(table, args.reps, args.sub_size)
+    # run selected resampling method
+    if args.bootstrap == True:
+        edge_counts = bootstrap_trees(table, args.reps)
+    else:
+        edge_counts = subsample_trees(table, args.reps, args.sub_size)
+    
+    # make master and print plots
     master_edges = make_master_edges(table)
     make_edge_plots(master_edges, edge_counts)
 

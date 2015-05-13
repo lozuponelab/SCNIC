@@ -43,13 +43,16 @@ def plot_networkx(graph):
 
 
 def filter_table(table, min_samples=None, to_file=True):
-    """filter relative abundance table"""
+    """filter relative abundance table, by default throw away things greater than 1/3 zeros"""
     table = table.copy()
     # first sample filter
     if min_samples != None:
         to_keep = [i for i in table.ids(axis='observation') \
                    if sum(table.data(i, axis='observation') != 0) >= min_samples]
-        table.filter(to_keep, axis='observation')
+    else:
+        to_keep = [i for i in table.ids(axis='observation') \
+                   if sum(table.data(i, axis='observation') != 0) >= table.shape[1]/3]
+    table.filter(to_keep, axis='observation')
     
     if to_file == True:
         table.to_json('filter_table',open("filtered_tab.biom",'w'))

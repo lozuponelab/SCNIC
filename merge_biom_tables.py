@@ -25,7 +25,7 @@ def main():
     table2 = load_table(args.table2)
 
     # check that samples are the same
-    if table1.ids() != table2.ids():
+    if set(table1.ids()) != set(table2.ids()):
         print "biom tables have different sample names"
         sys.exit()
 

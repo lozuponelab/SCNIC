@@ -107,7 +107,18 @@ def make_net_from_correls(correls, min_p=.05):
     return graph
 
 
-def make_modules(graph, k=None):
+def make_modules(graph, k=3):
+    """make modules with networkx k-clique communities and annotate network
+    :type graph: networkx graph
+    """
+    cliques = list(nx.k_clique_communities(graph, k))
+    cliques = [list(i) for i in cliques]
+    for i, clique in enumerate(cliques):
+        for node in clique:
+            graph.node[node]['k_' + str(k)] = i
+    return graph, cliques
+
+def make_modules_multik(graph, k=None):
     """make modules with networkx k-clique communities and annotate network"""
     if k is None:
         k = [2, 3, 4, 5, 6]
@@ -140,6 +151,24 @@ def collapse_modules(table, cliques, prefix="module_"):
     return Table(new_table_matrix, new_table_obs, table.ids())
 
 
+def collapse_modules_multik(table, cliques, prefix="module_"):
+    """collapse created modules in a biom table"""
+    in_module = set()
+    modules = np.zeros((len(cliques), table.shape[1]))
+
+    # for each clique merge values
+    for i, clique in enumerate(cliques):
+        in_module = in_module | set(clique)
+        for feature in clique:
+            modules[i] += table.data(feature, axis='observation')
+    table.filter(in_module, axis='observation')
+
+    # make new table
+    new_table_matrix = np.concatenate((table.matrix_data.toarray(), modules))
+    new_table_obs = list(table.ids(axis='observation')) + [prefix + str(i) for i in range(0, len(cliques))]
+    return Table(new_table_matrix, new_table_obs, table.ids())
+
+
 def main():
     """main, takes argparser"""
     parser = argparse.ArgumentParser()
@@ -149,6 +178,7 @@ def main():
     parser.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     parser.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
     parser.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
+    parser.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
     args = parser.parse_args()
 
     # correlation and p-value adjustment methods
@@ -189,7 +219,7 @@ def main():
     nx.write_gml(net, 'conetwork.gml')
 
     # collapse modules
-    coll_table = collapse_modules(table, cliques[3], args.prefix)
+    coll_table = collapse_modules(table, cliques, args.prefix)
     print "Table Collapsed"
 
     # print new table

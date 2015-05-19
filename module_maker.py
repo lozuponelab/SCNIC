@@ -1,5 +1,6 @@
 """Make modules of observations based on cooccurence networks and collapse table"""
 
+
 import argparse
 import os
 
@@ -9,6 +10,7 @@ import numpy as np
 from biom import load_table, Table
 from scipy.stats import spearmanr, rankdata, pearsonr
 import matplotlib.pyplot as plt
+
 
 def bh_adjust(p_vals):
     """benjamini-hochberg p-value adjustment"""
@@ -24,7 +26,7 @@ def bonferroni_adjust(p_vals):
 def print_delimited(out_fp, lines, header=None):
     """print a tab delimited file with optional header"""
     out = open(out_fp, 'w')
-    if header != None:
+    if header is not None:
         out.write('\t'.join([str(i) for i in header])+'\n')
     for line in lines:
         out.write('\t'.join([str(i) for i in line])+'\n')
@@ -46,16 +48,16 @@ def filter_table(table, min_samples=None, to_file=True):
     """filter relative abundance table, by default throw away things greater than 1/3 zeros"""
     table = table.copy()
     # first sample filter
-    if min_samples != None:
-        to_keep = [i for i in table.ids(axis='observation') \
+    if min_samples is not None:
+        to_keep = [i for i in table.ids(axis='observation')
                    if sum(table.data(i, axis='observation') != 0) >= min_samples]
     else:
-        to_keep = [i for i in table.ids(axis='observation') \
+        to_keep = [i for i in table.ids(axis='observation')
                    if sum(table.data(i, axis='observation') != 0) >= table.shape[1]/3]
     table.filter(to_keep, axis='observation')
     
-    if to_file == True:
-        table.to_json('filter_table',open("filtered_tab.biom",'w'))
+    if to_file:
+        table.to_json('filter_table', open("filtered_tab.biom", 'w'))
         # open("filtered_rel_abund.txt", 'w').write(table.to_tsv())
 
     return table
@@ -76,13 +78,13 @@ def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=bh_a
             correls.append([otus[i], otus[j], correl[0], correl[1]])
 
     # adjust p-value if desired
-    if p_adjust != None:
+    if p_adjust is not None:
         p_adjusted = p_adjust([i[3] for i in correls])
         for i in xrange(len(correls)):
             correls[i].append(p_adjusted[i])
 
     header = ['feature1', 'feature2', 'r', 'p']
-    if p_adjust != None:
+    if p_adjust is not None:
         header.append('adjusted_p')
 
     return correls, header
@@ -100,14 +102,14 @@ def make_net_from_correls(correls, min_p=.05):
     for correl in correls:
         graph.add_node(correl[0])
         graph.add_node(correl[1])
-        graph.add_edge(correl[0], correl[1], r=correl[2], \
-                   p=correl[3], p_adj=correl[4])
+        graph.add_edge(correl[0], correl[1], r=correl[2],
+                       p=correl[3], p_adj=correl[4])
     return graph
 
 
 def make_modules(graph, k=None):
     """make modules with networkx k-clique communities and annotate network"""
-    if k == None:
+    if k is None:
         k = [2, 3, 4, 5, 6]
     communities = dict()
     for k_val in list(k):
@@ -120,7 +122,7 @@ def make_modules(graph, k=None):
     return graph, {k: list(v) for k, v in communities.iteritems()}
 
 
-def collapse_modules(table, cliques):
+def collapse_modules(table, cliques, prefix="module_"):
     """collapse created modules in a biom table"""
     in_module = set()
     modules = np.zeros((len(cliques), table.shape[1]))
@@ -134,8 +136,7 @@ def collapse_modules(table, cliques):
 
     # make new table
     new_table_matrix = np.concatenate((table.matrix_data.toarray(), modules))
-    new_table_obs = list(table.ids(axis='observation')) + \
-                    ["module_" + str(i) for i in range(0, len(cliques))]
+    new_table_obs = list(table.ids(axis='observation')) + [prefix + str(i) for i in range(0, len(cliques))]
     return Table(new_table_matrix, new_table_obs, table.ids())
 
 
@@ -147,14 +148,17 @@ def main():
     parser.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
     parser.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     parser.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
+    parser.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
     args = parser.parse_args()
 
     # correlation and p-value adjustment methods
-    correl_methods = {'spearman':spearmanr, 'pearson':pearsonr}
-    p_methods = {'bh':bh_adjust, 'bon':bonferroni_adjust}
+    correl_methods = {'spearman': spearmanr, 'pearson': pearsonr}
+    p_methods = {'bh': bh_adjust, 'bon': bonferroni_adjust}
     correl_method = correl_methods[args.correl_method]
-    if args.p_adjust != None:
+    if args.p_adjust is not None:
         p_adjust = p_methods[args.p_adjust]
+    else:
+        p_adjust = None
 
     # get features to be correlated
     table = load_table(args.input)
@@ -185,7 +189,7 @@ def main():
     nx.write_gml(net, 'conetwork.gml')
 
     # collapse modules
-    coll_table = collapse_modules(table, cliques[3])
+    coll_table = collapse_modules(table, cliques[3], args.prefix)
     print "Table Collapsed"
 
     # print new table

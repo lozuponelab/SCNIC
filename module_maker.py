@@ -138,11 +138,13 @@ def collapse_modules(table, cliques, prefix="module_"):
     in_module = set()
     modules = np.zeros((len(cliques), table.shape[1]))
 
-    # for each clique merge values
-    for i, clique in enumerate(cliques):
-        in_module = in_module | set(clique)
-        for feature in clique:
-            modules[i] += table.data(feature, axis='observation')
+    # for each clique merge values and print cliques to file
+    with open("cliques.txt", 'w') as f:
+        for i, clique in enumerate(cliques):
+            in_module = in_module | set(clique)
+            f.write(prefix+str(i)+'\t'+','.join(clique)+'\n')
+            for feature in clique:
+                modules[i] += table.data(feature, axis='observation')
     table.filter(in_module, axis='observation')
 
     # make new table

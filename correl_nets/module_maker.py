@@ -7,63 +7,11 @@ import os
 import networkx as nx
 import numpy as np
 
+from correl_nets import general
 from biom import load_table, Table
-from scipy.stats import spearmanr, rankdata, pearsonr
-import matplotlib.pyplot as plt
+from scipy.stats import spearmanr, pearsonr
 
-
-def bh_adjust(p_vals):
-    """benjamini-hochberg p-value adjustment"""
-    p_vals = np.array(p_vals)
-    return p_vals*len(p_vals)/rankdata(p_vals, method='dense')
-
-
-def bonferroni_adjust(p_vals):
-    """bonferroni p-value adjustment"""
-    return [i*len(p_vals) for i in p_vals]
-
-
-def print_delimited(out_fp, lines, header=None):
-    """print a tab delimited file with optional header"""
-    out = open(out_fp, 'w')
-    if header is not None:
-        out.write('\t'.join([str(i) for i in header])+'\n')
-    for line in lines:
-        out.write('\t'.join([str(i) for i in line])+'\n')
-    out.close()
-
-
-def plot_networkx(graph):
-    """plot networkx object in matplotlib"""
-    graph_pos = nx.circular_layout(graph)
-
-    nx.draw_networkx_nodes(graph, graph_pos, node_size=1000, node_color='blue', alpha=0.3)
-    nx.draw_networkx_edges(graph, graph_pos, width=2, alpha=0.3, edge_color='green')
-    nx.draw_networkx_labels(graph, graph_pos, font_size=12, font_family='sans-serif')
-
-    plt.show()
-
-
-def filter_table(table, min_samples=None, to_file=True):
-    """filter relative abundance table, by default throw away things greater than 1/3 zeros"""
-    table = table.copy()
-    # first sample filter
-    if min_samples is not None:
-        to_keep = [i for i in table.ids(axis='observation')
-                   if sum(table.data(i, axis='observation') != 0) >= min_samples]
-    else:
-        to_keep = [i for i in table.ids(axis='observation')
-                   if sum(table.data(i, axis='observation') != 0) >= table.shape[1]/3]
-    table.filter(to_keep, axis='observation')
-    
-    if to_file:
-        table.to_json('filter_table', open("filtered_tab.biom", 'w'))
-        # open("filtered_rel_abund.txt", 'w').write(table.to_tsv())
-
-    return table
-
-
-def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=bh_adjust):
+def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=general.bh_adjust):
     """Takes a biom table and finds correlations between all pairs of otus."""
     otus = table.ids(axis='observation')
 
@@ -185,7 +133,7 @@ def main():
 
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr}
-    p_methods = {'bh': bh_adjust, 'bon': bonferroni_adjust}
+    p_methods = {'bh': general.bh_adjust, 'bon': general.bonferroni_adjust}
     correl_method = correl_methods[args.correl_method]
     if args.p_adjust is not None:
         p_adjust = p_methods[args.p_adjust]
@@ -201,12 +149,12 @@ def main():
     os.chdir(args.output)
 
     # convert to relative abundance and filter
-    table_filt = filter_table(table, args.min_sample)
+    table_filt = general.filter_table(table, args.min_sample)
     print "Table filtered"
 
     # correlate feature
     correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
-    print_delimited('correls.txt', correls, correl_header)
+    general.print_delimited('correls.txt', correls, correl_header)
     print "Features Correlated"
 
     # make correlation network

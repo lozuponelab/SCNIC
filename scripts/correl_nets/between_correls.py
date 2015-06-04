@@ -3,12 +3,12 @@ __author__ = 'shafferm'
 import argparse
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr
-from . import general
+from correl_nets import general
 import os
 import networkx as nx
 
 
-def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjust=general.bh_adjust):
+def between_correls(table1, table2, correl_method=spearmanr, p_adjust=general.bh_adjust):
     otus1 = table1.ids(axis="observation")
     otus2 = table2.ids(axis="observation")
 
@@ -46,7 +46,7 @@ def make_net_from_correls(correls, min_p=.05):
     return graph
 
 
-def between_correls(args):
+def main(args):
 
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr}
@@ -70,7 +70,7 @@ def between_correls(args):
     table2 = general.filter_table(table2)
 
     # make correlations
-    correls, correl_header = between_correls_from_tables(table1, table2, correl_method, p_adjust)
+    correls, correl_header = between_correls(table1, table2, correl_method, p_adjust)
     general.print_delimited('correls.txt', correls, correl_header)
 
     # make network
@@ -86,4 +86,4 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     parser.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
 
-    between_correls(parser.parse_args())
+    main(parser.parse_args())

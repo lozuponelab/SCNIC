@@ -11,6 +11,7 @@ from correl_nets import general
 from biom import load_table, Table
 from scipy.stats import spearmanr, pearsonr
 
+
 def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=general.bh_adjust):
     """Takes a biom table and finds correlations between all pairs of otus."""
     otus = table.ids(axis='observation')
@@ -66,6 +67,7 @@ def make_modules(graph, k=3):
             graph.node[node]['k_' + str(k)] = i
     return graph, cliques
 
+
 def make_modules_multik(graph, k=None):
     """make modules with networkx k-clique communities and annotate network"""
     if k is None:
@@ -119,18 +121,7 @@ def collapse_modules_multik(table, cliques, prefix="module_"):
     return Table(new_table_matrix, new_table_obs, table.ids())
 
 
-def main():
-    """main, takes argparser"""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input", help="location of input biom file")
-    parser.add_argument("-o", "--output", help="output file location")
-    parser.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
-    parser.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
-    parser.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
-    parser.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
-    parser.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
-    args = parser.parse_args()
-
+def main(args):
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr}
     p_methods = {'bh': general.bh_adjust, 'bon': general.bonferroni_adjust}
@@ -158,7 +149,7 @@ def main():
     print "Features Correlated"
 
     # make correlation network
-    net = make_net_from_correls(correls)
+    net = general.make_net_from_correls(correls)
     print "Network Generated"
 
     # make modules
@@ -177,4 +168,13 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    """main, takes argparser"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input", help="location of input biom file")
+    parser.add_argument("-o", "--output", help="output file location")
+    parser.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
+    parser.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
+    parser.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
+    parser.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
+    parser.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
+    main(parser.parse_args())

@@ -62,8 +62,9 @@ def between_correls(args):
     table2 = load_table(args.table2)
 
     # make new output directory and change to it
-    os.makedirs(args.output)
-    os.chdir(args.output)
+    if args.output is not None:
+        os.makedirs(args.output)
+        os.chdir(args.output)
 
     # filter tables
     table1 = general.filter_table(table1)

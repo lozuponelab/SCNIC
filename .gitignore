@@ -1,2 +1,5 @@
 .*
 *.pyc
+build/*
+correl_nets.egg-info/*
+dist/*

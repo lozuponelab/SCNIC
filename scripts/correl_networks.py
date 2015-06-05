@@ -6,8 +6,8 @@ __author__ = 'shafferm'
 """
 
 import argparse
-from module_maker import module_maker
-from between_correls import between_correls
+from correl_nets.module_maker import module_maker
+from correl_nets.between_correls import between_correls
 
 
 def main():
@@ -15,10 +15,10 @@ def main():
     parser = argparse.ArgumentParser()
 
     subparsers = parser.add_subparsers()
-    within_corr = subparsers.add_parser()
-    between_corr = subparsers.add_parser()
+    within_corr = subparsers.add_parser("within", help="Find pairwise correlations within a table and make modules")
+    between_corr = subparsers.add_parser("between", help="Find correlations between two tables")
 
-    within_corr.add_argument("-i", "--input", help="location of input biom file")
+    within_corr.add_argument("-i", "--input", help="location of input biom file", required=True)
     within_corr.add_argument("-o", "--output", help="output file location")
     within_corr.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
     within_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
@@ -27,8 +27,8 @@ def main():
     within_corr.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
     within_corr.set_defaults(func=module_maker)
 
-    between_corr.add_argument("-1", "--table1", help="table to be correlated")
-    between_corr.add_argument("-2", "--table2", help="second table to be correlated")
+    between_corr.add_argument("-1", "--table1", help="table to be correlated", required=True)
+    between_corr.add_argument("-2", "--table2", help="second table to be correlated", required=True)
     between_corr.add_argument("-o", "--output", help="output file location")
     between_corr.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
     between_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
@@ -37,3 +37,6 @@ def main():
 
     args = parser.parse_args()
     args.func(args)
+
+if __name__ == "__main__":
+    main()

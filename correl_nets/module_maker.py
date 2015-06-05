@@ -136,8 +136,9 @@ def module_maker(args):
     print "Table loaded"
 
     # make new output directory and change to it
-    os.makedirs(args.output)
-    os.chdir(args.output)
+    if args.output is not None:
+        os.makedirs(args.output)
+        os.chdir(args.output)
 
     # convert to relative abundance and filter
     table_filt = general.filter_table(table, args.min_sample)

@@ -39,23 +39,6 @@ def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=gene
     return correls, header
 
 
-def make_net_from_correls(correls, min_p=.05):
-    """make network from set of correlations with values less than a minimum"""
-    # filter to only include significant correlations
-    try:
-        correls = list(i for i in correls if i[4] < min_p and i[2] > 0)
-    except IndexError:
-        correls = list(i for i in correls if i[3] < min_p and i[2] > 0)
-
-    graph = nx.Graph()
-    for correl in correls:
-        graph.add_node(correl[0])
-        graph.add_node(correl[1])
-        graph.add_edge(correl[0], correl[1], r=correl[2],
-                       p=correl[3], p_adj=correl[4])
-    return graph
-
-
 def make_modules(graph, k=3):
     """make modules with networkx k-clique communities and annotate network
     :type graph: networkx graph
@@ -150,7 +133,7 @@ def module_maker(args):
     print "Features Correlated"
 
     # make correlation network
-    net = make_net_from_correls(correls)
+    net = general.correls_to_conet(correls)
     print "Network Generated"
 
     # make modules

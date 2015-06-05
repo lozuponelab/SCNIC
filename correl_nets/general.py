@@ -29,6 +29,57 @@ def print_delimited(out_fp, lines, header=None):
     out.close()
 
 
+def read_delimited(in_fp, header=False):
+    """Read in delimited file"""
+    delim = list()
+    with open(in_fp) as f:
+        if header is True:
+            f.readline()
+        for line in f:
+            delim.append(line.strip().split('\t'))
+    return delim
+
+
+def correls_to_conet(correls, min_p=.05):
+    """make network from set of correlations with values less than a minimum"""
+    # filter to only include significant correlations
+    try:
+        correls = list(i for i in correls if i[4] < min_p and i[2] > 0)
+    except IndexError:
+        correls = list(i for i in correls if i[3] < min_p and i[2] > 0)
+
+    graph = nx.Graph()
+    for correl in correls:
+        graph.add_node(correl[0])
+        graph.add_node(correl[1])
+        graph.add_edge(correl[0], correl[1], r=correl[2],
+                       p=correl[3], p_adj=correl[4])
+    return graph
+
+
+def correls_to_net(correls, min_p=.05):
+    # filter to only include significant correlations
+    try:
+        correls = list(i for i in correls if i[4] < min_p)
+    except IndexError:
+        correls = list(i for i in correls if i[3] < min_p)
+    graph = nx.Graph()
+    for correl in correls:
+        graph.add_node(correl[0])
+        graph.add_node(correl[1])
+        graph.add_edge(correl[0], correl[1], r=correl[2],
+                       p=correl[3], p_adj=correl[4], sign_pos=abs(correl[2]) == correl[2])
+    return graph
+
+
+def make_net_from_correls(correls_fp, conet=False):
+    correls = read_delimited(correls_fp, header=True)
+    if conet:
+        return correls_to_conet(correls)
+    else:
+        return correls_to_net(correls)
+
+
 def filter_table(table, min_samples=None, to_file=False):
     """filter relative abundance table, by default throw away things greater than 1/3 zeros"""
     table = table.copy()

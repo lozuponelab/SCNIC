@@ -3,7 +3,7 @@ __author__ = 'shafferm'
 import argparse
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr
-from . import general
+import general
 import os
 import networkx as nx
 
@@ -22,28 +22,10 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjus
             correls.append([otu1, otu2, corr[1], corr[2]])
 
     p_adjusted = p_adjust([i[3] for i in correls])
-    correls = [correls[i].append(p_adjusted[i]) for i in correls]
-    #for i in xrange(len(correls)):
-    #    correls[i].append(p_adjusted[i])
+    for i in xrange(len(correls)):
+            correls[i].append(p_adjusted[i])
 
     return correls, ['feature1', 'feature2', 'r', 'p', 'p_adj']
-
-
-def make_net_from_correls(correls, min_p=.05):
-    """make network from set of correlations with values less than a minimum"""
-    # filter to only include significant correlations
-    try:
-        correls = list(i for i in correls if i[4] < min_p)
-    except IndexError:
-        correls = list(i for i in correls if i[3] < min_p)
-
-    graph = nx.Graph()
-    for correl in correls:
-        graph.add_node(correl[0])
-        graph.add_node(correl[1])
-        graph.add_edge(correl[0], correl[1], r=correl[2],
-                       p=correl[3], p_adj=correl[4], sign_pos=abs(correl[2]) == correl[2])
-    return graph
 
 
 def between_correls(args):
@@ -75,7 +57,7 @@ def between_correls(args):
     general.print_delimited('correls.txt', correls, correl_header)
 
     # make network
-    net = make_net_from_correls(correls)
+    net = general.correls_to_net(correls)
     nx.write_gml(net, 'crossnet.gml')
 
 if __name__ == "__main__":

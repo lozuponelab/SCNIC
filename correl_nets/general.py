@@ -74,6 +74,9 @@ def correls_to_net(correls, min_p=.05):
 
 def make_net_from_correls(correls_fp, conet=False):
     correls = read_delimited(correls_fp, header=True)
+    for i, correl in enumerate(correls):
+        for j in xrange(2,len(correl)):
+            correls[i][j] = float(correls[i][j])
     if conet:
         return correls_to_conet(correls)
     else:

@@ -50,14 +50,16 @@ def between_correls(args):
 
     # filter tables
     table1 = general.filter_table(table1)
+    metadata = general.get_metadata_from_table(table1)
     table2 = general.filter_table(table2)
+    metadata.update(general.get_metadata_from_table(table2))
 
     # make correlations
     correls, correl_header = between_correls_from_tables(table1, table2, correl_method, p_adjust)
     general.print_delimited('correls.txt', correls, correl_header)
 
     # make network
-    net = general.correls_to_net(correls)
+    net = general.correls_to_net(correls, metadata=metadata)
     nx.write_gml(net, 'crossnet.gml')
 
 if __name__ == "__main__":

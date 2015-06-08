@@ -3,6 +3,7 @@
 
 import argparse
 import os
+from collections import defaultdict
 
 import networkx as nx
 import numpy as np
@@ -114,8 +115,9 @@ def module_maker(args):
     else:
         p_adjust = None
 
-    # get features to be correlated
+    # get features to be correlated and extract metadata
     table = load_table(args.input)
+    metadata = general.get_metadata_from_table(table)
     print "Table loaded"
 
     # make new output directory and change to it
@@ -133,7 +135,7 @@ def module_maker(args):
     print "Features Correlated"
 
     # make correlation network
-    net = general.correls_to_conet(correls)
+    net = general.correls_to_net(correls, conet=True, metadata=metadata)
     print "Network Generated"
 
     # make modules

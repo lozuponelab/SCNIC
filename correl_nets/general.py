@@ -1,11 +1,21 @@
 __author__ = 'shafferm'
 
 """functions used widely"""
+# TODO: Make correl class and implement across package
+
+from collections import defaultdict
 
 from scipy.stats import rankdata
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+
+
+def get_metadata_from_table(table):
+    metadata = defaultdict(dict)
+    for obs in table.ids(axis="observtion"):
+        metadata[obs] = table.metadata(obs, axis="observation")
+    return metadata
 
 
 def bh_adjust(p_vals):
@@ -40,33 +50,32 @@ def read_delimited(in_fp, header=False):
     return delim
 
 
-def correls_to_conet(correls, min_p=.05):
-    """make network from set of correlations with values less than a minimum"""
+def correls_to_net(correls, min_p=.05, conet=False, metadata=None):
     # filter to only include significant correlations
-    try:
-        correls = list(i for i in correls if i[4] < min_p and i[2] > 0)
-    except IndexError:
-        correls = list(i for i in correls if i[3] < min_p and i[2] > 0)
-
+    if conet:
+        try:
+            correls = list(i for i in correls if i[4] < min_p and i[2] > 0)
+        except IndexError:
+            correls = list(i for i in correls if i[3] < min_p and i[2] > 0)
+    else:
+        try:
+            correls = list(i for i in correls if i[4] < min_p)
+        except IndexError:
+            correls = list(i for i in correls if i[3] < min_p)
     graph = nx.Graph()
     for correl in correls:
         graph.add_node(correl[0])
+        try:
+            for key in metadata:
+                graph.node[correl[0]][key] = metadata[correl[0]][key]
+        except:
+            pass
         graph.add_node(correl[1])
-        graph.add_edge(correl[0], correl[1], r=correl[2],
-                       p=correl[3], p_adj=correl[4])
-    return graph
-
-
-def correls_to_net(correls, min_p=.05):
-    # filter to only include significant correlations
-    try:
-        correls = list(i for i in correls if i[4] < min_p)
-    except IndexError:
-        correls = list(i for i in correls if i[3] < min_p)
-    graph = nx.Graph()
-    for correl in correls:
-        graph.add_node(correl[0])
-        graph.add_node(correl[1])
+        try:
+            for key in metadata:
+                graph.node[correl[1]][key] = metadata[correl[1]][key]
+        except:
+            pass
         graph.add_edge(correl[0], correl[1], r=correl[2],
                        p=correl[3], p_adj=correl[4], sign_pos=abs(correl[2]) == correl[2])
     return graph

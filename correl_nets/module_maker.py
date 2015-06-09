@@ -1,9 +1,7 @@
 """Make modules of observations based on cooccurence networks and collapse table"""
 
 
-import argparse
 import os
-from collections import defaultdict
 
 import networkx as nx
 import numpy as np
@@ -155,6 +153,8 @@ def module_maker(args):
 
 if __name__ == '__main__':
     """main, takes argparser"""
+    import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="location of input biom file")
     parser.add_argument("-o", "--output", help="output file location")

@@ -86,10 +86,7 @@ def make_net_from_correls(correls_fp, conet=False):
     for i, correl in enumerate(correls):
         for j in xrange(2,len(correl)):
             correls[i][j] = float(correls[i][j])
-    if conet:
-        return correls_to_conet(correls)
-    else:
-        return correls_to_net(correls)
+    return correls_to_net(correls, conet=conet)
 
 
 def filter_table(table, min_samples=None, to_file=False):

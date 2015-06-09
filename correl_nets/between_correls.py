@@ -1,6 +1,5 @@
 __author__ = 'shafferm'
 
-import argparse
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr
 import general
@@ -63,6 +62,8 @@ def between_correls(args):
     nx.write_gml(net, 'crossnet.gml')
 
 if __name__ == "__main__":
+    import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-1", "--table1", help="table to be correlated")
     parser.add_argument("-2", "--table2", help="second table to be correlated")

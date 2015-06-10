@@ -3,8 +3,6 @@ __author__ = 'shafferm'
 """functions used widely"""
 # TODO: Make correl class and implement across package
 
-from collections import defaultdict
-
 from scipy.stats import rankdata
 import numpy as np
 import networkx as nx
@@ -12,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 def get_metadata_from_table(table):
-    metadata = defaultdict(dict)
+    metadata = dict()
     for obs in table.ids(axis="observation"):
         metadata[obs] = table.metadata(obs, axis="observation")
     return metadata
@@ -66,14 +64,14 @@ def correls_to_net(correls, min_p=.05, conet=False, metadata=None):
     for correl in correls:
         graph.add_node(correl[0])
         try:
-            for key in metadata:
-                graph.node[correl[0]][key] = metadata[correl[0]][key]
+            for key in metadata[correl[0]]:
+                graph.node[correl[0]][key] = ','.join(metadata[correl[0]][key])
         except:
             pass
         graph.add_node(correl[1])
         try:
-            for key in metadata:
-                graph.node[correl[1]][key] = metadata[correl[1]][key]
+            for key in metadata[correl[1]]:
+                graph.node[correl[1]][key] = ','.join(metadata[correl[1]][key])
         except:
             pass
         graph.add_edge(correl[0], correl[1], r=correl[2],
@@ -84,7 +82,7 @@ def correls_to_net(correls, min_p=.05, conet=False, metadata=None):
 def make_net_from_correls(correls_fp, conet=False):
     correls = read_delimited(correls_fp, header=True)
     for i, correl in enumerate(correls):
-        for j in xrange(2,len(correl)):
+        for j in xrange(2, len(correl)):
             correls[i][j] = float(correls[i][j])
     return correls_to_net(correls, conet=conet)
 

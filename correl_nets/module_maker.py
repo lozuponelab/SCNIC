@@ -133,7 +133,7 @@ def module_maker(args):
     print "Features Correlated"
 
     # make correlation network
-    net = general.correls_to_net(correls, conet=True, metadata=metadata)
+    net = general.correls_to_net(correls, conet=True, metadata=metadata, min_p=args.min_p)
     print "Network Generated"
 
     # make modules
@@ -163,4 +163,5 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
     parser.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
     parser.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
+    parser.add_argument("--min_p", help="minimum p-value to determine edges", default=.05, type=float)
     module_maker(parser.parse_args())

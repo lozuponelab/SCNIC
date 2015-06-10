@@ -25,6 +25,7 @@ def main():
     within_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
     within_corr.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
     within_corr.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
+    within_corr.add_argument("--min_p", help="minimum p-value to determine edges", default=.05, type=float)
     within_corr.set_defaults(func=module_maker)
 
     between_corr.add_argument("-1", "--table1", help="table to be correlated", required=True)
@@ -33,6 +34,7 @@ def main():
     between_corr.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
     between_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     between_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
+    between_corr.add_argument("--min_p", help="minimum p-value to determine edges", default=.05, type=float)
     between_corr.set_defaults(func=between_correls)
 
     args = parser.parse_args()

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 def get_metadata_from_table(table):
     metadata = defaultdict(dict)
-    for obs in table.ids(axis="observtion"):
+    for obs in table.ids(axis="observation"):
         metadata[obs] = table.metadata(obs, axis="observation")
     return metadata
 

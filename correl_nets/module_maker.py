@@ -13,17 +13,11 @@ from scipy.stats import spearmanr, pearsonr
 
 def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=general.bh_adjust):
     """Takes a biom table and finds correlations between all pairs of otus."""
-    otus = table.ids(axis='observation')
-
     correls = list()
 
-    # do all correlations
-    for i in xrange(1, len(otus)):
-        otu_i = table.data(otus[i], axis='observation')
-        for j in xrange(i+1, len(otus)):
-            otu_j = table.data(otus[j], axis='observation')
-            correl = correl_method(otu_i, otu_j)
-            correls.append([otus[i], otus[j], correl[0], correl[1]])
+    for (data_i, otu_i, metadata_i), (data_j, otu_j, metadata_j) in table.iter_pairwise(axis='observation'):
+        correl = correl_method(data_i, data_j)
+        correls.append([otu_i, otu_j, correl[0], correl[1]])
 
     # adjust p-value if desired
     if p_adjust is not None:

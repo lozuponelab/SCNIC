@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 
 def get_metadata_from_table(table):
     metadata = dict()
-    for obs in table.ids(axis="observation"):
-        if table.metadata(obs, axis="observation") != None:
-            metadata[obs] = table.metadata(obs, axis="observation")
+    for data_i, otu_i, metadata_i in table.iter(axis="observation"):
+        if metadata_i is not None:
+            metadata[otu_i] = metadata_i
     return metadata
 
 
@@ -52,7 +52,7 @@ def read_delimited(in_fp, header=False):
 def read_correls(correls_fp):
     correls = read_delimited(correls_fp, True)
     for i in xrange(len(correls)):
-        for j in xrange(2,len(correls[i])):
+        for j in xrange(2, len(correls[i])):
             correls[i][j] = float(correls[i][j])
     return correls
 
@@ -125,7 +125,7 @@ def plot_pair(table, otu1, otu2):
     # now annotate
     for i, txt in enumerate(table.ids()):
         txt = txt.split('.')[-1]
-        plt.annotate(txt, (x[i],y[i]))
+        plt.annotate(txt, (x[i], y[i]))
     plt.show()
 
 

@@ -8,17 +8,12 @@ import networkx as nx
 
 
 def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjust=general.bh_adjust):
-    otus1 = table1.ids(axis="observation")
-    otus2 = table2.ids(axis="observation")
-
     correls = list()
 
-    for otu1 in otus1:
-        row1 = table1.data(otu1, axis="observation")
-        for otu2 in otus2:
-            row2 = table2.data(otu2, axis="observation")
-            corr = correl_method(row1, row2)
-            correls.append([otu1, otu2, corr[1], corr[2]])
+    for data_i, otu_i, metadata_i in table1.iter(axis="observation"):
+        for data_j, otu_j, metadata_j in table2.iter(axis="observation"):
+            corr = correl_method(data_i, data_j)
+            correls.append([otu_i, otu_j, corr[1], corr[2]])
 
     p_adjusted = p_adjust([i[3] for i in correls])
     for i in xrange(len(correls)):

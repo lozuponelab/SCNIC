@@ -3,7 +3,7 @@ __author__ = 'shafferm'
 """functions used widely"""
 # TODO: Make correl class and implement across package
 
-from scipy.stats import rankdata
+from scipy.stats import rankdata, linregress
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -49,7 +49,20 @@ def read_delimited(in_fp, header=False):
     return delim
 
 
+def read_correls(correls_fp):
+    correls = read_delimited(correls_fp, True)
+    for i in xrange(len(correls)):
+        for j in xrange(2,len(correls[i])):
+            correls[i][j] = float(correls[i][j])
+    return correls
+
+
 def correls_to_net(correls, min_p=.05, conet=False, metadata=None):
+    """"""
+
+    if metadata is None:
+        metadata = []
+
     # filter to only include significant correlations
     if conet:
         try:
@@ -103,6 +116,27 @@ def filter_table(table, min_samples=None, to_file=False):
         # open("filtered_rel_abund.txt", 'w').write(table.to_tsv())
 
     return table
+
+
+def plot_pair(table, otu1, otu2):
+    x = table.data(otu1, axis="observation")
+    y = table.data(otu2, axis="observation")
+    plt.scatter(x, y)
+    # now annotate
+    for i, txt in enumerate(table.ids()):
+        txt = txt.split('.')[-1]
+        plt.annotate(txt, (x[i],y[i]))
+    plt.show()
+
+
+def compare_slopes(table1, table2, otu1, otu2):
+    x1 = table1.data(otu1, axis="observation")
+    y1 = table1.data(otu2, axis="observation")
+    x2 = table2.data(otu1, axis="observation")
+    y2 = table2.data(otu2, axis="observation")
+    slope1 = linregress(x1, y1)[0]
+    slope2 = linregress(x2, y2)[0]
+    print "slope1: " + str(slope1) + " slope2: " + str(slope2)
 
 
 def plot_networkx(graph):

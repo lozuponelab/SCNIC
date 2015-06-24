@@ -11,6 +11,10 @@ from biom import load_table, Table
 from scipy.stats import spearmanr, pearsonr
 
 
+def num_pairwise_comps(N):
+    return N*(N-1)/2
+
+
 def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=general.bh_adjust):
     """Takes a biom table and finds correlations between all pairs of otus."""
     correls = list()
@@ -30,6 +34,68 @@ def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=gene
         header.append('adjusted_p')
 
     return correls, header
+
+
+def paired_correlations_from_table_with_outlier_removal(table, good_samples, min_keep=10, correl_method=spearmanr,
+                                                        p_adjust=general.bh_adjust):
+    """Takes a biom table and finds correlations between all pairs of otus."""
+    correls = list()
+
+    for (data_i, otu_i, metadata_i), (data_j, otu_j, metadata_j) in table.iter_pairwise(axis='observation'):
+        samp_union = np.union1d(good_samples[otu_i], good_samples[otu_j])
+        # remove zero zero points
+        # samp_union = [ind for i, ind in enumerate(samp_union) if data_i[i]!=0 and data_j[i]!=0]
+        if len(samp_union) > min_keep:
+            correl = correl_method(data_i[samp_union], data_j[samp_union])
+            correls.append([otu_i, otu_j, correl[0], correl[1]])
+
+    # adjust p-value if desired
+    if p_adjust is not None:
+        p_adjusted = p_adjust([i[3] for i in correls])
+        for i in xrange(len(correls)):
+            correls[i].append(p_adjusted[i])
+
+    header = ['feature1', 'feature2', 'r', 'p']
+    if p_adjust is not None:
+        header.append('adjusted_p')
+
+    return correls, header
+
+
+def sparcc_correlations(table):
+    import pysurvey as ps
+    import pandas as pd
+
+    df = biom_to_pandas(table)
+    z, cov = ps.basis_corr(df)
+
+
+
+def biom_to_pandas(table):
+    """BIOM->Pandas dataframe converter
+
+    Parameters
+    ----------
+    _bt : biom.Table
+        BIOM table
+
+    Returns
+    -------
+    pandas.DataFrame
+        The BIOM table converted into a DataFrame
+        object.
+
+    References
+    ----------
+    Based on this answer on SO:
+    http://stackoverflow.com/a/17819427/379593
+    """
+    m = table.matrix_data
+    data = [pd.SparseSeries(m[i].toarray().ravel()) for i in np.arange(m.shape[0])]
+    out = pd.SparseDataFrame(data, index=table.ids('observation'),
+                             columns=table.ids('sample'))
+
+    return out
 
 
 def make_modules(graph, k=3):
@@ -110,7 +176,9 @@ def module_maker(args):
     # get features to be correlated and extract metadata
     table = load_table(args.input)
     metadata = general.get_metadata_from_table(table)
-    print "Table loaded"
+    print "Table loaded: " + str(table.shape[0]) + " observations"
+    print "number of comparisons: " + str(num_pairwise_comps(table.shape[0]))
+    print ""
 
     # make new output directory and change to it
     if args.output is not None:
@@ -119,20 +187,41 @@ def module_maker(args):
 
     # convert to relative abundance and filter
     table_filt = general.filter_table(table, args.min_sample)
-    print "Table filtered"
+    print "Table filtered: " + str(table_filt.shape[0]) + " observations"
+    print "possible comparisons: " + str(num_pairwise_comps(table_filt.shape[0]))
+    print ""
 
-    # correlate feature
-    correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
-    general.print_delimited('correls.txt', correls, correl_header)
+    if args.keep_outliers:
+        # correlate feature
+        correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
+        general.print_delimited('correls.txt', correls, correl_header)
+
+    else:
+        # remove outlier observations
+        # first attempt with just looking at individual otu's
+        good_samples = general.remove_outliers(table_filt)
+        print "Outliers removed: " + str(len(good_samples)) + " observations"
+        print "possible comparisons: " + str(num_pairwise_comps(len(good_samples)))
+        print ""
+        correls, correl_header = paired_correlations_from_table_with_outlier_removal(table_filt, good_samples,
+                                                                                     correl_method, p_adjust)
+
     print "Features Correlated"
+    print "comparisons: " + str(len(correls))
+    print ""
 
     # make correlation network
     net = general.correls_to_net(correls, conet=True, metadata=metadata, min_p=args.min_p)
     print "Network Generated"
+    print "number of nodes: " + str(net.number_of_nodes())
+    print "number of edges: " + str(net.number_of_edges())
+    print ""
 
     # make modules
     net, cliques = make_modules(net)
     print "Modules Formed"
+    print "number of modules: " + str(len(cliques))
+    print ""
 
     # print network
     nx.write_gml(net, 'conetwork.gml')
@@ -158,4 +247,5 @@ if __name__ == '__main__':
     parser.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
     parser.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
     parser.add_argument("--min_p", help="minimum p-value to determine edges", default=.05, type=float)
+    parser.add_argument("--keep_outliers", help="don't do outlier detection", default=False, action="store_true")
     module_maker(parser.parse_args())

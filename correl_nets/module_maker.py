@@ -2,14 +2,18 @@
 
 
 import os
+import shutil
+import glob
 
 import networkx as nx
 import numpy as np
+import pysurvey as ps
 
 import general
 from biom import load_table, Table
 from scipy.stats import spearmanr, pearsonr
-
+from pysurvey import SparCC as sparcc
+from functools import partial
 
 def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=general.bh_adjust):
     """Takes a biom table and finds correlations between all pairs of otus."""
@@ -28,6 +32,59 @@ def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=gene
     header = ['feature1', 'feature2', 'r', 'p']
     if p_adjust is not None:
         header.append('adjusted_p')
+
+    return correls, header
+
+
+def boostrapped_correlation_multi(tup, temp_folder, cor_temp):
+    """tup is a tuple where tup[0] is num and tup[1] is the file name"""
+    df = ps.read_txt(tup[1], verbose=False)
+    cor = ps.basis_corr(df, oprint=False)[0]
+    ps.write_txt(cor, temp_folder+cor_temp+str(tup[0])+".txt", T=False)
+
+
+def sparcc_correlations_multi(table, p_adjust=general.bh_adjust, temp_folder=os.getcwd()+"/temp/",
+                              boot_temp="bootstrap_", cor_temp="cor_", table_temp="temp_table.txt",
+                              bootstraps = 100):
+    """Calculate correlations with sparcc"""
+    import multiprocessing
+
+    os.mkdir(temp_folder)
+    pool = multiprocessing.Pool(multiprocessing.cpu_count()-1)
+
+    # make tab delimited, delete first line and reread in
+    with open(temp_folder+table_temp, 'w') as f:
+        f.write('\n'.join(table.to_tsv().split("\n")[1:]))
+    df = ps.read_txt(temp_folder+table_temp, verbose=False)
+
+    sparcc.make_bootstraps(df, bootstraps, boot_temp+"#.txt", temp_folder)
+    cor, cov = ps.basis_corr(df, oprint=False)
+
+    pfun = partial(boostrapped_correlation_multi, temp_folder=temp_folder, cor_temp=cor_temp)
+    tups = enumerate(glob.glob(temp_folder+boot_temp+"*.txt"))
+    pool.map(pfun, tups)
+    pool.close()
+    pool.join()
+
+    p_vals = sparcc.get_pvalues(cor, temp_folder+cor_temp+"#.txt", bootstraps)
+    # generate correls
+    correls = list()
+    for i in xrange(len(cor.index)):
+        for j in xrange(i+1, len(cor.index)):
+            correls.append([cor.index[i], cor.index[j], cor.iat[i, j], p_vals.iat[i, j]])
+
+    # adjust p-value if desired
+    if p_adjust is not None:
+        p_adjusted = p_adjust([i[3] for i in correls])
+        for i in xrange(len(correls)):
+            correls[i].append(p_adjusted[i])
+
+    header = ['feature1', 'feature2', 'r', 'p']
+    if p_adjust is not None:
+        header.append('adjusted_p')
+
+    # cleanup, remove all of bootstraps folder
+    shutil.rmtree(temp_folder)
 
     return correls, header
 
@@ -99,7 +156,7 @@ def collapse_modules_multik(table, cliques, prefix="module_"):
 
 def module_maker(args):
     # correlation and p-value adjustment methods
-    correl_methods = {'spearman': spearmanr, 'pearson': pearsonr}
+    correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'sparcc':sparcc_correlations_multi()}
     p_methods = {'bh': general.bh_adjust, 'bon': general.bonferroni_adjust}
     correl_method = correl_methods[args.correl_method]
     if args.p_adjust is not None:
@@ -122,7 +179,10 @@ def module_maker(args):
     print "Table filtered"
 
     # correlate feature
-    correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
+    if correl_method in [spearmanr, pearsonr]:
+        correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
+    else:
+        correls, correl_header = sparcc_correlations_multi(table, p_adjust)
     general.print_delimited('correls.txt', correls, correl_header)
     print "Features Correlated"
 

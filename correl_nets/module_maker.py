@@ -4,6 +4,7 @@
 import os
 import shutil
 import glob
+import sys
 
 import networkx as nx
 import numpy as np
@@ -22,7 +23,7 @@ def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=gene
 
     for (data_i, otu_i, metadata_i), (data_j, otu_j, metadata_j) in table.iter_pairwise(axis='observation'):
         correl = correl_method(data_i, data_j)
-        correls.append([otu_i, otu_j, correl[0], correl[1]])
+        correls.append([str(otu_i), str(otu_j), correl[0], correl[1]])
 
     # adjust p-value if desired
     if p_adjust is not None:
@@ -72,7 +73,59 @@ def sparcc_correlations_multi(table, p_adjust=general.bh_adjust, temp_folder=os.
     correls = list()
     for i in xrange(len(cor.index)):
         for j in xrange(i+1, len(cor.index)):
-            correls.append([cor.index[i], cor.index[j], cor.iat[i, j], p_vals.iat[i, j]])
+            correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j], p_vals.iat[i, j]])
+
+    # adjust p-value if desired
+    if p_adjust is not None:
+        p_adjusted = p_adjust([i[3] for i in correls])
+        for i in xrange(len(correls)):
+            correls[i].append(p_adjusted[i])
+
+    header = ['feature1', 'feature2', 'r', 'p']
+    if p_adjust is not None:
+        header.append('adjusted_p')
+
+    # cleanup, remove all of bootstraps folder
+    shutil.rmtree(temp_folder)
+
+    return correls, header
+
+
+def boostrapped_correlation(in_file, temp_folder, cor_temp, num):
+    df = ps.read_txt(in_file, verbose=False)
+    cor = ps.basis_corr(df, oprint=False)[0]
+    ps.write_txt(cor, temp_folder+cor_temp+str(num)+".txt", T=False)
+
+
+def sparcc_correlations(table, p_adjust=general.bh_adjust):
+    """"""
+    # setup
+    temp_folder = "temp3/"
+    boot_temp = "bootstrap_"
+    cor_temp = "cor_"
+    table_temp = "temp_table.txt"
+    os.mkdir(temp_folder)
+    bootstraps = 100
+
+    # make tab delimited, delete first line and reread in
+    with open(temp_folder+table_temp, 'w') as f:
+        f.write('\n'.join(table.to_tsv().split("\n")[1:]))
+    df = ps.read_txt(temp_folder+table_temp, verbose=False)
+
+    # calculate correlations
+    cor, cov = ps.basis_corr(df, oprint=False)
+
+    # calculate p-values
+    sparcc.make_bootstraps(df, bootstraps, boot_temp+"#.txt", temp_folder)
+    for i, file in enumerate(glob.glob(temp_folder+boot_temp+"*.txt")):
+        boostrapped_correlation(file, temp_folder, cor_temp, i)
+
+    p_vals = sparcc.get_pvalues(cor, temp_folder+cor_temp+"#.txt", bootstraps)
+    # generate correls
+    correls = list()
+    for i in xrange(len(cor.index)):
+        for j in xrange(i+1, len(cor.index)):
+            correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j], p_vals.iat[i, j]])
 
     # adjust p-value if desired
     if p_adjust is not None:
@@ -101,7 +154,7 @@ def paired_correlations_from_table_with_outlier_removal(table, good_samples, min
         # samp_union = [ind for i, ind in enumerate(samp_union) if data_i[i]!=0 and data_j[i]!=0]
         if len(samp_union) > min_keep:
             correl = correl_method(data_i[samp_union], data_j[samp_union])
-            correls.append([otu_i, otu_j, correl[0], correl[1]])
+            correls.append([str(otu_i), str(otu_j), correl[0], correl[1]])
 
     # adjust p-value if desired
     if p_adjust is not None:
@@ -152,9 +205,19 @@ def collapse_modules(table, cliques, prefix="module_"):
     with open("cliques.txt", 'w') as f:
         for i, clique in enumerate(cliques):
             in_module = in_module | set(clique)
-            f.write(prefix+str(i)+'\t'+','.join(clique)+'\n')
+            f.write(prefix+str(i)+'\t'+','.join([str(i) for i in clique])+'\n')
             for feature in clique:
-                modules[i] += table.data(feature, axis='observation')
+                try:
+                    modules[i] += table.data(feature, axis='observation')
+                except:
+                    print table.ids(axis="observation")
+                    print len(table.ids(axis="observation"))
+                    print table.ids(axis="observation")[0]
+                    print feature
+                    print type(feature)
+                    print unicode(feature)
+                    print table.shape
+                    sys.exit()
     table.filter(in_module, axis='observation')
 
     # make new table
@@ -220,14 +283,11 @@ def module_maker(args):
         else:
             # correlate feature
             correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
-            general.print_delimited('correls.txt', correls, correl_header)
     else:
-        correls, correl_header = sparcc_correlations_multi(table, p_adjust)
+        correls, correl_header = sparcc_correlations_multi(table_filt, p_adjust)
     general.print_delimited('correls.txt', correls, correl_header)
 
     print "Features Correlated"
-    print "comparisons: " + str(len(correls))
-    print ""
 
     # make correlation network
     net = general.correls_to_net(correls, conet=True, metadata=metadata, min_p=args.min_p)

@@ -266,9 +266,10 @@ def module_maker(args):
         os.chdir(args.output)
 
     # convert to relative abundance and filter
-    table_filt = general.filter_table(table, args.min_sample)
-    print "Table filtered: " + str(table_filt.shape[0]) + " observations"
-    print ""
+    if args.min_sample != None:
+        table_filt = general.filter_table(table, args.min_sample)
+        print "Table filtered: " + str(table_filt.shape[0]) + " observations"
+        print ""
 
     # correlate feature
     if correl_method in [spearmanr, pearsonr]:

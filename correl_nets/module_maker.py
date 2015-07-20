@@ -270,6 +270,8 @@ def module_maker(args):
         table_filt = general.filter_table(table, args.min_sample)
         print "Table filtered: " + str(table_filt.shape[0]) + " observations"
         print ""
+    else:
+        table_filt = table
 
     # correlate feature
     if correl_method in [spearmanr, pearsonr]:

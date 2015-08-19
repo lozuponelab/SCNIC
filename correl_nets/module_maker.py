@@ -97,15 +97,12 @@ def boostrapped_correlation(in_file, temp_folder, cor_temp, num):
     ps.write_txt(cor, temp_folder+cor_temp+str(num)+".txt", T=False)
 
 
-def sparcc_correlations(table, p_adjust=general.bh_adjust):
+def sparcc_correlations(table, p_adjust=general.bh_adjust, temp_folder=os.getcwd()+"/temp/",
+                              boot_temp="bootstrap_", cor_temp="cor_", table_temp="temp_table.txt",
+                              bootstraps=100):
     """"""
     # setup
-    temp_folder = "temp3/"
-    boot_temp = "bootstrap_"
-    cor_temp = "cor_"
-    table_temp = "temp_table.txt"
     os.mkdir(temp_folder)
-    bootstraps = 100
 
     # make tab delimited, delete first line and reread in
     with open(temp_folder+table_temp, 'w') as f:

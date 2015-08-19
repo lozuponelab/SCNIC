@@ -208,15 +208,10 @@ def collapse_modules(table, cliques, prefix="module_"):
             f.write(prefix+str(i)+'\t'+','.join([str(i) for i in clique])+'\n')
             for feature in clique:
                 try:
-                    modules[i] += table.data(feature, axis='observation')
+                    modules[i] += table.data(feature, axis="observation")
                 except:
-                    print table.ids(axis="observation")
-                    print len(table.ids(axis="observation"))
-                    print table.ids(axis="observation")[0]
                     print feature
-                    print type(feature)
-                    print unicode(feature)
-                    print table.shape
+                    print feature in table.ids(axis="observation")
                     sys.exit()
     table.filter(in_module, axis='observation')
 
@@ -287,7 +282,7 @@ def module_maker(args):
             # correlate feature
             correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
     else:
-        correls, correl_header = sparcc_correlations_multi(table_filt, p_adjust)
+        correls, correl_header = sparcc_correlations(table_filt, p_adjust)
     general.print_delimited('correls.txt', correls, correl_header)
 
     print "Features Correlated"

@@ -1,6 +1,8 @@
 """Make modules of observations based on cooccurence networks and collapse table"""
 
 
+##TODO: Add parameters log output file to output folder
+
 import os
 import shutil
 import glob
@@ -12,6 +14,7 @@ import pysurvey as ps
 
 import general
 from biom import load_table, Table
+from biom.exception import UnknownIDError
 from scipy.stats import spearmanr, pearsonr
 from pysurvey import SparCC as sparcc
 from functools import partial
@@ -202,14 +205,20 @@ def collapse_modules(table, cliques, prefix="module_"):
     with open("cliques.txt", 'w') as f:
         for i, clique in enumerate(cliques):
             in_module = in_module | set(clique)
-            f.write(prefix+str(i)+'\t'+','.join([str(i) for i in clique])+'\n')
+            f.write(prefix+str(i)+'\t'+','.join([str(j) for j in clique])+'\n')
             for feature in clique:
                 try:
                     modules[i] += table.data(feature, axis="observation")
-                except:
+                except UnknownIDError:
                     print feature
                     print feature in table.ids(axis="observation")
-                    sys.exit()
+                    sys.exit("exit with UnknownIDError")
+                except IndexError:
+                    print table.data(feature, axis="observation").shape
+                    print modules.shape
+                    print i
+                    print len(cliques)
+                    sys.exit("exit with IndexError")
     table.filter(in_module, axis='observation')
 
     # make new table
@@ -233,7 +242,7 @@ def collapse_modules_multik(table, cliques, prefix="module_"):
     # make new table
     new_table_matrix = np.concatenate((table.matrix_data.toarray(), modules))
     new_table_obs = list(table.ids(axis='observation')) + [prefix + str(i) for i in range(0, len(cliques))]
-    return Table(new_table_matrix, new_table_obs, table.ids())
+    return Table(new_table_matrix, new_table_obs, table.ids(), table.metadata(axis="observation"), table.metadata(axis="sample"))
 
 
 def module_maker(args):
@@ -315,11 +324,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="location of input biom file")
     parser.add_argument("-o", "--output", help="output file location")
-    parser.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
+    parser.add_argument("-m", "--correl_method", help="correlation method", default="sparcc")
     parser.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     parser.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
     parser.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
     parser.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
     parser.add_argument("--min_p", help="minimum p-value to determine edges", default=.05, type=float)
-    parser.add_argument("--outlier_removal", help="outlier detection and removal", default=False, action="store_false")
+    parser.add_argument("--outlier_removal", help="outlier detection and removal", default=False, action="store_true")
     module_maker(parser.parse_args())

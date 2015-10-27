@@ -19,4 +19,4 @@ if __name__ == '__main__':
         correls, header = sparcc_correlations(table, bootstraps=args.boots)
     else:
         correls, header = sparcc_correlations_multi(table, bootstraps=args.boots)
-    print_delimited(args.out, correls, header)
+    print_delimited(args.output, correls, header)

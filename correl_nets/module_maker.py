@@ -197,6 +197,69 @@ def sparcc_correlations_lowmem(table, p_adjust=general.bh_adjust, temp_folder=os
 
     return correls, header
 
+
+def boostrapped_correlation_lowmem_multi(in_file, cor):
+    df = ps.read_txt(in_file, verbose=False)
+    in_cor = ps.basis_corr(df, oprint=False)[0]
+    in_cor = squareform(in_cor, checks=False)
+    return np.abs(in_cor) >= cor
+
+
+def sparcc_correlations_lowmem_multi(table, p_adjust=general.bh_adjust, temp_folder=os.getcwd()+"/temp/",
+                              boot_temp="bootstrap_", table_temp="temp_table.txt",
+                              bootstraps=100):
+    """"""
+    # setup
+    import multiprocessing
+
+    os.mkdir(temp_folder)
+    pool = multiprocessing.Pool(multiprocessing.cpu_count()-1)
+
+    # make tab delimited, delete first line and reread in
+    # TODO: Convert to making pandas dataframe directly
+    with open(temp_folder+table_temp, 'w') as f:
+        f.write('\n'.join(table.to_tsv().split("\n")[1:]))
+    df = ps.read_txt(temp_folder+table_temp, verbose=False)
+
+    # calculate correlations
+    cor, cov = ps.basis_corr(df, oprint=False)
+
+    # calculate p-values
+    abs_cor = np.abs(squareform(cor, checks=False))
+    n_sig = np.zeros(abs_cor.shape)
+    # TODO: Convert to making bootstraps directly, eliminate read/write
+    sparcc.make_bootstraps(df, bootstraps, boot_temp+"#.txt", temp_folder)
+    pfun = partial(boostrapped_correlation_lowmem_multi, cor=abs_cor)
+    multi_results = pool.map(pfun, glob.glob(temp_folder+boot_temp+"*.txt"))
+    pool.close()
+    pool.join()
+
+    for i in multi_results:
+        n_sig[i] += 1
+    p_vals = squareform(1.*n_sig/bootstraps, checks=False)
+
+    # generate correls
+    correls = list()
+    for i in xrange(len(cor.index)):
+        for j in xrange(i+1, len(cor.index)):
+            correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j], p_vals[i, j]])
+
+    # adjust p-value if desired
+    if p_adjust is not None:
+        p_adjusted = p_adjust([i[3] for i in correls])
+        for i in xrange(len(correls)):
+            correls[i].append(p_adjusted[i])
+
+    header = ['feature1', 'feature2', 'r', 'p']
+    if p_adjust is not None:
+        header.append('adjusted_p')
+
+    # cleanup, remove all of bootstraps folder
+    shutil.rmtree(temp_folder)
+
+    return correls, header
+
+
 def paired_correlations_from_table_with_outlier_removal(table, good_samples, min_keep=10, correl_method=spearmanr,
                                                         p_adjust=general.bh_adjust):
     """Takes a biom table and finds correlations between all pairs of otus."""

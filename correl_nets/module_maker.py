@@ -52,12 +52,15 @@ def boostrapped_correlation_multi(tup, temp_folder, cor_temp):
 
 def sparcc_correlations_multi(table, p_adjust=general.bh_adjust, temp_folder=os.getcwd()+"/temp/",
                               boot_temp="bootstrap_", cor_temp="cor_", table_temp="temp_table.txt",
-                              bootstraps=100):
+                              bootstraps=100, procs=None):
     """Calculate correlations with sparcc"""
     import multiprocessing
 
     os.mkdir(temp_folder)
-    pool = multiprocessing.Pool(multiprocessing.cpu_count()-1)
+    if procs == None:
+        pool = multiprocessing.Pool(multiprocessing.cpu_count()-1)
+    else:
+        pool = multiprocessing.Pool(procs)
 
     # make tab delimited, delete first line and reread in
     with open(temp_folder+table_temp, 'w') as f:
@@ -207,13 +210,16 @@ def boostrapped_correlation_lowmem_multi(in_file, cor):
 
 def sparcc_correlations_lowmem_multi(table, p_adjust=general.bh_adjust, temp_folder=os.getcwd()+"/temp/",
                               boot_temp="bootstrap_", table_temp="temp_table.txt",
-                              bootstraps=100):
+                              bootstraps=100, procs=None):
     """"""
     # setup
     import multiprocessing
 
     os.mkdir(temp_folder)
-    pool = multiprocessing.Pool(multiprocessing.cpu_count()-1)
+    if procs == None:
+        pool = multiprocessing.Pool(multiprocessing.cpu_count()-1)
+    else:
+        pool = multiprocessing.Pool(procs)
 
     # make tab delimited, delete first line and reread in
     # TODO: Convert to making pandas dataframe directly
@@ -405,7 +411,7 @@ def module_maker(args):
             # correlate feature
             correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
     else:
-        correls, correl_header = sparcc_correlations(table_filt, p_adjust)
+        correls, correl_header = sparcc_correlations_lowmem_multi(table_filt, p_adjust)
     general.print_delimited('correls.txt', correls, correl_header)
 
     print "Features Correlated"

@@ -27,6 +27,8 @@ def main():
     within_corr.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
     within_corr.add_argument("--min_p", help="minimum p-value to determine edges", default=.05, type=float)
     within_corr.add_argument("--outlier_removal", help="outlier detection and removal", default=False, action="store_false")
+    within_corr.add_argument("--procs", help="number of processors for sparcc", default=None)
+    within_corr.add_argument("-b", "--bootstraps", help="number of bootstraps", default=100, type=int)
     within_corr.set_defaults(func=module_maker)
 
     between_corr.add_argument("-1", "--table1", help="table to be correlated", required=True)

@@ -411,7 +411,8 @@ def module_maker(args):
             # correlate feature
             correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
     else:
-        correls, correl_header = sparcc_correlations_lowmem_multi(table_filt, p_adjust)
+        correls, correl_header = sparcc_correlations_lowmem_multi(table_filt, p_adjust, procs=args.procs,
+                                                                  bootstraps=args.bootstraps)
     general.print_delimited('correls.txt', correls, correl_header)
 
     print "Features Correlated"
@@ -454,4 +455,6 @@ if __name__ == '__main__':
     parser.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
     parser.add_argument("--min_p", help="minimum p-value to determine edges", default=.05, type=float)
     parser.add_argument("--outlier_removal", help="outlier detection and removal", default=False, action="store_true")
+    parser.add_argument("--procs", help="number of processors for sparcc", default=None)
+    parser.add_argument("-b", "--bootstraps", help="number of bootstraps", default=100, type=int)
     module_maker(parser.parse_args())

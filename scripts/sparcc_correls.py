@@ -2,7 +2,7 @@ __author__ = 'shafferm'
 
 import argparse
 from biom import load_table
-from correl_nets.module_maker import sparcc_correlations, sparcc_correlations_multi
+from correl_nets.sparcc_correlations import sparcc_correlations_lowmem, sparcc_correlations_lowmem_multi
 from correl_nets.general import print_delimited
 
 if __name__ == '__main__':
@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     table = load_table(args.input)
     if args.single:
-        correls, header = sparcc_correlations(table, bootstraps=args.boots)
+        correls, header = sparcc_correlations_lowmem(table, bootstraps=args.boots)
     else:
-        correls, header = sparcc_correlations_multi(table, bootstraps=args.boots)
+        correls, header = sparcc_correlations_lowmem_multi(table, bootstraps=args.boots)
     print_delimited(args.output, correls, header)

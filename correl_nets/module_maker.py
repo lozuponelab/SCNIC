@@ -92,6 +92,7 @@ def make_modules_multik(graph, k=None):
 
 def collapse_modules(table, cliques, prefix="module_"):
     """collapse created modules in a biom table"""
+    table = table.copy()
     in_module = set()
     modules = np.zeros((len(cliques), table.shape[1]))
 
@@ -113,9 +114,10 @@ def collapse_modules(table, cliques, prefix="module_"):
                     print i
                     print len(cliques)
                     sys.exit("exit with IndexError")
-    table.filter(in_module, axis='observation')
+    table.filter(in_module, axis='observation', invert=True)
 
     # make new table
+    print table.shape
     new_table_matrix = np.concatenate((table.matrix_data.toarray(), modules))
     new_table_obs = list(table.ids(axis='observation')) + [prefix + str(i) for i in range(0, len(cliques))]
     return Table(new_table_matrix, new_table_obs, table.ids())

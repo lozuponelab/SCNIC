@@ -20,7 +20,7 @@ def main():
 
     within_corr.add_argument("-i", "--input", help="location of input biom file")
     within_corr.add_argument("-o", "--output", help="output file location")
-    within_corr.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
+    within_corr.add_argument("-m", "--correl_method", help="correlation method", default="sparcc")
     within_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     within_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
     within_corr.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")

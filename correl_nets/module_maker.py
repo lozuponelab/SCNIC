@@ -173,6 +173,7 @@ def module_maker(args):
     # correlate feature
     if correl_method in [spearmanr, pearsonr]:
         if args.outlier_removal:
+            print "Correlating with outlier removal."
             # remove outlier observations
             # first attempt with just looking at individual otu's
             good_samples = general.remove_outliers(table_filt)
@@ -181,9 +182,11 @@ def module_maker(args):
             correls, correl_header = paired_correlations_from_table_with_outlier_removal(table_filt, good_samples,
                                                                                          correl_method, p_adjust)
         else:
+            print "Correlating with " + args.correl_method
             # correlate feature
             correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
     else:
+        print "Correlating using sparcc"
         correls, correl_header = sparcc_correlations_lowmem_multi(table_filt, p_adjust, procs=args.procs,
                                                                   bootstraps=args.bootstraps)
     correls.sort(cmp=itemgetter(-1))

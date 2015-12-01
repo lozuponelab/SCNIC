@@ -230,11 +230,11 @@ def sparcc_correlations_lowmem_multi(table, p_adjust=general.bh_adjust, temp_fol
     # setup
     import multiprocessing
 
-    os.mkdir(temp_folder)
     if procs is None:
-        pool = multiprocessing.Pool(multiprocessing.cpu_count()-1)
-    else:
-        pool = multiprocessing.Pool(procs)
+        procs = multiprocessing.cpu_count()-1
+
+    pool = multiprocessing.Pool(procs)
+    print "Number of processors used: " + str(procs)
 
     # convert to pandas dataframe
     df = pd.DataFrame(np.transpose(table.matrix_data.todense()), index=table.ids(), columns=table.ids(axis="observation"))

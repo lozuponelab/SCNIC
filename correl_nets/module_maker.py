@@ -189,7 +189,7 @@ def module_maker(args):
         print "Correlating using sparcc"
         correls, correl_header = sparcc_correlations_lowmem_multi(table_filt, p_adjust, procs=args.procs,
                                                                   bootstraps=args.bootstraps)
-    correls.sort(cmp=itemgetter(-1))
+    correls.sort(key=itemgetter(-1))
     general.print_delimited('correls.txt', correls, correl_header)
 
     print "Features Correlated"

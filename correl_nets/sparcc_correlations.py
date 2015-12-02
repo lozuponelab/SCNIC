@@ -277,7 +277,4 @@ def sparcc_correlations_lowmem_multi(table, p_adjust=general.bh_adjust, temp_fol
     if p_adjust is not None:
         header.append('adjusted_p')
 
-    # cleanup, remove all of bootstraps folder
-    shutil.rmtree(temp_folder)
-
     return correls, header

@@ -117,7 +117,6 @@ def collapse_modules(table, cliques, prefix="module_"):
     table.filter(in_module, axis='observation', invert=True)
 
     # make new table
-    print table.shape
     new_table_matrix = np.concatenate((table.matrix_data.toarray(), modules))
     new_table_obs = list(table.ids(axis='observation')) + [prefix + str(i) for i in range(0, len(cliques))]
     return Table(new_table_matrix, new_table_obs, table.ids())
@@ -234,6 +233,6 @@ if __name__ == '__main__':
     parser.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
     parser.add_argument("--min_p", help="minimum p-value to determine edges", default=.05, type=float)
     parser.add_argument("--outlier_removal", help="outlier detection and removal", default=False, action="store_true")
-    parser.add_argument("--procs", help="number of processors for sparcc", default=None)
+    parser.add_argument("--procs", help="number of processors for sparcc", default=None, type=int)
     parser.add_argument("-b", "--bootstraps", help="number of bootstraps", default=100, type=int)
     module_maker(parser.parse_args())

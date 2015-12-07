@@ -219,6 +219,7 @@ def sparcc_correlations_lowmem(table, p_adjust=general.bh_adjust, temp_folder=os
 
 
 def boostrapped_correlation_lowmem_multi(bootstrap, cor):
+    #TODO: DON'T take bootstrap, generate bootstrap in place here
     in_cor = ps.basis_corr(bootstrap, oprint=False)[0]
     in_cor = squareform(in_cor, checks=False)
     return np.abs(in_cor) >= cor

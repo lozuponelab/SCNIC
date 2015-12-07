@@ -56,6 +56,31 @@ def read_correls(correls_fp):
             correls[i][j] = float(correls[i][j])
     return correls
 
+def correls_to_net_cor(correls, min_cor, conet=False, metadata=None):
+    #TODO: add all columns of correls to edge dict, not only cor
+
+    if metadata is None:
+        metadata = []
+
+    # filter to only include significant correlations
+    if conet:
+        correls = list(i for i in correls if i[2]>0 and i[2]>min_cor)
+    else:
+        correls = list(i for i in correls if np.abs(i[2])>min_cor)
+
+    graph = nx.Graph()
+    for correl in correls:
+        graph.add_node(correl[0])
+        if correl[0] in metadata:
+            for key in metadata[correl[0]]:
+                graph.node[correl[0]][key] = ''.join(metadata[correl[0]][key])
+
+        graph.add_node(correl[1])
+        if correl[1] in metadata:
+            for key in metadata[correl[1]]:
+                graph.node[correl[1]][key] = ''.join(metadata[correl[1]][key])
+        graph.add_edge(correl[0], correl[1], r=correl[2], sign_pos=int(abs(correl[2]) == correl[2]))
+    return graph
 
 def correls_to_net(correls, min_p=.05, conet=False, metadata=None):
     """"""

@@ -112,7 +112,40 @@ def correls_to_net(correls, min_p=.05, conet=False, metadata=None):
             for key in metadata[correl[1]]:
                 graph.node[correl[1]][key] = ''.join(metadata[correl[1]][key])
         graph.add_edge(correl[0], correl[1], r=correl[2],
-                       p=correl[3], p_adj=correl[4], sign_pos=int(abs(correl[2]) == correl[2]))
+                       p=correl[3], padj=correl[4], sign_pos=int(abs(correl[2]) == correl[2]))
+    return graph
+
+
+def correls_to_net_plain(correls, min_p=.05, conet=False, metadata=None):
+    """"""
+
+    if metadata is None:
+        metadata = []
+
+    # filter to only include significant correlations
+    if conet:
+        try:
+            correls = list(i for i in correls if i[4] < min_p and i[2] > 0)
+        except IndexError:
+            correls = list(i for i in correls if i[3] < min_p and i[2] > 0)
+    else:
+        try:
+            correls = list(i for i in correls if i[4] < min_p)
+        except IndexError:
+            correls = list(i for i in correls if i[3] < min_p)
+
+    graph = nx.Graph()
+    for correl in correls:
+        graph.add_node(correl[0])
+        if correl[0] in metadata:
+            for key in metadata[correl[0]]:
+                graph.node[correl[0]][key] = ''.join(metadata[correl[0]][key])
+
+        graph.add_node(correl[1])
+        if correl[1] in metadata:
+            for key in metadata[correl[1]]:
+                graph.node[correl[1]][key] = ''.join(metadata[correl[1]][key])
+        graph.add_edge(correl[0], correl[1], r=correl[2])
     return graph
 
 

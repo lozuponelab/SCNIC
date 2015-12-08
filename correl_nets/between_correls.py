@@ -13,7 +13,7 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjus
     for data_i, otu_i, metadata_i in table1.iter(axis="observation"):
         for data_j, otu_j, metadata_j in table2.iter(axis="observation"):
             corr = correl_method(data_i, data_j)
-            correls.append([otu_i, otu_j, corr[1], corr[2]])
+            correls.append([otu_i, otu_j, corr[0], corr[1]])
 
     p_adjusted = p_adjust([i[3] for i in correls])
     for i in xrange(len(correls)):
@@ -23,6 +23,7 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjus
 
 
 def between_correls(args):
+    """TABLES MUST SORT SO THAT SAMPLES ARE IN THE SAME ORDER """
 
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr}
@@ -36,6 +37,9 @@ def between_correls(args):
     # load tables
     table1 = load_table(args.table1)
     table2 = load_table(args.table2)
+
+    table1 = table1.sort()
+    table2 = table2.sort()
 
     # make new output directory and change to it
     if args.output is not None:

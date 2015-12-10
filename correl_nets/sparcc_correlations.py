@@ -13,6 +13,10 @@ from pysurvey import SparCC as sparcc
 __author__ = 'shafferm'
 
 
+def biom_to_df(table):
+    return pd.DataFrame(np.transpose(table.matrix_data.todense()), index=table.ids(), columns=table.ids(axis="observation"))
+
+
 def permute_w_replacement(frame):
     '''
     ***STOLEN FROM https://bitbucket.org/yonatanf/pysurvey and adapted***
@@ -58,131 +62,20 @@ def make_bootstraps(counts, nperm):
     '''
     bootstraps = []
     for i in xrange(nperm):
-        bootstraps.append(ps.permute_w_replacement(counts))
+        bootstraps.append(permute_w_replacement(counts))
     return bootstraps
 
-def boostrapped_correlation_multi(tup, temp_folder, cor_temp):
-    """tup is a tuple where tup[0] is num and tup[1] is the file name"""
-    df = ps.read_txt(tup[1], verbose=False)
-    cor = ps.basis_corr(df, oprint=False)[0]
-    ps.write_txt(cor, temp_folder+cor_temp+str(tup[0])+".txt", T=False)
+
+def boostrapped_correlation(bootstrap, cor, df):
+    in_cor = ps.basis_corr(permute_w_replacement(df), oprint=False)[0]
+    in_cor = squareform(in_cor, checks=False)
+    return np.abs(in_cor) >= cor
 
 
-def sparcc_correlations_multi(table, p_adjust=general.bh_adjust, temp_folder=os.getcwd()+"/temp/",
-                              boot_temp="bootstrap_", cor_temp="cor_", table_temp="temp_table.txt",
-                              bootstraps=100, procs=None):
-    """Calculate correlations with sparcc"""
-    import multiprocessing
-
-    os.mkdir(temp_folder)
-    if procs == None:
-        pool = multiprocessing.Pool(multiprocessing.cpu_count()-1)
-    else:
-        pool = multiprocessing.Pool(procs)
-
-    # make tab delimited, delete first line and reread in
-    with open(temp_folder+table_temp, 'w') as f:
-        f.write('\n'.join(table.to_tsv().split("\n")[1:]))
-    df = ps.read_txt(temp_folder+table_temp, verbose=False)
-
-    sparcc.make_bootstraps(df, bootstraps, boot_temp+"#.txt", temp_folder)
-    cor, cov = ps.basis_corr(df, oprint=False)
-
-    pfun = partial(boostrapped_correlation_multi, temp_folder=temp_folder, cor_temp=cor_temp)
-    tups = enumerate(glob.glob(temp_folder+boot_temp+"*.txt"))
-    pool.map(pfun, tups)
-    pool.close()
-    pool.join()
-
-    p_vals = sparcc.get_pvalues(cor, temp_folder+cor_temp+"#.txt", bootstraps)
-    # generate correls
-    correls = list()
-    for i in xrange(len(cor.index)):
-        for j in xrange(i+1, len(cor.index)):
-            correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j], p_vals.iat[i, j]])
-
-    # adjust p-value if desired
-    if p_adjust is not None:
-        p_adjusted = p_adjust([i[3] for i in correls])
-        for i in xrange(len(correls)):
-            correls[i].append(p_adjusted[i])
-
-    header = ['feature1', 'feature2', 'r', 'p']
-    if p_adjust is not None:
-        header.append('adjusted_p')
-
-    # cleanup, remove all of bootstraps folder
-    shutil.rmtree(temp_folder)
-
-    return correls, header
-
-
-def boostrapped_correlation(in_file, temp_folder, cor_temp, num):
-    df = ps.read_txt(in_file, verbose=False)
-    cor = ps.basis_corr(df, oprint=False)[0]
-    ps.write_txt(cor, temp_folder+cor_temp+str(num)+".txt", T=False)
-
-
-def sparcc_correlations(table, p_adjust=general.bh_adjust, temp_folder=os.getcwd()+"/temp/",
-                        boot_temp="bootstrap_", cor_temp="cor_", table_temp="temp_table.txt",
-                        bootstraps=100):
+def sparcc_correlations_single(table, p_adjust=general.bh_adjust, bootstraps=100):
     """"""
-    # setup
-    os.mkdir(temp_folder)
-
-    # make tab delimited, delete first line and reread in
-    with open(temp_folder+table_temp, 'w') as f:
-        f.write('\n'.join(table.to_tsv().split("\n")[1:]))
-    df = ps.read_txt(temp_folder+table_temp, verbose=False)
-
-    # calculate correlations
-    cor, cov = ps.basis_corr(df, oprint=False)
-
-    # calculate p-values
-    sparcc.make_bootstraps(df, bootstraps, boot_temp+"#.txt", temp_folder)
-    for i, _file in enumerate(glob.glob(temp_folder+boot_temp+"*.txt")):
-        boostrapped_correlation(_file, temp_folder, cor_temp, i)
-
-    p_vals = sparcc.get_pvalues(cor, temp_folder+cor_temp+"#.txt", bootstraps)
-    # generate correls
-    correls = list()
-    for i in xrange(len(cor.index)):
-        for j in xrange(i+1, len(cor.index)):
-            correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j], p_vals.iat[i, j]])
-
-    # adjust p-value if desired
-    if p_adjust is not None:
-        p_adjusted = p_adjust([i[3] for i in correls])
-        for i in xrange(len(correls)):
-            correls[i].append(p_adjusted[i])
-
-    header = ['feature1', 'feature2', 'r', 'p']
-    if p_adjust is not None:
-        header.append('adjusted_p')
-
-    # cleanup, remove all of bootstraps folder
-    shutil.rmtree(temp_folder)
-    return correls, header
-
-
-def boostrapped_correlation_lowmem(in_file):
-    df = ps.read_txt(in_file, verbose=False)
-    cor = ps.basis_corr(df, oprint=False)[0]
-    cor = squareform(cor, checks=False)
-    return cor
-
-
-def sparcc_correlations_lowmem(table, p_adjust=general.bh_adjust, temp_folder=os.getcwd()+"/temp/",
-                               boot_temp="bootstrap_", table_temp="temp_table.txt", bootstraps=100):
-    """"""
-    # setup
-    os.mkdir(temp_folder)
-
-    # make tab delimited, delete first line and reread in
-    # TODO: Convert to making pandas dataframe directly
-    with open(temp_folder+table_temp, 'w') as f:
-        f.write('\n'.join(table.to_tsv().split("\n")[1:]))
-    df = ps.read_txt(temp_folder+table_temp, verbose=False)
+    # convert to pandas dataframe
+    df = biom_to_df(table)
 
     # calculate correlations
     cor, cov = ps.basis_corr(df, oprint=False)
@@ -190,10 +83,8 @@ def sparcc_correlations_lowmem(table, p_adjust=general.bh_adjust, temp_folder=os
     # calculate p-values
     abs_cor = np.abs(squareform(cor, checks=False))
     n_sig = np.zeros(abs_cor.shape)
-    # TODO: Convert to making bootstraps directly, eliminate read/write
-    sparcc.make_bootstraps(df, bootstraps, boot_temp+"#.txt", temp_folder)
-    for i in glob.glob(temp_folder+boot_temp+"*.txt"):
-        n_sig[np.abs(boostrapped_correlation_lowmem(i)) >= abs_cor] += 1
+    for i in xrange(bootstraps):
+        n_sig[boostrapped_correlation(i, cor, df)] += 1
     p_vals = squareform(1.*n_sig/bootstraps, checks=False)
 
     # generate correls
@@ -212,48 +103,40 @@ def sparcc_correlations_lowmem(table, p_adjust=general.bh_adjust, temp_folder=os
     if p_adjust is not None:
         header.append('adjusted_p')
 
-    # cleanup, remove all of bootstraps folder
-    shutil.rmtree(temp_folder)
-
     return correls, header
 
-
-def boostrapped_correlation_lowmem_multi(bootstrap, cor):
-    #TODO: DON'T take bootstrap, generate bootstrap in place here
-    in_cor = ps.basis_corr(bootstrap, oprint=False)[0]
-    in_cor = squareform(in_cor, checks=False)
-    return np.abs(in_cor) >= cor
-
-
-def sparcc_correlations_lowmem_multi(table, p_adjust=general.bh_adjust, temp_folder=os.getcwd()+"/temp/",
-                                     table_temp="temp_table.txt", bootstraps=100, procs=None):
+def sparcc_correlations_multi(table, p_adjust=general.bh_adjust, bootstraps=100, procs=None):
     """"""
     # setup
     import multiprocessing
 
     if procs is None:
-        procs = multiprocessing.cpu_count()-1
+        if multiprocessing.cpu_count() == 1:
+            procs=1
+        else:
+            procs = multiprocessing.cpu_count()-1
+
+    if procs == 1:
+        sparcc_correlations_single(table, p_adjust, bootstraps)
 
     pool = multiprocessing.Pool(procs)
     print "Number of processors used: " + str(procs)
 
     # convert to pandas dataframe
-    df = pd.DataFrame(np.transpose(table.matrix_data.todense()), index=table.ids(), columns=table.ids(axis="observation"))
+    df = biom_to_df(table)
 
     # calculate correlations
     cor, cov = ps.basis_corr(df, oprint=False)
 
-    # calculate p-values
-    ##take absolute value of all values in cor for calculating two-sided p-value
+    # take absolute value of all values in cor for calculating two-sided p-value
     abs_cor = np.abs(squareform(cor, checks=False))
-    ##create an empty array of significant value counts in same shape as abs_cor
+    # create an empty array of significant value counts in same shape as abs_cor
     n_sig = np.zeros(abs_cor.shape)
-    ## make bootstraps
-    bootstrap_frames = make_bootstraps(df, bootstraps)
-    ## make partial function for use in multiprocessing
-    pfun = partial(boostrapped_correlation_lowmem_multi, cor=abs_cor)
-    ## run multiprocessing
-    multi_results = pool.map(pfun, bootstrap_frames)
+
+    # make partial function for use in multiprocessing
+    pfun = partial(boostrapped_correlation, cor=abs_cor, df=df)
+    # run multiprocessing
+    multi_results = pool.map(pfun, range(bootstraps))
     pool.close()
     pool.join()
 

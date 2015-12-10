@@ -14,7 +14,7 @@ from biom import load_table, Table
 from biom.exception import UnknownIDError
 from scipy.stats import spearmanr, pearsonr
 from operator import itemgetter
-from sparcc_correlations import sparcc_correlations_lowmem_multi
+from sparcc_correlations import sparcc_correlations_multi
 
 def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=general.bh_adjust):
     """Takes a biom table and finds correlations between all pairs of otus."""
@@ -162,7 +162,7 @@ def module_maker(args):
         os.chdir(args.output)
 
     # convert to relative abundance and filter
-    if args.min_sample != None:
+    if args.min_sample is not None:
         table_filt = general.filter_table(table, args.min_sample)
         print "Table filtered: " + str(table_filt.shape[0]) + " observations"
         print ""
@@ -186,7 +186,7 @@ def module_maker(args):
             correls, correl_header = paired_correlations_from_table(table_filt, correl_method, p_adjust)
     else:
         print "Correlating using sparcc"
-        correls, correl_header = sparcc_correlations_lowmem_multi(table_filt, p_adjust, procs=args.procs,
+        correls, correl_header = sparcc_correlations_multi(table_filt, p_adjust, procs=args.procs,
                                                                   bootstraps=args.bootstraps)
     correls.sort(key=itemgetter(-1))
     general.print_delimited('correls.txt', correls, correl_header)
@@ -206,7 +206,7 @@ def module_maker(args):
     print "number of modules: " + str(len(cliques))
     print ""
 
-    ## TODO: Add clique summary
+    # TODO: Add clique summary
 
     # print network
     nx.write_gml(net, 'conetwork.gml')

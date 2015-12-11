@@ -59,17 +59,3 @@ def between_correls(args):
     # make network
     net = general.correls_to_net(correls, metadata=metadata, min_p=args.min_p)
     nx.write_gml(net, 'crossnet.gml')
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-1", "--table1", help="table to be correlated")
-    parser.add_argument("-2", "--table2", help="second table to be correlated")
-    parser.add_argument("-o", "--output", help="output file location")
-    parser.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
-    parser.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
-    parser.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
-    parser.add_argument("--min_p", help="minimum p-value to determine edges", default=.05, type=float)
-
-    between_correls(parser.parse_args())

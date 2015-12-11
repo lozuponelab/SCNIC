@@ -71,7 +71,7 @@ def make_modules(graph, k=3):
     cliques = [list(i) for i in cliques]
     for i, clique in enumerate(cliques):
         for node in clique:
-            graph.node[node]['k_' + str(k)] = i
+            graph.node[node]['clique'] = i
     return graph, cliques
 
 
@@ -97,10 +97,11 @@ def collapse_modules(table, cliques, prefix="module_"):
     modules = np.zeros((len(cliques), table.shape[1]))
 
     # for each clique merge values and print cliques to file
+    #TODO: making cliques file name a parameter
     with open("cliques.txt", 'w') as f:
         for i, clique in enumerate(cliques):
             in_module = in_module | set(clique)
-            f.write(prefix+str(i)+'\t'+','.join([str(j) for j in clique])+'\n')
+            f.write(prefix+str(i)+'\t'+'\t'.join([str(j) for j in clique])+'\n')
             for feature in clique:
                 try:
                     modules[i] += table.data(feature, axis="observation")
@@ -217,22 +218,3 @@ def module_maker(args):
 
     # print new table
     coll_table.to_json('make_modules.py', open('collapsed.biom', 'w'))
-
-
-if __name__ == '__main__':
-    """main, takes argparser"""
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input", help="location of input biom file")
-    parser.add_argument("-o", "--output", help="output file location")
-    parser.add_argument("-m", "--correl_method", help="correlation method", default="sparcc")
-    parser.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
-    parser.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
-    parser.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
-    parser.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
-    parser.add_argument("--min_p", help="minimum p-value to determine edges", default=.05, type=float)
-    parser.add_argument("--outlier_removal", help="outlier detection and removal", default=False, action="store_true")
-    parser.add_argument("--procs", help="number of processors for sparcc", default=None, type=int)
-    parser.add_argument("-b", "--bootstraps", help="number of bootstraps", default=100, type=int)
-    module_maker(parser.parse_args())

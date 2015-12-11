@@ -6,7 +6,6 @@ __author__ = 'shafferm'
 from scipy.stats import rankdata, linregress
 import numpy as np
 import networkx as nx
-import matplotlib.pyplot as plt
 
 
 def get_metadata_from_table(table):
@@ -190,6 +189,11 @@ def remove_outliers(table, min_obs=10):
 
 
 def plot_pair(table, otu1, otu2):
+    try:
+        import matplotlib.pyplot as plt
+    except:
+        print "matplotlib not installed, please install to use plotting functions"
+        return None
     x = table.data(otu1, axis="observation")
     y = table.data(otu2, axis="observation")
     plt.scatter(x, y)
@@ -212,6 +216,13 @@ def compare_slopes(table1, table2, otu1, otu2):
 
 def plot_networkx(graph):
     """plot networkx object in matplotlib"""
+
+    try:
+        import matplotlib.pyplot as plt
+    except:
+        print "matplotlib not installed, please install to use plotting functions"
+        return None
+
     graph_pos = nx.circular_layout(graph)
 
     nx.draw_networkx_nodes(graph, graph_pos, node_size=1000, node_color='blue', alpha=0.3)

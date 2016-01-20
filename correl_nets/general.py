@@ -182,7 +182,7 @@ def remove_outliers(table, min_obs=10):
         q75, q25 = np.percentile(data_i, [75, 25])
         iqr = q75 - q25
         med = np.median(data_i)
-        good_indicies = np.array([i for i, data in enumerate(data_i) if data < 3*iqr+med and data > med-3*iqr])
+        good_indicies = np.array([i for i, data in enumerate(data_i) if 3 * iqr + med > data > med - 3 * iqr])
         if np.sum(good_indicies) > min_obs:
             good_samples[otu_i] = good_indicies
     return good_samples

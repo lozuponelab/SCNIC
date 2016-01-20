@@ -71,6 +71,31 @@ def boostrapped_correlation(bootstrap, cor, df):
     in_cor = squareform(in_cor, checks=False)
     return np.abs(in_cor) >= cor
 
+def sparcc_correlation(table):
+    # convert to pandas dataframe
+    df = biom_to_df(table)
+
+    # calculate correlations
+    cor, cov = ps.basis_corr(df, oprint=False)
+
+     # generate correls
+    correls = list()
+    for i in xrange(len(cor.index)):
+        for j in xrange(i+1, len(cor.index)):
+            correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j]])
+
+    header = ['feature1', 'feature2', 'r']
+    return correls, header
+
+def co_to_correls(cor):
+    # generate correls
+    correls = list()
+    for i in xrange(len(cor.index)):
+        for j in xrange(i+1, len(cor.index)):
+            correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j]])
+
+    header = ['feature1', 'feature2', 'r']
+    return correls, header
 
 def sparcc_correlations_single(table, p_adjust=general.bh_adjust, bootstraps=100):
     """"""

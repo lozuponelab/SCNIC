@@ -6,6 +6,16 @@ __author__ = 'shafferm'
 from scipy.stats import rankdata, linregress
 import numpy as np
 import networkx as nx
+from biom.table import Table
+import pandas as pd
+
+
+def df_to_biom(df):
+    return Table(np.transpose(df.as_matrix()), list(df.columns), list(df.index))
+
+
+def biom_to_df(biom):
+    return pd.DataFrame(np.transpose(biom.matrix_data.todense()), index=biom.ids(), columns=biom.ids(axis="observation"))
 
 
 def get_metadata_from_table(table):
@@ -55,17 +65,18 @@ def read_correls(correls_fp):
             correls[i][j] = float(correls[i][j])
     return correls
 
+
 def correls_to_net_cor(correls, min_cor, conet=False, metadata=None):
-    #TODO: add all columns of correls to edge dict, not only cor
+    # TODO: add all columns of correls to edge dict, not only cor
 
     if metadata is None:
         metadata = []
 
     # filter to only include significant correlations
     if conet:
-        correls = list(i for i in correls if i[2]>0 and i[2]>min_cor)
+        correls = list(i for i in correls if i[2] > 0 and i[2] > min_cor)
     else:
-        correls = list(i for i in correls if np.abs(i[2])>min_cor)
+        correls = list(i for i in correls if np.abs(i[2]) > min_cor)
 
     graph = nx.Graph()
     for correl in correls:
@@ -81,23 +92,34 @@ def correls_to_net_cor(correls, min_cor, conet=False, metadata=None):
         graph.add_edge(correl[0], correl[1], r=correl[2], sign_pos=int(abs(correl[2]) == correl[2]))
     return graph
 
-def correls_to_net(correls, min_p=.05, conet=False, metadata=None):
+
+def correls_to_net(correls, min_p, min_r, conet=False, metadata=None):
     """"""
 
     if metadata is None:
         metadata = []
 
-    # filter to only include significant correlations
-    if conet:
-        try:
-            correls = list(i for i in correls if i[4] < min_p and i[2] > 0)
-        except IndexError:
-            correls = list(i for i in correls if i[3] < min_p and i[2] > 0)
-    else:
-        try:
-            correls = list(i for i in correls if i[4] < min_p)
-        except IndexError:
-            correls = list(i for i in correls if i[3] < min_p)
+    if min_p is None and min_r is None:
+        min_p = .05
+
+    if min_p is not None:
+        # filter to only include significant correlations
+        if conet:
+            try:
+                correls = list(i for i in correls if i[4] < min_p and i[2] > 0)
+            except IndexError:
+                correls = list(i for i in correls if i[3] < min_p and i[2] > 0)
+        else:
+            try:
+                correls = list(i for i in correls if i[4] < min_p)
+            except IndexError:
+                correls = list(i for i in correls if i[3] < min_p)
+
+    if min_r is not None:
+        if conet:
+            correls = [i for i in correls if i[2] > min_r]
+        else:
+            correls = [i for i in correls if np.abs(i[2]) > min_r]
 
     graph = nx.Graph()
     for correl in correls:
@@ -110,8 +132,16 @@ def correls_to_net(correls, min_p=.05, conet=False, metadata=None):
         if correl[1] in metadata:
             for key in metadata[correl[1]]:
                 graph.node[correl[1]][key] = ''.join(metadata[correl[1]][key])
-        graph.add_edge(correl[0], correl[1], r=correl[2],
-                       p=correl[3], padj=correl[4], sign_pos=int(abs(correl[2]) == correl[2]))
+        if len(correl) == 3:
+            graph.add_edge(correl[0], correl[1], r=correl[2], sign_pos=int(abs(correl[2]) == correl[2]))
+        elif len(correl) == 4:
+            graph.add_edge(correl[0], correl[1], r=correl[2],
+                           p=correl[3], sign_pos=int(abs(correl[2]) == correl[2]))
+        elif len(correl) == 5:
+            graph.add_edge(correl[0], correl[1], r=correl[2],
+                           p=correl[3], padj=correl[4], sign_pos=int(abs(correl[2]) == correl[2]))
+        else:
+            raise ValueError("correls should only have 3-5 members")
     return graph
 
 
@@ -148,12 +178,12 @@ def correls_to_net_plain(correls, min_p=.05, conet=False, metadata=None):
     return graph
 
 
-def make_net_from_correls(correls_fp, conet=False):
+def make_net_from_correls(correls_fp, conet=False, min_p=None, min_r=None):
     correls = read_delimited(correls_fp, header=True)
     for i, correl in enumerate(correls):
         for j in xrange(2, len(correl)):
             correls[i][j] = float(correls[i][j])
-    return correls_to_net(correls, conet=conet)
+    return correls_to_net(correls, conet=conet, min_p=min_p, min_r=min_r)
 
 
 def filter_table(table, min_samples=None, to_file=False):
@@ -179,7 +209,7 @@ def remove_outliers(table, min_obs=10):
     """returns indicies of good samples in numpy array"""
     good_samples = dict()
     for data_i, otu_i, metadata_i in table.iter(axis="observation"):
-        q75, q25 = np.percentile(data_i, [75, 25])
+        q75, q25 = np.percentile(data_i, (75, 25))
         iqr = q75 - q25
         med = np.median(data_i)
         good_indicies = np.array([i for i, data in enumerate(data_i) if 3 * iqr + med > data > med - 3 * iqr])
@@ -188,29 +218,15 @@ def remove_outliers(table, min_obs=10):
     return good_samples
 
 
-def plot_pair(table, otu1, otu2):
-    try:
-        import matplotlib.pyplot as plt
-    except:
-        print "matplotlib not installed, please install to use plotting functions"
-        return None
-    x = table.data(otu1, axis="observation")
-    y = table.data(otu2, axis="observation")
-    plt.scatter(x, y)
-    # now annotate
-    for i, txt in enumerate(table.ids()):
-        txt = txt.split('.')[-1]
-        plt.annotate(txt, (x[i], y[i]))
-    plt.show()
-
-
 def compare_slopes(table1, table2, otu1, otu2):
     x1 = table1.data(otu1, axis="observation")
     y1 = table1.data(otu2, axis="observation")
     x2 = table2.data(otu1, axis="observation")
     y2 = table2.data(otu2, axis="observation")
-    slope1 = linregress(x1, y1)[0]
-    slope2 = linregress(x2, y2)[0]
+    lin1 = linregress(x1, y1)
+    slope1 = lin1[0]
+    lin2 = linregress(x2, y2)
+    slope2 = lin2[0]
     print "slope1: " + str(slope1) + " slope2: " + str(slope2)
 
 

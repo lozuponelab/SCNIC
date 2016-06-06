@@ -97,11 +97,8 @@ def co_to_correls(cor):
     header = ['feature1', 'feature2', 'r']
     return correls, header
 
-def sparcc_correlations_single(table, p_adjust=general.bh_adjust, bootstraps=100):
+def sparcc_correlations_single(df, p_adjust=general.bh_adjust, bootstraps=100):
     """"""
-    # convert to pandas dataframe
-    df = biom_to_df(table)
-
     # calculate correlations
     cor, cov = ps.basis_corr(df, oprint=False)
 
@@ -130,7 +127,7 @@ def sparcc_correlations_single(table, p_adjust=general.bh_adjust, bootstraps=100
 
     return correls, header
 
-def sparcc_correlations_multi(table, p_adjust=general.bh_adjust, bootstraps=100, procs=None):
+def sparcc_pvals_multi(df, cor, p_adjust=general.bh_adjust, bootstraps=100, procs=None):
     """"""
     # setup
     import multiprocessing
@@ -142,16 +139,10 @@ def sparcc_correlations_multi(table, p_adjust=general.bh_adjust, bootstraps=100,
             procs = multiprocessing.cpu_count()-1
 
     if procs == 1:
-        sparcc_correlations_single(table, p_adjust, bootstraps)
+        sparcc_correlations_single(df, p_adjust, bootstraps)
 
     pool = multiprocessing.Pool(procs)
     print "Number of processors used: " + str(procs)
-
-    # convert to pandas dataframe
-    df = biom_to_df(table)
-
-    # calculate correlations
-    cor, cov = ps.basis_corr(df, oprint=False)
 
     # take absolute value of all values in cor for calculating two-sided p-value
     abs_cor = np.abs(squareform(cor, checks=False))

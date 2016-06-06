@@ -1,14 +1,13 @@
 #!/usr/local/bin/python2
 
-__author__ = 'shafferm'
-
-"""Entry to both module_maker and between_correls, only holds main and args are passed to the corresponding program
-"""
-
 import argparse
 from SCNIC.module_maker import module_maker
 from SCNIC.between_correls import between_correls
 
+__author__ = 'shafferm'
+
+"""Entry to both module_maker and between_correls, only holds main and args are passed to the corresponding program
+"""
 
 def main():
     """Things"""

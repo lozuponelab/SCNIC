@@ -1,5 +1,6 @@
 .*
 *.pyc
 build/*
-correl_nets.egg-info/*
+SCNIC.egg-info/*
 dist/*
+writing/*

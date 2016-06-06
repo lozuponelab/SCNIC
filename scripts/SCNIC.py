@@ -6,8 +6,8 @@ __author__ = 'shafferm'
 """
 
 import argparse
-from correl_nets.module_maker import module_maker
-from correl_nets.between_correls import between_correls
+from SCNIC.module_maker import module_maker
+from SCNIC.between_correls import between_correls
 
 
 def main():

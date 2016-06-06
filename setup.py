@@ -6,6 +6,6 @@ setup(
     name="SCNIC",
     version="0.1",
     install_requires=["scipy", "numpy", "networkx", "biom-format", "pysurvey"],
-    scripts=["scripts/correl_networks.py", "scripts/sparcc_correls.py"],
+    scripts=["scripts/SCNIC.py", "scripts/sparcc_correls.py"],
     packages=find_packages()
 )

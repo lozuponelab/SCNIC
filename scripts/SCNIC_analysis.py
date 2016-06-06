@@ -1,13 +1,14 @@
 #!/usr/local/bin/python2
 
 import argparse
-from SCNIC.module_maker import module_maker
+from SCNIC.within_correls import within_correls
 from SCNIC.between_correls import between_correls
 
 __author__ = 'shafferm'
 
 """Entry to both module_maker and between_correls, only holds main and args are passed to the corresponding program
 """
+
 
 def main():
     """Things"""
@@ -26,10 +27,11 @@ def main():
     within_corr.add_argument("-k", "--k_size", help="desired k-size to determine cliques", default=3, type=int)
     within_corr.add_argument("--min_p", help="minimum p-value to determine edges", type=float)
     within_corr.add_argument("--min_r", help="minimum correlation value to determine edges", type=float)
-    within_corr.add_argument("--outlier_removal", help="outlier detection and removal", default=False, action="store_false")
+    within_corr.add_argument("--outlier_removal", help="outlier detection and removal", default=False,
+                             action="store_false")
     within_corr.add_argument("--procs", help="number of processors for sparcc", default=None)
     within_corr.add_argument("-b", "--bootstraps", help="number of bootstraps", default=100, type=int)
-    within_corr.set_defaults(func=module_maker)
+    within_corr.set_defaults(func=within_correls)
 
     between_corr.add_argument("-1", "--table1", help="table to be correlated", required=True)
     between_corr.add_argument("-2", "--table2", help="second table to be correlated", required=True)

@@ -1,5 +1,14 @@
+from __future__ import division
+
 import numpy as np
 from scipy.spatial.distance import braycurtis
+from collections import Counter
+import general
+from biom import Table
+import multiprocessing
+import warnings
+from functools import partial
+from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra
 
 
 def cscore(u, v):
@@ -12,12 +21,14 @@ def cscore(u, v):
     return (r_u-s_uv)*(r_v-s_uv)/(r_u+r_v-s_uv)
 
 
-def paired_distances_from_table(table, dist_metric=braycurtis, rar=1000):
+def paired_distances_from_table(table, dist_metric='braycurtis'):
     """Takes a biom table and finds distances between all pairs of otus"""
+    dist_methods = {'jaccard': jaccard, 'cscore': cscore, 'braycurtis': braycurtis, 'euclidean': euclidean,
+                    'canberra': canberra}
+    dist_metric = dist_methods[dist_metric]
     dists = list()
-    rar_table = table.subsample(rar)
 
-    for (data_i, otu_i, metadata_i), (data_j, otu_j, metadata_j) in rar_table.iter_pairwise(axis='observation'):
+    for (data_i, otu_i, metadata_i), (data_j, otu_j, metadata_j) in table.iter_pairwise(axis='observation'):
         dist = dist_metric(data_i, data_j)
         dists.append([str(otu_i), str(otu_j), dist])
 
@@ -26,6 +37,94 @@ def paired_distances_from_table(table, dist_metric=braycurtis, rar=1000):
     return dists, header
 
 
-def boostrap_distance_vals(correls, header, nprocs=1, bootstraps=1000):
+def refill_biom(row):
+    tot = np.sum(row)
+    rands = np.random.randint(0, len(row), size=tot)
+    counts = Counter(rands)
+    new_data = np.zeros(len(row))
+    for val in counts:
+        new_data[val] = counts[val]
+    return new_data
+
+
+def shuffle_table(table):
+    matrix = table.matrix_data.todense()
+    np.random.shuffle(matrix)
+    return Table(matrix, table.ids(axis="observation"), table.ids())
+
+
+def shuffle_table_matrix(sparse_matrix):
+    matrix = sparse_matrix.todense()
+    np.random.shuffle(matrix)
+    return Table(matrix, range(matrix.shape[0]), range(matrix.shape[1]))
+
+
+def refill_table(table):
+    matrix = table.matrix_data.todense()
+    new_matrix = np.zeros(matrix.shape)
+    sums = np.sum(matrix, axis=1)
+    for i in xrange(sums.shape[0]):
+        rands = np.random.randint(0, matrix.shape[1], size=sums[i])
+        counts = Counter(rands)
+        for val in counts:
+            new_matrix[i, val] = counts[val]
+    return Table(new_matrix, table.ids(axis="observation"), table.ids())
+
+
+def refill_table_matrix(sparse_matrix):
+    matrix = sparse_matrix.todense()
+    new_matrix = np.zeros(matrix.shape)
+    sums = np.sum(matrix, axis=1)
+    for i in xrange(sums.shape[0]):
+        rands = np.random.randint(0, matrix.shape[1], size=sums[i])
+        counts = Counter(rands)
+        for val in counts:
+            new_matrix[i, val] = counts[val]
+    return Table(new_matrix, range(new_matrix.shape[0]), range(new_matrix.shape[1]))
+
+
+def bootstrapped_distance(bootstrap, measured_dists, sparse_matrix, dist_metric):
+    bootstrapped_table = shuffle_table_matrix(sparse_matrix)
+    dists, header = paired_distances_from_table(bootstrapped_table, dist_metric=dist_metric)
+    dists_only = np.array([i[2] for i in dists])
+    return dists_only < measured_dists
+
+
+def bootstrap_distance_vals(table, dist_metric='braycurtis', nprocs=1, bootstraps=1000, p_adjust=None):
     """"""
-    raise NotImplementedError
+    dists, header = paired_distances_from_table(table, dist_metric=dist_metric)
+    measured_dists = np.array([i[2] for i in dists])
+
+    if nprocs == 1:
+        print "Using 1 processor to calculate distances"
+        multi_results = np.zeros((bootstraps, len(dists)), dtype=bool)
+        for i in xrange(bootstraps):
+            multi_results[i] = bootstrapped_distance(None, measured_dists, table.matrix_data, dist_metric)
+
+    else:
+        if nprocs > multiprocessing.cpu_count():
+            warnings.warn("nprocs greater than CPU count, using all avaliable CPUs")
+            nprocs = multiprocessing.cpu_count()
+
+        pool = multiprocessing.Pool(nprocs)
+        print "Number of processors used: " + str(nprocs)
+
+        pfun = partial(bootstrapped_distance, measured_dists=measured_dists, sparse_matrix=table.matrix_data,
+                       dist_metric=dist_metric)
+        multi_results = pool.map(pfun, range(bootstraps))
+        pool.close()
+        pool.join()
+
+    p_vals = np.sum(multi_results, axis=0)/bootstraps
+
+    for i in xrange(len(dists)):
+        dists[i].append(p_vals[i])
+    header.append('pval')
+
+    if p_adjust is not None:
+        p_adjusted = p_adjust(p_vals)
+        for i in xrange(len(dists)):
+            dists[i].append(p_adjusted[i])
+        header.append('adjusted_p')
+
+    return dists, header

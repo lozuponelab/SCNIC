@@ -4,17 +4,19 @@ from __future__ import division
 
 import os
 import sys
+import shutil
 
 import networkx as nx
 import numpy as np
 import pysurvey as ps
 
-import general
 from biom import load_table, Table
 from biom.exception import UnknownIDError
 from scipy.stats import spearmanr, pearsonr, kendalltau
 from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra
 from operator import itemgetter
+
+import general
 from sparcc_correlations import sparcc_pvals_multi
 import correlation_analysis as ca
 import distance_analysis as da
@@ -22,8 +24,6 @@ import module_maker as mm
 
 
 def within_correls(args):
-    print args
-
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'sparcc': None, 'jaccard': jaccard,
                       'cscore': da.cscore, 'braycurtis': braycurtis, 'euclidean': euclidean, 'kendall': kendalltau,
@@ -41,6 +41,10 @@ def within_correls(args):
     print "Table loaded: " + str(table.shape[0]) + " observations"
     print ""
 
+    # check if output directory already exists and if it does delete it
+    if args.force:
+        shutil.rmtree(args.output, ignore_errors=True)
+
     # make new output directory and change to it
     if args.output is not None:
         os.makedirs(args.output)
@@ -56,6 +60,7 @@ def within_correls(args):
 
     # correlate feature
     if correl_method in [spearmanr, pearsonr, kendalltau]:
+        # use outlier removal
         if args.outlier_removal:
             print "Correlating with outlier removal."
             # remove outlier observations
@@ -65,17 +70,21 @@ def within_correls(args):
             print ""
             correls, correl_header = ca.paired_correlations_from_table_with_outlier_removal(table_filt, good_samples,
                                                                                             correl_method, p_adjust)
+        # calculate correlations normally
         else:
             print "Correlating with " + args.correl_method
             # correlate feature
             correls, correl_header = ca.paired_correlations_from_table(table_filt, correl_method, p_adjust)
+
+    # calculate distances
     elif correl_method in [jaccard, braycurtis, euclidean]:
+        table_filt_rar = table_filt.subsample(args.rarefaction_level)
         print "Computing pairwise distances with " + args.correl_method
-        # compute distances
-        correls, correl_header = da.paired_distances_from_table(table_filt, correl_method)
         if args.min_p is not None:
-            correls, correl_header = da.boostrap_distance_vals(correls, correl_header, p_adjust, bootstraps=1000,
-                                                               procs=args.procs)
+            correls, correl_header = da.bootstrap_distance_vals(table_filt_rar, args.correl_method, nprocs=args.procs,
+                                                                bootstraps=1000, p_adjust=p_adjust)
+        else:
+            correls, correl_header = da.paired_distances_from_table(table_filt_rar, args.correl_method)
     else:
         print "Correlating using sparcc"
 

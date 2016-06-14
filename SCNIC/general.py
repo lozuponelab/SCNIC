@@ -1,13 +1,14 @@
-__author__ = 'shafferm'
-
-"""functions used widely"""
-# TODO: Make correl class and implement across package
-
 from scipy.stats import rankdata, linregress
 import numpy as np
 import networkx as nx
 from biom.table import Table
 import pandas as pd
+
+__author__ = 'shafferm'
+
+
+"""functions used widely"""
+# TODO: Make correl class and implement across package
 
 
 def df_to_biom(df):

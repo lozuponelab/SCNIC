@@ -1,7 +1,7 @@
 """Make modules of observations based on cooccurence networks and collapse table"""
 
 
-# TODO: Add parameters log output file to output folder
+# TODO: FIX BUG WHERE THINGS CAN BE IN MULTIPLE CLIQUES BUT GET LAST LABEL
 
 from __future__ import division
 

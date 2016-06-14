@@ -29,8 +29,11 @@ def main():
     within_corr.add_argument("--min_r", help="minimum correlation value to determine edges", type=float)
     within_corr.add_argument("--outlier_removal", help="outlier detection and removal", default=False,
                              action="store_false")
-    within_corr.add_argument("--procs", help="number of processors for sparcc", default=None)
+    within_corr.add_argument("--procs", help="number of processors for sparcc", default=None, type=int)
     within_corr.add_argument("-b", "--bootstraps", help="number of bootstraps", default=100, type=int)
+    within_corr.add_argument("-e", "--rarefaction_level", help="level of rarefaction", default=1000, type=int)
+    within_corr.add_argument("-f", "--force", help="force overwrite output folder if it already exists", default=False,
+                             action="store_true")
     within_corr.set_defaults(func=within_correls)
 
     between_corr.add_argument("-1", "--table1", help="table to be correlated", required=True)

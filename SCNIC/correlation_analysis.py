@@ -1,6 +1,7 @@
 import general
 import numpy as np
 from scipy.stats import spearmanr
+import pandas as pd
 
 
 def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=general.bh_adjust):
@@ -11,17 +12,15 @@ def paired_correlations_from_table(table, correl_method=spearmanr, p_adjust=gene
         correl = correl_method(data_i, data_j)
         correls.append([str(otu_i), str(otu_j), correl[0], correl[1]])
 
+    header = ['feature1', 'feature2', 'r', 'p']
+    correls_df = pd.DataFrame(correls, columns=header)
+
     # adjust p-value if desired
     if p_adjust is not None:
         p_adjusted = p_adjust([i[3] for i in correls])
-        for i in xrange(len(correls)):
-            correls[i].append(p_adjusted[i])
+        correls_df['adjusted_p'] = p_adjusted
 
-    header = ['feature1', 'feature2', 'r', 'p']
-    if p_adjust is not None:
-        header.append('adjusted_p')
-
-    return correls, header
+    return correls
 
 
 def paired_correlations_from_table_with_outlier_removal(table, good_samples, min_keep=10, correl_method=spearmanr,
@@ -37,24 +36,12 @@ def paired_correlations_from_table_with_outlier_removal(table, good_samples, min
             correl = correl_method(data_i[samp_union], data_j[samp_union])
             correls.append([str(otu_i), str(otu_j), correl[0], correl[1]])
 
+    header = ['feature1', 'feature2', 'r', 'p']
+    correls_df = pd.DataFrame(correls, columns=header)
+
     # adjust p-value if desired
     if p_adjust is not None:
         p_adjusted = p_adjust([i[3] for i in correls])
-        for i in xrange(len(correls)):
-            correls[i].append(p_adjusted[i])
+        correls_df['adjusted_p'] = p_adjusted
 
-    header = ['feature1', 'feature2', 'r', 'p']
-    if p_adjust is not None:
-        header.append('adjusted_p')
-
-    return correls, header
-
-
-def square_to_correls(cor):
-    # generate correls array
-    correls = list()
-    for i in xrange(len(cor.index)):
-        for j in xrange(i + 1, len(cor.index)):
-            correls.append([cor.index[i], cor.index[j], cor.iat[i, j]])
-    header = ['feature1', 'feature2', 'r']
-    return correls, header
+    return correls

@@ -9,6 +9,7 @@ import multiprocessing
 import warnings
 from functools import partial
 from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra
+import pandas as pd
 
 
 def cscore(u, v):
@@ -33,8 +34,7 @@ def paired_distances_from_table(table, dist_metric='braycurtis'):
         dists.append([str(otu_i), str(otu_j), dist])
 
     header = ['feature1', 'feature2', 'dist']
-
-    return dists, header
+    return pd.DataFrame(dists, columns=header)
 
 
 def refill_biom(row):
@@ -85,15 +85,15 @@ def refill_table_matrix(sparse_matrix):
 
 def bootstrapped_distance(bootstrap, measured_dists, sparse_matrix, dist_metric):
     bootstrapped_table = shuffle_table_matrix(sparse_matrix)
-    dists, header = paired_distances_from_table(bootstrapped_table, dist_metric=dist_metric)
-    dists_only = np.array([i[2] for i in dists])
-    return dists_only < measured_dists
+    dists = paired_distances_from_table(bootstrapped_table, dist_metric=dist_metric)
+    return dists['dist'] < measured_dists
 
 
 def bootstrap_distance_vals(table, dist_metric='braycurtis', nprocs=1, bootstraps=1000, p_adjust=None):
     """"""
-    dists, header = paired_distances_from_table(table, dist_metric=dist_metric)
-    measured_dists = np.array([i[2] for i in dists])
+    dists = paired_distances_from_table(table, dist_metric=dist_metric)
+    measured_dists = dists['dist']
+    print bootstraps
 
     if nprocs == 1:
         print "Using 1 processor to calculate distances"
@@ -115,16 +115,9 @@ def bootstrap_distance_vals(table, dist_metric='braycurtis', nprocs=1, bootstrap
         pool.close()
         pool.join()
 
-    p_vals = np.sum(multi_results, axis=0)/bootstraps
-
-    for i in xrange(len(dists)):
-        dists[i].append(p_vals[i])
-    header.append('pval')
+    dists['p_val'] = np.sum(multi_results, axis=0)/bootstraps
 
     if p_adjust is not None:
-        p_adjusted = p_adjust(p_vals)
-        for i in xrange(len(dists)):
-            dists[i].append(p_adjusted[i])
-        header.append('adjusted_p')
+        dists['p_adjusted'] = p_adjust(dists['p_val'])
 
-    return dists, header
+    return dists

@@ -1,4 +1,5 @@
 # TODO: Add parameters log output file to output folder
+# TODO: Testing correls as list vs as pandas dataframe for speed
 
 from __future__ import division
 
@@ -17,7 +18,7 @@ from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra
 from operator import itemgetter
 
 import general
-from sparcc_correlations import sparcc_pvals_multi
+import sparcc_correlations as sc
 import correlation_analysis as ca
 import distance_analysis as da
 import module_maker as mm
@@ -68,23 +69,23 @@ def within_correls(args):
             good_samples = general.remove_outliers(table_filt)
             print "Outliers removed: " + str(len(good_samples)) + " observations"
             print ""
-            correls, correl_header = ca.paired_correlations_from_table_with_outlier_removal(table_filt, good_samples,
+            correls = ca.paired_correlations_from_table_with_outlier_removal(table_filt, good_samples,
                                                                                             correl_method, p_adjust)
         # calculate correlations normally
         else:
             print "Correlating with " + args.correl_method
             # correlate feature
-            correls, correl_header = ca.paired_correlations_from_table(table_filt, correl_method, p_adjust)
+            correls = ca.paired_correlations_from_table(table_filt, correl_method, p_adjust)
 
     # calculate distances
     elif correl_method in [jaccard, braycurtis, euclidean]:
         table_filt_rar = table_filt.subsample(args.rarefaction_level)
         print "Computing pairwise distances with " + args.correl_method
         if args.min_p is not None:
-            correls, correl_header = da.bootstrap_distance_vals(table_filt_rar, args.correl_method, nprocs=args.procs,
-                                                                bootstraps=1000, p_adjust=p_adjust)
+            correls = da.bootstrap_distance_vals(table_filt_rar, args.correl_method, nprocs=args.procs,
+                                                 bootstraps=args.bootstraps, p_adjust=p_adjust)
         else:
-            correls, correl_header = da.paired_distances_from_table(table_filt_rar, args.correl_method)
+            correls = da.paired_distances_from_table(table_filt_rar, args.correl_method)
     else:
         print "Correlating using sparcc"
 
@@ -95,14 +96,14 @@ def within_correls(args):
         cor, cov = ps.basis_corr(df, oprint=False)
 
         if args.min_p is None:
-            correls, correl_header = ca.square_to_correls(cor)
+            correls = sc.square_to_correls(cor)
         else:
             print "Bootsrapping Correlations"
-            correls, correl_header = sparcc_pvals_multi(df, cor, p_adjust, procs=args.procs,
+            correls = sc.sparcc_pvals_multi(df, cor, p_adjust, procs=args.procs,
                                                         bootstraps=args.bootstraps)
 
-    correls.sort(key=itemgetter(-1))
-    general.print_delimited('correls.txt', correls, correl_header)
+    correls.sort([correls.columns[-1], correls.columns[2]], inplace=True)
+    correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
 
     print "Features Correlated"
 

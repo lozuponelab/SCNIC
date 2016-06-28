@@ -82,7 +82,7 @@ def within_correls(args):
         print "Computing pairwise distances with " + args.correl_method
         if args.min_p is not None:
             correls, correl_header = da.bootstrap_distance_vals(table_filt_rar, args.correl_method, nprocs=args.procs,
-                                                                bootstraps=1000, p_adjust=p_adjust)
+                                                                bootstraps=args.bootstraps, p_adjust=p_adjust)
         else:
             correls, correl_header = da.paired_distances_from_table(table_filt_rar, args.correl_method)
     else:

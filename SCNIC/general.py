@@ -27,10 +27,33 @@ def get_metadata_from_table(table):
     return metadata
 
 
-def bh_adjust(p_vals):
+def bh_adjust_old(p_vals):
     """benjamini-hochberg p-value adjustment"""
     p_vals = np.array(p_vals)
-    return p_vals*len(p_vals)/rankdata(p_vals, method='dense')
+    return p_vals*len(p_vals)/rankdata(p_vals, method='max')
+
+def bh_adjust(pvalues):
+    """benjamini-hochberg p-value adjustment stolen from
+    http://stackoverflow.com/questions/7450957/how-to-implement-rs-p-adjust-in-python
+    """
+    pvalues = np.array(pvalues)
+    n = float(pvalues.shape[0])
+    new_pvalues = np.empty(n)
+    values = [(pvalue, i) for i, pvalue in enumerate(pvalues)]
+    values.sort()
+    values.reverse()
+    new_values = []
+    for i, vals in enumerate(values):
+        rank = n - i
+        pvalue, index = vals
+        new_values.append((n/rank) * pvalue)
+    for i in xrange(0, int(n)-1):
+        if new_values[i] < new_values[i+1]:
+            new_values[i+1] = new_values[i]
+    for i, vals in enumerate(values):
+        pvalue, index = vals
+        new_pvalues[index] = new_values[i]
+    return new_pvalues
 
 
 def bonferroni_adjust(p_vals):

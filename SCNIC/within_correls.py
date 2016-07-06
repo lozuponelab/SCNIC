@@ -69,12 +69,13 @@ def within_correls(args):
             print "Outliers removed: " + str(len(good_samples)) + " observations"
             print ""
             correls, correl_header = ca.paired_correlations_from_table_with_outlier_removal(table_filt, good_samples,
-                                                                                            correl_method, p_adjust)
+                                                                                            args.correl_method, p_adjust)
         # calculate correlations normally
         else:
             print "Correlating with " + args.correl_method
             # correlate feature
-            correls, correl_header = ca.paired_correlations_from_table(table_filt, correl_method, p_adjust)
+            correls, correl_header = ca.paired_correlations_from_table(table_filt, args.correl_method, p_adjust,
+                                                                       nprocs=args.procs)
 
     # calculate distances
     elif correl_method in [jaccard, braycurtis, euclidean]:

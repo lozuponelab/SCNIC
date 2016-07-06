@@ -56,9 +56,16 @@ def bh_adjust(pvalues):
     return new_pvalues
 
 
-def bonferroni_adjust(p_vals):
+def bonferroni_adjust_old(p_vals):
     """bonferroni p-value adjustment"""
     return [i*len(p_vals) for i in p_vals]
+
+
+def bonferroni_adjust(pvalues):
+    pvalues = np.array(pvalues)
+    n = float(pvalues.shape[0])
+    new_pvalues = n * pvalues
+    return new_pvalues
 
 
 def print_delimited(out_fp, lines, header=None):
@@ -150,12 +157,12 @@ def correls_to_net(correls, min_p, min_r, conet=False, metadata=None):
         graph.add_node(correl[0])
         if correl[0] in metadata:
             for key in metadata[correl[0]]:
-                graph.node[correl[0]][key] = ''.join(metadata[correl[0]][key])
+                graph.node[correl[0]][key] = metadata[correl[0]][key]
 
         graph.add_node(correl[1])
         if correl[1] in metadata:
             for key in metadata[correl[1]]:
-                graph.node[correl[1]][key] = ''.join(metadata[correl[1]][key])
+                graph.node[correl[1]][key] = metadata[correl[1]][key]
         if len(correl) == 3:
             graph.add_edge(correl[0], correl[1], r=correl[2], sign_pos=int(abs(correl[2]) == correl[2]))
         elif len(correl) == 4:

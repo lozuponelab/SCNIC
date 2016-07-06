@@ -38,6 +38,7 @@ def make_modules_multik(graph, k=None):
 
 def collapse_modules(table, cliques, prefix="module_"):
     """collapse created modules in a biom table"""
+    #TODO: move writing cliques to file to it's own method
     table = table.copy()
     in_module = set()
     modules = np.zeros((len(cliques), table.shape[1]))

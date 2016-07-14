@@ -3,12 +3,29 @@ import numpy as np
 import networkx as nx
 from biom.table import Table
 import pandas as pd
+from datetime import datetime
+from collections import OrderedDict
 
 __author__ = 'shafferm'
 
 
 """functions used widely"""
 # TODO: Make correl class and implement across package
+
+
+class Logger(OrderedDict):
+    """"""
+    #TODO: break up into sections for correls making, network making and module making
+    def __init__(self, output):
+        super(Logger, self).__init__()
+        self.output_file = output
+        self['start time'] = str(datetime.now())
+
+    def output_log(self):
+        with open(self.output_file, 'w') as f:
+            self['finish time'] = str(datetime.now())
+            for key, value in self.iteritems():
+                f.write(key + ': ' + str(value) + '\n')
 
 
 def df_to_biom(df):
@@ -124,7 +141,7 @@ def correls_to_net_cor(correls, min_cor, conet=False, metadata=None):
     return graph
 
 
-def correls_to_net(correls, min_p, min_r, conet=False, metadata=None):
+def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
     """"""
 
     if metadata is None:

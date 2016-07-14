@@ -24,6 +24,8 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjus
 
 def between_correls(args):
     """TABLES MUST SORT SO THAT SAMPLES ARE IN THE SAME ORDER """
+    logger = general.Logger("SCNIC_log.txt")
+    logger["SCNIC analysis type"] = "between"
 
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr}
@@ -37,6 +39,8 @@ def between_correls(args):
     # load tables
     table1 = load_table(args.table1)
     table2 = load_table(args.table2)
+    logger["input table 1"] = args.table1
+    logger["input table 1"] = args.table2
 
     table1 = table1.sort()
     table2 = table2.sort()
@@ -48,6 +52,7 @@ def between_correls(args):
     if args.output is not None:
         os.makedirs(args.output)
         os.chdir(args.output)
+        logger["output directory"] = args.output
 
     # filter tables
     table1 = general.filter_table(table1)
@@ -56,9 +61,16 @@ def between_correls(args):
     metadata.update(general.get_metadata_from_table(table2))
 
     # make correlations
+    logger["correlation metric"] = args.correl_method
+    logger["p adjustment method"] = args.p_adjust
     correls, correl_header = between_correls_from_tables(table1, table2, correl_method, p_adjust)
     general.print_delimited('correls.txt', correls, correl_header)
 
     # make network
     net = general.correls_to_net(correls, metadata=metadata, min_p=args.min_p)
+    logger["number of nodes"] = net.number_of_nodes()
+    logger["number of edges"] = net.number_of_edges()
     nx.write_gml(net, 'crossnet.gml')
+
+    logger.output_log()
+    print('\a')

@@ -14,7 +14,7 @@ from biom import Table
 def make_modules(graph, k=3):
     """make modules with networkx k-clique communities and annotate network"""
     cliques = list(nx.k_clique_communities(graph, k))
-    cliques = [list(i) for i in cliques]
+    cliques = [list(set(i)) for i in cliques]
     for i, clique in enumerate(cliques):
         for node in clique:
             graph.node[node]['clique'] = i

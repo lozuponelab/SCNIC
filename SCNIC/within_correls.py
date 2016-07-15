@@ -46,6 +46,7 @@ def within_correls(args):
     logger["number of observations in input table"] = table.shape[0]
 
     # check if output directory already exists and if it does delete it
+    #TODO: change this so it only deletes things used by SCNIC within or overwrites
     if args.force:
         shutil.rmtree(args.output, ignore_errors=True)
 
@@ -55,13 +56,21 @@ def within_correls(args):
         os.chdir(args.output)
         logger["output directory"] = args.output
 
-    # convert to relative abundance and filter
+    # filter
     if args.min_sample is not None:
         table_filt = general.filter_table(table, args.min_sample)
         print "Table filtered: " + str(table_filt.shape[0]) + " observations"
         print ""
         logger["min samples present"] = args.min_sample
         logger["number of observations present after filter"] = table_filt.shape[0]
+    elif args.sparcc_filter is True:
+        table_filt = general.sparcc_paper_filter(table)
+        table_filt = general.filter_table(table, args.min_sample)
+        print "Table filtered: " + str(table_filt.shape[0]) + " observations"
+        print ""
+        logger["sparcc paper filter"] = True
+        logger["number of observations present after filter"] = table_filt.shape[0]
+
     else:
         table_filt = table
 

@@ -19,13 +19,23 @@ class Logger(OrderedDict):
     def __init__(self, output):
         super(Logger, self).__init__()
         self.output_file = output
-        self['start time'] = str(datetime.now())
+        self['start time'] = datetime.now()
 
     def output_log(self):
         with open(self.output_file, 'w') as f:
-            self['finish time'] = str(datetime.now())
+            self['finish time'] = datetime.now()
+            self['elapsed time'] = self['finish time'] - self['start time']
             for key, value in self.iteritems():
                 f.write(key + ': ' + str(value) + '\n')
+
+
+def sparcc_paper_filter(table):
+    """if a observation averages more than 2 reads per sample then keep,
+    if a sample has more than 500 reads then keep"""
+    table = table.copy()
+    table.filter(table.ids(axis='sample')[table.sum(axis='sample') > 500], axis='sample')
+    table.filter(table.ids(axis='observation')[table.sum(axis='observation') / table.shape[1] >= 2], axis="observation")
+    return table
 
 
 def df_to_biom(df):
@@ -174,12 +184,18 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
         graph.add_node(correl[0])
         if correl[0] in metadata:
             for key in metadata[correl[0]]:
-                graph.node[correl[0]][key] = metadata[correl[0]][key]
+                if hasattr(metadata[correl[0]][key], '__iter__'):
+                    graph.node[correl[0]][key] = ';'.join(metadata[correl[0]][key])
+                else:
+                    graph.node[correl[0]][key] = metadata[correl[0]][key]
 
         graph.add_node(correl[1])
         if correl[1] in metadata:
             for key in metadata[correl[1]]:
-                graph.node[correl[1]][key] = metadata[correl[1]][key]
+                if hasattr(metadata[correl[0]][key], '__iter__'):
+                    graph.node[correl[1]][key] = ';'.join(metadata[correl[1]][key])
+                else:
+                    graph.node[correl[1]][key] = metadata[correl[1]][key]
         if len(correl) == 3:
             graph.add_edge(correl[0], correl[1], r=correl[2], sign_pos=int(abs(correl[2]) == correl[2]))
         elif len(correl) == 4:

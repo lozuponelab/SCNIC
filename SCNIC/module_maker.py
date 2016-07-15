@@ -7,8 +7,8 @@ from __future__ import division
 
 import networkx as nx
 import numpy as np
-
 from biom import Table
+import os
 
 
 def make_modules(graph, k=3):
@@ -44,12 +44,15 @@ def collapse_modules(table, cliques, prefix="module_"):
     modules = np.zeros((len(cliques), table.shape[1]))
 
     # for each clique merge values and print cliques to file
+    os.makedirs("modules")
     with open("cliques.txt", 'w') as f:
         for i, clique in enumerate(cliques):
             in_module = in_module | set(clique)
             f.write(prefix+str(i)+'\t'+'\t'.join([str(j) for j in clique])+'\n')
             for feature in clique:
                 modules[i] += table.data(feature, axis="observation")
+            module_table = table.filter(clique, axis='observation', inplace=False)
+            module_table.to_json("modulemaker.py", open("modules/" + prefix + str(i) + ".biom", 'w'))
 
     table.filter(in_module, axis='observation', invert=True)
 

@@ -8,7 +8,6 @@ from functools import partial
 from scipy.spatial.distance import squareform
 import numpy as np
 import pandas as pd
-from pysurvey import SparCC as sparcc
 
 __author__ = 'shafferm'
 

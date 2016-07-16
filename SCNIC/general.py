@@ -1,3 +1,5 @@
+from __future__ import division
+
 from scipy.stats import rankdata, linregress
 import numpy as np
 import networkx as nx
@@ -64,7 +66,7 @@ def bh_adjust(pvalues):
     http://stackoverflow.com/questions/7450957/how-to-implement-rs-p-adjust-in-python
     """
     pvalues = np.array(pvalues)
-    n = float(pvalues.shape[0])
+    n = pvalues.shape[0]
     new_pvalues = np.empty(n)
     values = [(pvalue, i) for i, pvalue in enumerate(pvalues)]
     values.sort()

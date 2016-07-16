@@ -5,6 +5,7 @@ from scipy.stats import spearmanr, pearsonr
 import general
 import os
 import networkx as nx
+import numpy as np
 
 
 def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjust=general.bh_adjust):
@@ -45,7 +46,7 @@ def between_correls(args):
     table1 = table1.sort()
     table2 = table2.sort()
 
-    if np.arrayequal(table1.ids(), table2.ids()):
+    if np.array_equal(table1.ids(), table2.ids()):
         raise ValueError("Tables have different sets of samples present")
 
     # make new output directory and change to it

@@ -45,7 +45,7 @@ def between_correls(args):
     table1 = table1.sort()
     table2 = table2.sort()
 
-    if table1.ids() != table2.ids():
+    if np.arrayequal(table1.ids(), table2.ids()):
         raise ValueError("Tables have different sets of samples present")
 
     # make new output directory and change to it

@@ -6,7 +6,7 @@ import os
 import shutil
 
 import networkx as nx
-import pysurvey as ps
+from pysurvey import basis_corr
 
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr, kendalltau
@@ -120,7 +120,7 @@ def within_correls(args):
         logger["correlation method used"] = args.correl_method
 
         # calculate correlations
-        cor, cov = ps.basis_corr(df, oprint=False)
+        cor, cov = basis_corr(df, oprint=False)
 
         if args.min_p is None:
             correls, correl_header = ca.square_to_correls(cor)

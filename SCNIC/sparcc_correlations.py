@@ -3,7 +3,7 @@ import glob
 import os
 
 import general
-import pysurvey as ps
+from pysurvey import basis_corr
 from functools import partial
 from scipy.spatial.distance import squareform
 import numpy as np
@@ -70,7 +70,7 @@ def sparcc_correlation(table):
     df = biom_to_df(table)
 
     # calculate correlations
-    cor, cov = ps.basis_corr(df, oprint=False)
+    cor, cov = basis_corr(df, oprint=False)
 
     # generate correls
     correls = list()
@@ -96,7 +96,7 @@ def co_to_correls(cor):
 def sparcc_correlations_single(df, p_adjust=general.bh_adjust, bootstraps=100):
     """"""
     # calculate correlations
-    cor, cov = ps.basis_corr(df, oprint=False)
+    cor, cov = basis_corr(df, oprint=False)
 
     # calculate p-values
     abs_cor = np.abs(squareform(cor, checks=False))
@@ -125,7 +125,7 @@ def sparcc_correlations_single(df, p_adjust=general.bh_adjust, bootstraps=100):
 
 
 def boostrapped_correlation(bootstrap, cor, df):
-    in_cor = ps.basis_corr(permute_w_replacement(df), oprint=False)[0]
+    in_cor = basis_corr(permute_w_replacement(df), oprint=False)[0]
     in_cor = squareform(in_cor, checks=False)
     return np.abs(in_cor) >= cor
 

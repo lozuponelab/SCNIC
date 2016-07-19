@@ -199,13 +199,13 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
                 else:
                     graph.node[correl[1]][key] = metadata[correl[1]][key]
         if len(correl) == 3:
-            graph.add_edge(correl[0], correl[1], r=correl[2], sign_pos=int(abs(correl[2]) == correl[2]))
+            graph.add_edge(correl[0], correl[1], r=correl[2], signpos=int(abs(correl[2]) == correl[2]))
         elif len(correl) == 4:
             graph.add_edge(correl[0], correl[1], r=correl[2],
-                           p=correl[3], sign_pos=int(abs(correl[2]) == correl[2]))
+                           p=correl[3], signpos=int(abs(correl[2]) == correl[2]))
         elif len(correl) == 5:
             graph.add_edge(correl[0], correl[1], r=correl[2],
-                           p=correl[3], padj=correl[4], sign_pos=int(abs(correl[2]) == correl[2]))
+                           p=correl[3], padj=correl[4], signpos=int(abs(correl[2]) == correl[2]))
         else:
             raise ValueError("correls should only have 3-5 members")
     return graph

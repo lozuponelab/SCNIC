@@ -65,7 +65,6 @@ def within_correls(args):
         logger["number of observations present after filter"] = table_filt.shape[0]
     elif args.sparcc_filter is True:
         table_filt = general.sparcc_paper_filter(table)
-        table_filt = general.filter_table(table, args.min_sample)
         print "Table filtered: " + str(table_filt.shape[0]) + " observations"
         print ""
         logger["sparcc paper filter"] = True

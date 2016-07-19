@@ -12,9 +12,14 @@ import pandas as pd
 __author__ = 'shafferm'
 
 
-def biom_to_df(table):
-    return pd.DataFrame(np.transpose(table.matrix_data.todense()), index=table.ids(),
-                        columns=table.ids(axis="observation"))
+def square_to_correls(cor):
+    # generate correls array
+    correls = list()
+    for i in xrange(len(cor.index)):
+        for j in xrange(i + 1, len(cor.index)):
+            correls.append([cor.index[i], cor.index[j], cor.iat[i, j]])
+    header = ['feature1', 'feature2', 'r']
+    return pd.DataFrame(correls, columns=header)
 
 
 def permute_w_replacement(frame):
@@ -67,7 +72,7 @@ def make_bootstraps(counts, nperm):
 
 def sparcc_correlation(table):
     # convert to pandas dataframe
-    df = biom_to_df(table)
+    df = general.biom_to_df(table)
 
     # calculate correlations
     cor, cov = basis_corr(df, oprint=False)
@@ -79,18 +84,7 @@ def sparcc_correlation(table):
             correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j]])
 
     header = ['feature1', 'feature2', 'r']
-    return correls, header
-
-
-def co_to_correls(cor):
-    # generate correls
-    correls = list()
-    for i in xrange(len(cor.index)):
-        for j in xrange(i+1, len(cor.index)):
-            correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j]])
-
-    header = ['feature1', 'feature2', 'r']
-    return correls, header
+    return pd.DataFrame(correls, columns=header)
 
 
 def sparcc_correlations_single(df, p_adjust=general.bh_adjust, bootstraps=100):
@@ -111,17 +105,15 @@ def sparcc_correlations_single(df, p_adjust=general.bh_adjust, bootstraps=100):
         for j in xrange(i+1, len(cor.index)):
             correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j], p_vals[i, j]])
 
+    # convert to dataframe
+    header = ['feature1', 'feature2', 'r', 'p']
+    correls_df = pd.DataFrame(correls, columns=header)
+
     # adjust p-value if desired
     if p_adjust is not None:
-        p_adjusted = p_adjust([i[3] for i in correls])
-        for i in xrange(len(correls)):
-            correls[i].append(p_adjusted[i])
+        correls_df['adjusted_p'] = p_adjust([i[3] for i in correls])
 
-    header = ['feature1', 'feature2', 'r', 'p']
-    if p_adjust is not None:
-        header.append('adjusted_p')
-
-    return correls, header
+    return correls_df
 
 
 def boostrapped_correlation(bootstrap, cor, df):
@@ -170,14 +162,12 @@ def sparcc_pvals_multi(df, cor, p_adjust=general.bh_adjust, bootstraps=100, proc
         for j in xrange(i+1, len(cor.index)):
             correls.append([str(cor.index[i]), str(cor.index[j]), cor.iat[i, j], p_vals[i, j]])
 
+    # convert to dataframe
+    header = ['feature1', 'feature2', 'r', 'p']
+    correls_df = pd.DataFrame(correls, columns=header)
+
     # adjust p-value if desired
     if p_adjust is not None:
-        p_adjusted = p_adjust([i[3] for i in correls])
-        for i in xrange(len(correls)):
-            correls[i].append(p_adjusted[i])
+        correls_df['adjusted_p'] = p_adjust([i[3] for i in correls])
 
-    header = ['feature1', 'feature2', 'r', 'p']
-    if p_adjust is not None:
-        header.append('adjusted_p')
-
-    return correls, header
+    return correls_df

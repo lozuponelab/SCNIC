@@ -12,7 +12,6 @@ __author__ = 'shafferm'
 
 
 """functions used widely"""
-# TODO: Make correl class and implement across package
 
 
 class Logger(OrderedDict):
@@ -107,82 +106,29 @@ def print_delimited(out_fp, lines, header=None):
     out.close()
 
 
-def read_delimited(in_fp, header=False):
-    """Read in delimited file"""
-    delim = list()
-    with open(in_fp) as f:
-        if header is True:
-            f.readline()
-        for line in f:
-            delim.append(line.strip().split('\t'))
-    return delim
-
-
-def read_correls(correls_fp):
-    correls = read_delimited(correls_fp, True)
-    for i in xrange(len(correls)):
-        for j in xrange(2, len(correls[i])):
-            correls[i][j] = float(correls[i][j])
-    return correls
-
-
-def correls_to_net_cor(correls, min_cor, conet=False, metadata=None):
-    # TODO: add all columns of correls to edge dict, not only cor
-
-    if metadata is None:
-        metadata = []
-
-    # filter to only include significant correlations
-    if conet:
-        correls = list(i for i in correls if i[2] > 0 and i[2] > min_cor)
-    else:
-        correls = list(i for i in correls if np.abs(i[2]) > min_cor)
-
-    graph = nx.Graph()
-    for correl in correls:
-        graph.add_node(correl[0])
-        if correl[0] in metadata:
-            for key in metadata[correl[0]]:
-                graph.node[correl[0]][key] = ''.join(metadata[correl[0]][key])
-
-        graph.add_node(correl[1])
-        if correl[1] in metadata:
-            for key in metadata[correl[1]]:
-                graph.node[correl[1]][key] = ''.join(metadata[correl[1]][key])
-        graph.add_edge(correl[0], correl[1], r=correl[2], signpos=int(abs(correl[2]) == correl[2]))
-    return graph
-
-
 def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
     """"""
-
     if metadata is None:
         metadata = []
 
     if min_p is None and min_r is None:
         min_p = .05
 
+    if conet:
+        correls = correls[correls[correls.columns[2]] > 0]
+
     if min_p is not None:
         # filter to only include significant correlations
-        if conet:
-            try:
-                correls = list(i for i in correls if i[4] < min_p and i[2] > 0)
-            except IndexError:
-                correls = list(i for i in correls if i[3] < min_p and i[2] > 0)
-        else:
-            try:
-                correls = list(i for i in correls if i[4] < min_p)
-            except IndexError:
-                correls = list(i for i in correls if i[3] < min_p)
+        correls = correls[correls[correls.columns[-1]] < min_p]
 
     if min_r is not None:
         if conet:
-            correls = [i for i in correls if i[2] > min_r]
+            correls = correls[correls[correls.columns[2]] > min_r]
         else:
-            correls = [i for i in correls if np.abs(i[2]) > min_r]
+            correls = correls[np.abs(dists_df[dists_df.columns[2]]) > min_r]
 
     graph = nx.Graph()
-    for correl in correls:
+    for correl in correls.itertuples(index=False):
         graph.add_node(correl[0])
         if correl[0] in metadata:
             for key in metadata[correl[0]]:
@@ -209,47 +155,6 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
         else:
             raise ValueError("correls should only have 3-5 members")
     return graph
-
-
-def correls_to_net_plain(correls, min_p=.05, conet=False, metadata=None):
-    """"""
-
-    if metadata is None:
-        metadata = []
-
-    # filter to only include significant correlations
-    if conet:
-        try:
-            correls = list(i for i in correls if i[4] < min_p and i[2] > 0)
-        except IndexError:
-            correls = list(i for i in correls if i[3] < min_p and i[2] > 0)
-    else:
-        try:
-            correls = list(i for i in correls if i[4] < min_p)
-        except IndexError:
-            correls = list(i for i in correls if i[3] < min_p)
-
-    graph = nx.Graph()
-    for correl in correls:
-        graph.add_node(correl[0])
-        if correl[0] in metadata:
-            for key in metadata[correl[0]]:
-                graph.node[correl[0]][key] = ''.join(metadata[correl[0]][key])
-
-        graph.add_node(correl[1])
-        if correl[1] in metadata:
-            for key in metadata[correl[1]]:
-                graph.node[correl[1]][key] = ''.join(metadata[correl[1]][key])
-        graph.add_edge(correl[0], correl[1], r=correl[2])
-    return graph
-
-
-def make_net_from_correls(correls_fp, conet=False, min_p=None, min_r=None):
-    correls = read_delimited(correls_fp, header=True)
-    for i, correl in enumerate(correls):
-        for j in xrange(2, len(correl)):
-            correls[i][j] = float(correls[i][j])
-    return correls_to_net(correls, conet=conet, min_p=min_p, min_r=min_r)
 
 
 def filter_table(table, min_samples=None, to_file=False):

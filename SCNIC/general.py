@@ -149,7 +149,7 @@ def correls_to_net_cor(correls, min_cor, conet=False, metadata=None):
         if correl[1] in metadata:
             for key in metadata[correl[1]]:
                 graph.node[correl[1]][key] = ''.join(metadata[correl[1]][key])
-        graph.add_edge(correl[0], correl[1], r=correl[2], sign_pos=int(abs(correl[2]) == correl[2]))
+        graph.add_edge(correl[0], correl[1], r=correl[2], signpos=int(abs(correl[2]) == correl[2]))
     return graph
 
 

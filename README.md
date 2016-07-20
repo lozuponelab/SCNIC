@@ -27,9 +27,6 @@ Download the repository and go to the top directory in it and simply enter:
 ```
 python setup.py install
 ```
-NOTE: This installs the latest version of pysurvey on pip. This is not the most current version of as of 2/22/2016. To
-get this version you need to go to https://bitbucket.org/yonatanf/pysurvey as install pysurvey using there directions.
-We are working on a work around for this.
 
 ## Example usage:
 

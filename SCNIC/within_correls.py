@@ -7,15 +7,14 @@ import os
 import shutil
 
 import networkx as nx
-from pysurvey import basis_corr
 
 from biom import load_table
+from sparcc_fast import sparcc_correlation, sparcc_correlation_w_bootstraps
 from scipy.stats import spearmanr, pearsonr, kendalltau
 from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra
 from operator import itemgetter
 
 import general
-import sparcc_correlations as sc
 import correlation_analysis as ca
 import distance_analysis as da
 import module_maker as mm
@@ -115,21 +114,12 @@ def within_correls(args):
     else:
         print "Correlating using sparcc"
 
-        # convert to pandas dataframe
-        df = general.biom_to_df(table_filt)
-
-        logger["correlation method used"] = args.correl_method
-
-        # calculate correlations
-        cor, cov = basis_corr(df, oprint=False)
-
         if args.min_p is None:
-            correls = sc.square_to_correls(cor)
+            correls = sparcc_correlation(table_filt)
         else:
-            print "Bootsrapping Correlations"
+            correls = sparcc_correlation_w_bootstraps(table_filt, p_adjust, args.procs, args.bootstraps)
             logger["number of bootstraps"] = args.bootstraps
             logger["p-value adjustment method"] = args.p_adjust
-            correls = sc.sparcc_pvals_multi(df, cor, p_adjust, procs=args.procs, bootstraps=args.bootstraps)
 
     correls.sort([correls.columns[-1], correls.columns[2]], inplace=True)
     correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)

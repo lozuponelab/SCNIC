@@ -93,7 +93,6 @@ def bootstrap_distance_vals(table, dist_metric='braycurtis', nprocs=1, bootstrap
     """"""
     dists = paired_distances_from_table(table, dist_metric=dist_metric)
     measured_dists = dists['dist']
-    print bootstraps
 
     if nprocs == 1:
         print "Using 1 processor to calculate distances"

@@ -27,10 +27,18 @@ selection of correlation metrics. A gml correlation network is output as well as
 p-values of all correlations.
 
 ## Installation
-Download the repository and go to the top directory in it and simply enter:
+To download the latest release from PyPI install using this command:
 ```
+pip install SCNIC
+```
+
+To download the lastest changes to the repository use the following commands:
+```
+git clone https://github.com/shafferm/SCNIC.git
+cd SCNIC/
 python setup.py install
 ```
+NOTE: This latest code may not be functional and should only be used if you want to play around with the code this is based on.
 
 ## Example usage:
 

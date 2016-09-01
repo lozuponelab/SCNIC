@@ -16,7 +16,11 @@ communities as implemented in networkx (https://networkx.github.io/). Modules ar
 observations contained in modules collapsed into single observations are returned. This biom table along with a list of
 modules and their contents are output.  A gml file of the network that can be opened using network visualization tools
 such as cytoscape (http://www.cytoscape.org/) is created which contains all observation metadata provided in the input
-biom file as well as module information.
+biom file as well as module information. Please be aware that the networks output by this analysis will only include
+positive correlations as only positive correlations are used in module finding and summarization. If you wish to build a
+correlation network with both positive and negative correlations using SparCC you can use fast_sparCC 
+(https://github.com/shafferm/fast_sparCC) to generate a correlation table and build a network using a different tool or
+library such as networkx. If there is demand a network building option can be added to fast_sparCC.
 
 The 'between' method takes two biom tables as input and calculates all pairwise correlations between the tables using a
 selection of correlation metrics. A gml correlation network is output as well as a file containing statistics and
@@ -32,8 +36,11 @@ python setup.py install
 
 'within' mode:
 ```
-correl_networks.py within -i example_table.biom -o output_folder/ -m sparcc --min_p .05
+correl_networks.py within -i example_table.biom -o output_folder/ -m sparcc --min_r .3
 ```
+NOTE: We use a minimum R value of .3 when running SparCC as a computationally demanding bootstrapping procedure must be run
+to determine p-values. We have run SparCC with 1 million bootstraps on a variety of datasets and found that a R value of
+between .3 and .35 will always return FDR adjusted p-values less than .05 and .1 respectively.
 
 'between' mode:
 ```

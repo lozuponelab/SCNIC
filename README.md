@@ -38,7 +38,8 @@ git clone https://github.com/shafferm/SCNIC.git
 cd SCNIC/
 python setup.py install
 ```
-NOTE: This latest code may not be functional and should only be used if you want to play around with the code this is based on.
+NOTE: This latest code may not be functional and should only be used if you want to play around with the code this is
+based on.
 
 ## Example usage:
 
@@ -46,9 +47,9 @@ NOTE: This latest code may not be functional and should only be used if you want
 ```
 SCNIC_analysis.py within -i example_table.biom -o output_folder/ -m sparcc --min_r .3
 ```
-NOTE: We use a minimum R value of .3 when running SparCC as a computationally demanding bootstrapping procedure must be run
-to determine p-values. We have run SparCC with 1 million bootstraps on a variety of datasets and found that a R value of
-between .3 and .35 will always return FDR adjusted p-values less than .05 and .1 respectively.
+NOTE: We use a minimum R value of .3 when running SparCC with 16S data as a computationally demanding bootstrapping
+procedure must be run to determine p-values. We have run SparCC with 1 million bootstraps on a variety of datasets and
+found that a R value of between .3 and .35 will always return FDR adjusted p-values less than .05 and .1 respectively.
 
 'between' mode:
 ```

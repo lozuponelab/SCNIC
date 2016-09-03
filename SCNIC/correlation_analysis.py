@@ -53,7 +53,7 @@ def paired_correlations_from_table(table, correl_method="spearman", p_adjust=gen
         p_adjusted = p_adjust([i[3] for i in correls])
         correls_df['adjusted_p'] = p_adjusted
 
-    return correls
+    return correls_df
 
 
 def paired_correlations_from_table_with_outlier_removal(table, good_samples, min_keep=10, correl_method=spearmanr,

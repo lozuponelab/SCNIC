@@ -117,11 +117,13 @@ def within_correls(args):
         if args.min_p is None:
             correls = sparcc_correlation(table_filt)
         else:
-            correls = sparcc_correlation_w_bootstraps(table_filt, p_adjust, args.procs, args.bootstraps)
+            correls = sparcc_correlation_w_bootstraps(table_filt, args.procs, args.bootstraps)
             logger["number of bootstraps"] = args.bootstraps
+            if p_adjust is not None:
+                correls['p-adj'] = p_adjust(correls.p)
             logger["p-value adjustment method"] = args.p_adjust
 
-    correls.sort([correls.columns[-1], correls.columns[2]], inplace=True)
+    correls.sort_values([correls.columns[-1], correls.columns[2]], inplace=True)
     correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
 
     print "Features Correlated"

@@ -129,13 +129,15 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
         if conet:
             correls = correls[correls[correls.columns[2]] > min_r]
         else:
-            correls = correls[np.abs(dists_df[dists_df.columns[2]]) > min_r]
+            correls = correls[np.abs(correls[correls.columns[2]]) > min_r]
 
     graph = nx.Graph()
     for correl in correls.itertuples(index=False):
         graph.add_node(correl[0])
         if correl[0] in metadata:
             for key in metadata[correl[0]]:
+                if metadata[correl[0]][key] is None:
+                    continue
                 if hasattr(metadata[correl[0]][key], '__iter__'):
                     graph.node[correl[0]][key] = ';'.join(metadata[correl[0]][key])
                 else:
@@ -144,7 +146,9 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
         graph.add_node(correl[1])
         if correl[1] in metadata:
             for key in metadata[correl[1]]:
-                if hasattr(metadata[correl[0]][key], '__iter__'):
+                if metadata[correl[1]][key] is None:
+                    continue
+                if hasattr(metadata[correl[1]][key], '__iter__'):
                     graph.node[correl[1]][key] = ';'.join(metadata[correl[1]][key])
                 else:
                     graph.node[correl[1]][key] = metadata[correl[1]][key]

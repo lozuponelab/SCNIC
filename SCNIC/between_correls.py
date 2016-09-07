@@ -1,5 +1,3 @@
-__author__ = 'shafferm'
-
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr
 import general
@@ -8,6 +6,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
+__author__ = 'shafferm'
 
 def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjust=general.bh_adjust):
     correls = list()

@@ -13,10 +13,12 @@ __author__ = 'shafferm'
 
 """functions used widely"""
 
+# TODO: fix network generation where none are added to metadata categories which breaks cytoscape
+
 
 class Logger(OrderedDict):
     """"""
-    #TODO: break up into sections for correls making, network making and module making
+    # TODO: break up into sections for correls making, network making and module making
     def __init__(self, output):
         super(Logger, self).__init__()
         self.output_file = output
@@ -44,7 +46,8 @@ def df_to_biom(df):
 
 
 def biom_to_df(biom):
-    return pd.DataFrame(np.transpose(biom.matrix_data.todense()), index=biom.ids(), columns=biom.ids(axis="observation"))
+    return pd.DataFrame(np.transpose(biom.matrix_data.todense()), index=biom.ids(),
+                        columns=biom.ids(axis="observation"))
 
 
 def get_metadata_from_table(table):
@@ -59,6 +62,7 @@ def bh_adjust_old(p_vals):
     """benjamini-hochberg p-value adjustment"""
     p_vals = np.array(p_vals)
     return p_vals*len(p_vals)/rankdata(p_vals, method='max')
+
 
 def bh_adjust(pvalues):
     """benjamini-hochberg p-value adjustment stolen from

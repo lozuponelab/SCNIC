@@ -1,8 +1,5 @@
 """Make modules of observations based on cooccurence networks and collapse table"""
 
-
-# TODO: FIX BUG WHERE THINGS CAN BE IN MULTIPLE CLIQUES BUT GET LAST LABEL
-
 from __future__ import division
 
 import networkx as nx
@@ -17,7 +14,7 @@ def make_modules(graph, k=3):
     cliques = [list(set(i)) for i in cliques]
     for i, clique in enumerate(cliques):
         for node in clique:
-            graph.node[node]['clique'] = i
+            graph.node[node]['module'] = i
     return graph, cliques
 
 
@@ -37,20 +34,28 @@ def make_modules_multik(graph, k=None):
 
 
 def collapse_modules(table, cliques, prefix="module_"):
-    """collapse created modules in a biom table"""
-    #TODO: move writing cliques to file to it's own method
+    """collapse created modules in a biom table, members of multiple cliques will be added to the smallest clique"""
+    # TODO: move writing modules to file to it's own method
     table = table.copy()
     in_module = set()
     modules = np.zeros((len(cliques), table.shape[1]))
 
-    # for each clique merge values and print cliques to file
+    # for each module merge values and print cliques to file
     os.makedirs("modules")
     with open("cliques.txt", 'w') as f:
+        # reverse modules so observations will be added to smallest modules
+        cliques.reverse()
         for i, clique in enumerate(cliques):
+            # write all modules to file
+            f.write(prefix + str(i) + '\t' + '\t'.join([str(j) for j in clique]) + '\n')
+            # only looks at observations that have not been included in a module already
+            clique = set(clique) - in_module
+            # sum everything in the clique
+            modules[i] = np.sum([table.data(feature, axis="observation") for feature in clique], axis=0)
+            # record which features we have seen
             in_module = in_module | set(clique)
-            f.write(prefix+str(i)+'\t'+'\t'.join([str(j) for j in clique])+'\n')
-            for feature in clique:
-                modules[i] += table.data(feature, axis="observation")
+
+            # make biom tables for each module and write to file
             module_table = table.filter(clique, axis='observation', inplace=False)
             module_table.to_json("modulemaker.py", open("modules/" + prefix + str(i) + ".biom", 'w'))
 

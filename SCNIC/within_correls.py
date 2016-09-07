@@ -46,7 +46,7 @@ def within_correls(args):
     logger["number of observations in input table"] = table.shape[0]
 
     # check if output directory already exists and if it does delete it
-    #TODO: change this so it only deletes things used by SCNIC within or overwrites
+    # TODO: change this so it only deletes things used by SCNIC within or overwrites
     if args.force:
         shutil.rmtree(args.output, ignore_errors=True)
 
@@ -90,13 +90,12 @@ def within_correls(args):
             print ""
 
             correls = ca.paired_correlations_from_table_with_outlier_removal(table_filt, good_samples,
-                                                                                            correl_method, p_adjust)
+                                                                             correl_method, p_adjust)
         # calculate correlations normally
         else:
             print "Correlating with " + args.correl_method
             # correlate feature
-            correls = ca.paired_correlations_from_table(table_filt, args.correl_method, p_adjust,
-                                                                       nprocs=args.procs)
+            correls = ca.paired_correlations_from_table(table_filt, args.correl_method, p_adjust, nprocs=args.procs)
 
     # calculate distances
     elif correl_method in [jaccard, braycurtis, euclidean]:
@@ -107,7 +106,7 @@ def within_correls(args):
             logger["number of bootstraps"] = args.bootstraps
             logger["p-value adjustment method"] = args.p_adjust
             correls = da.bootstrap_distance_vals(table_filt_rar, args.correl_method, nprocs=args.procs,
-                                                                bootstraps=args.bootstraps, p_adjust=p_adjust)
+                                                 bootstraps=args.bootstraps, p_adjust=p_adjust)
         else:
             correls = da.paired_distances_from_table(table_filt_rar, args.correl_method)
 

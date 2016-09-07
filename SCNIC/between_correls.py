@@ -6,6 +6,7 @@ import general
 import os
 import networkx as nx
 import numpy as np
+import pandas as pd
 
 
 def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjust=general.bh_adjust):
@@ -20,7 +21,7 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjus
     for i in xrange(len(correls)):
             correls[i].append(p_adjusted[i])
 
-    return correls, ['feature1', 'feature2', 'r', 'p', 'p_adj']
+    return pd.DataFrame(correls, columns=['feature1', 'feature2', 'r', 'p', 'p_adj'])
 
 
 def between_correls(args):
@@ -65,7 +66,7 @@ def between_correls(args):
     logger["correlation metric"] = args.correl_method
     logger["p adjustment method"] = args.p_adjust
     correls, correl_header = between_correls_from_tables(table1, table2, correl_method, p_adjust)
-    general.print_delimited('correls.txt', correls, correl_header)
+    correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
 
     # make network
     net = general.correls_to_net(correls, metadata=metadata, min_p=args.min_p)

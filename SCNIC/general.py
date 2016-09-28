@@ -13,8 +13,6 @@ __author__ = 'shafferm'
 
 """functions used widely"""
 
-# TODO: fix network generation where none are added to metadata categories which breaks cytoscape
-
 
 class Logger(OrderedDict):
     """"""

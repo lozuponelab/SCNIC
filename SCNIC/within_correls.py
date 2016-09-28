@@ -47,7 +47,7 @@ def within_correls(args):
 
     # check if output directory already exists and if it does delete it
     # TODO: change this so it only deletes things used by SCNIC within or overwrites
-    if args.force:
+    if args.force and args.output is not None:
         shutil.rmtree(args.output, ignore_errors=True)
 
     # make new output directory and change to it
@@ -69,7 +69,6 @@ def within_correls(args):
         print ""
         logger["sparcc paper filter"] = True
         logger["number of observations present after filter"] = table_filt.shape[0]
-
     else:
         table_filt = table
 
@@ -115,14 +114,16 @@ def within_correls(args):
 
         if args.min_p is None:
             correls = sparcc_correlation(table_filt)
+            logger["correlation method used"] = args.correl_method
         else:
             correls = sparcc_correlation_w_bootstraps(table_filt, args.procs, args.bootstraps)
+            logger["correlation method used"] = args.correl_method
             logger["number of bootstraps"] = args.bootstraps
             if p_adjust is not None:
                 correls['p-adj'] = p_adjust(correls.p)
             logger["p-value adjustment method"] = args.p_adjust
 
-    correls.sort_values([correls.columns[-1], correls.columns[2]], inplace=True)
+    correls.sort_values(correls.columns[-1], inplace=True)
     correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
 
     print "Features Correlated"
@@ -146,8 +147,9 @@ def within_correls(args):
     print "number of modules: " + str(len(cliques))
     print ""
 
-    # print network
+    # print network and write cliques
     nx.write_gml(net, 'conetwork.gml')
+    mm.write_cliques_to_file(cliques)
 
     # collapse modules
     coll_table = mm.collapse_modules(table, cliques, args.prefix)

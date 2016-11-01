@@ -114,9 +114,6 @@ def bootstrap_distance_vals(table, dist_metric='braycurtis', nprocs=1, bootstrap
         pool.close()
         pool.join()
 
-    dists['p_val'] = np.sum(multi_results, axis=0)/bootstraps
-
-    if p_adjust is not None:
-        dists['p_adjusted'] = p_adjust(dists['p_val'])
+    dists['p'] = np.sum(multi_results, axis=0)/bootstraps
 
     return dists

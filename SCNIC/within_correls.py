@@ -1,4 +1,3 @@
-# TODO: Add parameters log output file to output folder
 # TODO: Testing correls as list vs as pandas dataframe for speed
 
 from __future__ import division
@@ -12,7 +11,6 @@ from biom import load_table
 from sparcc_fast import sparcc_correlation, sparcc_correlation_w_bootstraps
 from scipy.stats import spearmanr, pearsonr, kendalltau
 from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra
-from operator import itemgetter
 
 import general
 import correlation_analysis as ca
@@ -26,8 +24,8 @@ def within_correls(args):
     logger["SCNIC analysis type"] = "within"
 
     # correlation and p-value adjustment methods
-    correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'sparcc': None, 'jaccard': jaccard,
-                      'cscore': da.cscore, 'braycurtis': braycurtis, 'euclidean': euclidean, 'kendall': kendalltau,
+    correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau, 'sparcc': None,
+                      'jaccard': jaccard, 'cscore': da.cscore, 'braycurtis': braycurtis, 'euclidean': euclidean,
                       'canberra': canberra}
     p_methods = {'bh': general.bh_adjust, 'bon': general.bonferroni_adjust}
     correl_method = correl_methods[args.correl_method.lower()]
@@ -78,7 +76,6 @@ def within_correls(args):
     if correl_method in [spearmanr, pearsonr, kendalltau]:
         # use outlier removal
         logger["correlation method used"] = args.correl_method
-        logger["p-value adjustment method"] = args.p_adjust
         if args.outlier_removal:
             print "Correlating with outlier removal."
             logger["outlier removal used"] = True
@@ -89,15 +86,15 @@ def within_correls(args):
             print ""
 
             correls = ca.paired_correlations_from_table_with_outlier_removal(table_filt, good_samples,
-                                                                             correl_method, p_adjust)
+                                                                             correl_method)
         # calculate correlations normally
         else:
             print "Correlating with " + args.correl_method
             # correlate feature
-            correls = ca.paired_correlations_from_table(table_filt, args.correl_method, p_adjust, nprocs=args.procs)
+            correls = ca.paired_correlations_from_table(table_filt, args.correl_method, nprocs=args.procs)
 
     # calculate distances
-    elif correl_method in [jaccard, braycurtis, euclidean]:
+    elif correl_method in [jaccard, braycurtis, euclidean, da.cscore, canberra]:
         table_filt_rar = table_filt.subsample(args.rarefaction_level)
         print "Computing pairwise distances with " + args.correl_method
         logger["distance metric used"] = args.correl_method
@@ -105,7 +102,7 @@ def within_correls(args):
             logger["number of bootstraps"] = args.bootstraps
             logger["p-value adjustment method"] = args.p_adjust
             correls = da.bootstrap_distance_vals(table_filt_rar, args.correl_method, nprocs=args.procs,
-                                                 bootstraps=args.bootstraps, p_adjust=p_adjust)
+                                                 bootstraps=args.bootstraps)
         else:
             correls = da.paired_distances_from_table(table_filt_rar, args.correl_method)
 
@@ -119,10 +116,13 @@ def within_correls(args):
             correls = sparcc_correlation_w_bootstraps(table_filt, args.procs, args.bootstraps)
             logger["correlation method used"] = args.correl_method
             logger["number of bootstraps"] = args.bootstraps
-            if p_adjust is not None:
-                correls['p-adj'] = p_adjust(correls.p)
-            logger["p-value adjustment method"] = args.p_adjust
 
+    # adjust p-value if desired
+    if p_adjust is not None and 'p' in correls.columns:
+        correls['p_adj'] = p_adjust(correls.p)
+        logger["p-value adjustment method"] = args.p_adjust
+
+    # sort and print correls to file
     correls.sort_values(correls.columns[-1], inplace=True)
     correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
 

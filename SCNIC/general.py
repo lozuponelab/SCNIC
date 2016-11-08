@@ -134,22 +134,24 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
         graph.add_node(correl[0])
         if correl[0] in metadata:
             for key in metadata[correl[0]]:
+                graph_key = str(key).replace('_', '')
                 if metadata[correl[0]][key] is None:
                     continue
                 if hasattr(metadata[correl[0]][key], '__iter__'):
-                    graph.node[correl[0]][key] = ';'.join(metadata[correl[0]][key])
+                    graph.node[correl[0]][graph_key] = ';'.join(metadata[correl[0]][key])
                 else:
-                    graph.node[correl[0]][key] = metadata[correl[0]][key]
+                    graph.node[correl[0]][graph_key] = metadata[correl[0]][key]
 
         graph.add_node(correl[1])
         if correl[1] in metadata:
             for key in metadata[correl[1]]:
+                graph_key = str(key).replace('_', '')
                 if metadata[correl[1]][key] is None:
                     continue
                 if hasattr(metadata[correl[1]][key], '__iter__'):
-                    graph.node[correl[1]][key] = ';'.join(metadata[correl[1]][key])
+                    graph.node[correl[1]][graph_key] = ';'.join(metadata[correl[1]][key])
                 else:
-                    graph.node[correl[1]][key] = metadata[correl[1]][key]
+                    graph.node[correl[1]][graph_key] = metadata[correl[1]][key]
         if len(correl) == 3:
             graph.add_edge(correl[0], correl[1], r=correl[2], signpos=int(abs(correl[2]) == correl[2]))
         elif len(correl) == 4:

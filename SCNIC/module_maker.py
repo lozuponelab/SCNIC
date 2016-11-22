@@ -8,13 +8,23 @@ from biom import Table
 import os
 
 
-def make_modules(graph, k=3):
+def make_modules(graph, k=3, prefix="module"):
     """make modules with networkx k-clique communities and annotate network"""
-    cliques = list(nx.k_clique_communities(graph, k))
-    for i, clique in enumerate(cliques):
-        for node in clique:
-            graph.node[node]['module'] = i
-    return graph, cliques
+    premodules = list(nx.k_clique_communities(graph, k))
+    # reverse modules so observations will be added to smallest modules
+    premodules = list(enumerate(premodules))
+    premodules.reverse()
+
+    modules = dict()
+    seen = set()
+    for i, module in premodules:
+        # process module
+        module = module-seen
+        seen = seen | module
+        modules[prefix+"_"+str(i)] = module
+        for node in module:
+            graph.node[node][prefix] = i
+    return graph, modules
 
 
 def make_modules_multik(graph, k=None):
@@ -32,42 +42,40 @@ def make_modules_multik(graph, k=None):
     return graph, {k: list(v) for k, v in communities.iteritems()}
 
 
-def collapse_modules(table, cliques, prefix="module_"):
-    """collapse created modules in a biom table, members of multiple cliques will be added to the smallest clique"""
+def collapse_modules(table, modules):
+    """collapse created modules in a biom table, members of multiple modules will be added to the smallest module"""
     table = table.copy()
-    modules = np.zeros((len(cliques), table.shape[1]))
+    module_array = np.zeros((len(modules), table.shape[1]))
 
-    # for each module merge values and print cliques to file
-    os.makedirs("modules")
-    # reverse modules so observations will be added to smallest modules
-    cliques = list(enumerate(cliques))
-    cliques.reverse()
     seen = set()
-    for i, clique in cliques:
-        # process clique
-        clique = clique-seen
-        seen = seen | clique
-
-        # sum everything in the clique
-        modules[i] = np.sum([table.data(feature, axis="observation") for feature in clique], axis=0)
-
-        # make biom tables for each module and write to file
-        module_table = table.filter(clique, axis='observation', inplace=False)
-        module_table.to_json("modulemaker.py", open("modules/" + prefix + str(i) + ".biom", 'w'))
+    for i, module in modules.iteritems():
+        seen = seen | module
+        # sum everything in the module
+        module_array[int(i.split("_")[-1])] = np.sum([table.data(feature, axis="observation") for feature in module], axis=0)
 
     table.filter(seen, axis='observation', invert=True)
 
     # make new table
-    new_table_matrix = np.concatenate((table.matrix_data.toarray(), modules))
-    new_table_obs = list(table.ids(axis='observation')) + [prefix + str(i) for i in range(0, len(cliques))]
+    new_table_matrix = np.concatenate((table.matrix_data.toarray(), module_array))
+    new_table_obs = list(table.ids(axis='observation')) + modules.keys()
     return Table(new_table_matrix, new_table_obs, table.ids())
 
 
-def write_cliques_to_file(cliques, prefix="module_"):
+def write_modules_to_dir(table, modules):
+    # for each module merge values and print modules to file
+    os.makedirs("modules")
+    # reverse modules so observations will be added to smallest modules
+    for i, module in modules.iteritems():
+        # make biom tables for each module and write to file
+        module_table = table.filter(module, axis='observation', inplace=False)
+        module_table.to_json("modulemaker.py", open("modules/%s.biom" % i, 'w'))
+
+
+def write_modules_to_file(modules):
     # write all modules to file
     with open("modules.txt", 'w') as f:
-        for i, clique in enumerate(cliques):
-            f.write(prefix + str(i) + '\t' + '\t'.join([str(j) for j in clique]) + '\n')
+        for i, module in modules.iteritems():
+            f.write(i + '\t' + '\t'.join([str(j) for j in module]) + '\n')
 
 
 def collapse_modules_multik(table, cliques, prefix="module_"):

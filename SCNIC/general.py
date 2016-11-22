@@ -7,6 +7,8 @@ from biom.table import Table
 import pandas as pd
 from datetime import datetime
 from collections import OrderedDict
+from numpy.random import multivariate_normal
+
 
 __author__ = 'shafferm'
 
@@ -56,15 +58,18 @@ def get_metadata_from_table(table):
     return metadata
 
 
-def bh_adjust_old(p_vals):
-    """benjamini-hochberg p-value adjustment"""
-    p_vals = np.array(p_vals)
-    return p_vals*len(p_vals)/rankdata(p_vals, method='max')
-
-
 def bh_adjust(pvalues):
-    """benjamini-hochberg p-value adjustment stolen from
+    """
+    benjamini-hochberg p-value adjustment stolen from
     http://stackoverflow.com/questions/7450957/how-to-implement-rs-p-adjust-in-python
+
+    Parameters
+    ----------
+    pvalues: an iterable of p-values
+
+    Returns
+    -------
+    new_pvalues: a numpy array of BH adjusted p-values
     """
     pvalues = np.array(pvalues)
     n = pvalues.shape[0]
@@ -86,11 +91,6 @@ def bh_adjust(pvalues):
     return new_pvalues
 
 
-def bonferroni_adjust_old(p_vals):
-    """bonferroni p-value adjustment"""
-    return [i*len(p_vals) for i in p_vals]
-
-
 def bonferroni_adjust(pvalues):
     pvalues = np.array(pvalues)
     n = float(pvalues.shape[0])
@@ -109,7 +109,8 @@ def print_delimited(out_fp, lines, header=None):
 
 
 def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
-    """"""
+    """correls is a pandas dataframe which has columns feature1, feature2, r and optionally p and p_adj and optionally
+    any others"""
     if metadata is None:
         metadata = []
 
@@ -117,51 +118,50 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
         min_p = .05
 
     if conet:
-        correls = correls[correls[correls.columns[2]] > 0]
+        correls = correls[correls.r > 0]
 
     if min_p is not None:
         # filter to only include significant correlations
-        correls = correls[correls[correls.columns[-1]] < min_p]
+        if 'p_adj' in correls.columns:
+            correls = correls[correls.p_adj < min_p]
+        elif 'p' in correls.columns:
+            correls = correls[correls.p < min_p]
+        else:
+            raise ValueError("No p or p_adj in correls")
 
     if min_r is not None:
         if conet:
-            correls = correls[correls[correls.columns[2]] > min_r]
+            correls = correls[correls.r > min_r]
         else:
-            correls = correls[np.abs(correls[correls.columns[2]]) > min_r]
+            correls = correls[np.abs(correls.r) > min_r]
 
     graph = nx.Graph()
-    for correl in correls.itertuples(index=False):
-        graph.add_node(correl[0])
-        if correl[0] in metadata:
-            for key in metadata[correl[0]]:
+    for index, correl in correls.iterrows():
+        graph.add_node(correl.feature1)
+        if correl.feature1 in metadata:
+            for key in metadata[correl.feature1]:
                 graph_key = str(key).replace('_', '')
-                if metadata[correl[0]][key] is None:
+                if metadata[correl.feature1][key] is None:
                     continue
-                if hasattr(metadata[correl[0]][key], '__iter__'):
-                    graph.node[correl[0]][graph_key] = ';'.join(metadata[correl[0]][key])
+                if hasattr(metadata[correl.feature1][key], '__iter__'):
+                    graph.node[correl.feature1][graph_key] = ';'.join(metadata[correl.feature1][key])
                 else:
-                    graph.node[correl[0]][graph_key] = metadata[correl[0]][key]
+                    graph.node[correl.feature1][graph_key] = metadata[correl.feature1][key]
 
-        graph.add_node(correl[1])
-        if correl[1] in metadata:
-            for key in metadata[correl[1]]:
+        graph.add_node(correl.feature2)
+        if correl.feature2 in metadata:
+            for key in metadata[correl.feature2]:
                 graph_key = str(key).replace('_', '')
-                if metadata[correl[1]][key] is None:
+                if metadata[correl.feature2][key] is None:
                     continue
-                if hasattr(metadata[correl[1]][key], '__iter__'):
-                    graph.node[correl[1]][graph_key] = ';'.join(metadata[correl[1]][key])
+                if hasattr(metadata[correl.feature2][key], '__iter__'):
+                    graph.node[correl.feature2][graph_key] = ';'.join(metadata[correl.feature2][key])
                 else:
-                    graph.node[correl[1]][graph_key] = metadata[correl[1]][key]
-        if len(correl) == 3:
-            graph.add_edge(correl[0], correl[1], r=correl[2], signpos=int(abs(correl[2]) == correl[2]))
-        elif len(correl) == 4:
-            graph.add_edge(correl[0], correl[1], r=correl[2],
-                           p=correl[3], signpos=int(abs(correl[2]) == correl[2]))
-        elif len(correl) == 5:
-            graph.add_edge(correl[0], correl[1], r=correl[2],
-                           p=correl[3], padj=correl[4], signpos=int(abs(correl[2]) == correl[2]))
-        else:
-            raise ValueError("correls should only have 3-5 members")
+                    graph.node[correl.feature2][graph_key] = metadata[correl.feature2][key]
+        graph.add_edge(correl.feature1, correl.feature2)
+        for i in correl.index[2:]:
+            graph_key = i.replace('_', '')
+            graph.edge[correl.feature1][correl.feature2][graph_key] = correl[i]
     return graph
 
 
@@ -214,7 +214,7 @@ def plot_networkx(graph):
 
     try:
         import matplotlib.pyplot as plt
-    except:
+    except ImportError:
         print "matplotlib not installed, please install to use plotting functions"
         return None
 
@@ -225,3 +225,66 @@ def plot_networkx(graph):
     nx.draw_networkx_labels(graph, graph_pos, font_size=12, font_family='sans-serif')
 
     plt.show()
+
+
+def simulate_correls(corr_stren=(.8, .9), std=(14, 14, 14, 77, 77), means=(100, 100, 100, 100, 100), size=30,
+                     noncors=10, noncors_mean=100, noncors_std=14, subsample=None, log=False):
+    """
+    Generates a correlation matrix with diagonal of stds based on input parameters and fills rest of matrix with
+    uncorrelated values all with same  mean and standard deviations. Output should have a triangle of correlated
+    observations and a pair all other observations should be uncorrelated. Correlation to covariance calculated by
+    cor(X,Y)=cov(X,Y)/sd(X)sd(Y).
+
+    Parameters
+    ----------
+    corr_stren: tuple of length 2, correlations in triangle and in pair
+    std: tuple of length 5, standard deviations of each observation
+    means: tuple of length 5, mean of each observation
+    size: number of samples to generate from the multivariate normal distribution
+    noncors: number of uncorrelated values
+    noncors_mean: mean of uncorrelated values
+    noncors_std: standard deviation of uncorrelated values
+    subsample: Rarefy data to give threshold
+    log: logonentiate mean values, if you are trying to detect log correlation
+
+    Returns
+    -------
+    table: a biom table with (size) samples and (5+noncors) observations
+    """
+    cor = [[std[0], corr_stren[0], corr_stren[0], 0., 0.],  # define the correlation matrix for the triangle and pair
+           [corr_stren[0], std[1], corr_stren[0], 0., 0.],
+           [corr_stren[0], corr_stren[0], std[2], 0., 0.],
+           [0., 0., 0., std[3], corr_stren[1]],
+           [0., 0., 0., corr_stren[1], std[4]]]
+    cor = np.array(cor)
+    cov = np.zeros(np.array(cor.shape) + noncors)  # generate empty covariance matrix to be filled
+    for i in xrange(cor.shape[0]):  # fill in all but diagonal of covariance matrix, first 5
+        for j in xrange(i + 1, cor.shape[0]):
+            curr_cov = cor[i, j] * cor[i, i] * cor[j, j]
+            cov[i, j] = curr_cov
+            cov[j, i] = curr_cov
+    for i in xrange(cor.shape[0]):  # fill diagonal of covariance matrix, first 5
+        cov[i, i] = np.square(cor[i, i])
+    means = list(means)
+    for i in xrange(cor.shape[0], cov.shape[0]):  # fill diagonal of covariance, 6 to end and populate mean list
+        cov[i, i] = noncors_std
+        means.append(noncors_mean)
+
+    if log:  # if log then log the array
+        means = np.log(np.array(means))
+
+    counts = multivariate_normal(means, cov, size).T # fill the count table
+
+    if log:
+        counts = np.log(counts)
+
+    counts = np.round(counts)
+
+    observ_ids = ["Observ_" + str(i) for i in xrange(cov.shape[0])]
+    sample_ids = ["Sample_" + str(i) for i in xrange(size)]
+    table = Table(counts, observ_ids, sample_ids)
+
+    if subsample is not None:
+        table = table.subsample(subsample)
+
+    return table

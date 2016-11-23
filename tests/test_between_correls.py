@@ -3,6 +3,7 @@ import os
 from SCNIC.general import simulate_correls
 from SCNIC.between_correls import between_correls
 
+
 @pytest.fixture()
 def args():
     class Arguments(object):
@@ -16,6 +17,7 @@ def args():
         def __getattr__(self, name):
             return None
     return Arguments()
+
 
 def test_between_correls(args, tmpdir):
     table1 = simulate_correls()

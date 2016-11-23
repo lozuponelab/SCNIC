@@ -68,4 +68,3 @@ def test_correls_to_net(net1):
     assert type(net1) is nx.Graph
     assert len(net1.edges()) == 4
     assert len(net1.nodes()) == 5
-

@@ -1,12 +1,10 @@
 from __future__ import division
 
-import numpy as np
-from scipy.spatial.distance import braycurtis
-from collections import Counter
-import general
-from biom import Table
 import multiprocessing
 import warnings
+from collections import Counter
+import numpy as np
+from biom import Table
 from functools import partial
 from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra
 import pandas as pd

@@ -9,6 +9,7 @@ from scipy.misc import comb
 def biom_table1():
     return simulate_correls()
 
+
 # TODO: Induce between table correlations to try to detect
 @pytest.fixture()
 def biom_table2():

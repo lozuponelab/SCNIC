@@ -51,7 +51,8 @@ def collapse_modules(table, modules):
     for i, module in modules.iteritems():
         seen = seen | module
         # sum everything in the module
-        module_array[int(i.split("_")[-1])] = np.sum([table.data(feature, axis="observation") for feature in module], axis=0)
+        module_array[int(i.split("_")[-1])] = np.sum([table.data(feature, axis="observation") for feature in module],
+                                                     axis=0)
 
     table.filter(seen, axis='observation', invert=True)
 

@@ -172,4 +172,4 @@ def within_correls(args):
     coll_table.to_json('make_modules.py', open('collapsed.biom', 'w'))
 
     logger.output_log()
-    print('\a')
+    print '\a'

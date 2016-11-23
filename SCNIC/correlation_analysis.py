@@ -1,4 +1,3 @@
-import general
 import numpy as np
 from scipy.stats import spearmanr, pearsonr, kendalltau
 import warnings
@@ -49,8 +48,7 @@ def paired_correlations_from_table(table, correl_method="spearman", nprocs=1):
     return correls_df
 
 
-def paired_correlations_from_table_with_outlier_removal(table, good_samples, min_keep=10, correl_method=spearmanr,
-                                                        p_adjust=general.bh_adjust):
+def paired_correlations_from_table_with_outlier_removal(table, good_samples, min_keep=10, correl_method=spearmanr,):
     """Takes a biom table and finds correlations between all pairs of otus."""
     correls = list()
 

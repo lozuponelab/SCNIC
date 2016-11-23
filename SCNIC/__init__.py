@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2
-
+"""
+Tools for correlation network formation and analysis.
+"""
 __author__ = 'shafferm'
-__all__ = ["general", "module_maker", "between_correls"]

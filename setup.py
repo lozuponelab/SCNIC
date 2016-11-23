@@ -1,6 +1,6 @@
-__author__ = 'shafferm'
-
 from setuptools import setup, find_packages
+
+__author__ = 'shafferm'
 
 setup(
     name="SCNIC",

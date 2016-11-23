@@ -3,6 +3,7 @@ import os
 from SCNIC.general import simulate_correls
 from SCNIC.within_correls import within_correls
 
+
 @pytest.fixture()
 def args():
     class Arguments(object):

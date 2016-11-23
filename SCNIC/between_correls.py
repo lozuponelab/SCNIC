@@ -1,11 +1,14 @@
+"""
+Workflow script for finding correlations between pairs of biom tables, making networks, finding modules and collapsing
+modules.
+"""
+import os
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr
-import general
-import os
 import networkx as nx
 import numpy as np
-import pandas as pd
-from correlation_analysis import between_correls_from_tables
+from SCNIC import general
+from SCNIC.correlation_analysis import between_correls_from_tables
 
 __author__ = 'shafferm'
 
@@ -69,4 +72,4 @@ def between_correls(args):
     nx.write_gml(net, 'crossnet.gml')
 
     logger.output_log()
-    print('\a')
+    print '\a'

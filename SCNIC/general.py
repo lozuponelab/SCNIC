@@ -1,6 +1,6 @@
 from __future__ import division
 
-from scipy.stats import rankdata, linregress
+from scipy.stats import linregress
 import numpy as np
 import networkx as nx
 from biom.table import Table
@@ -270,10 +270,12 @@ def simulate_correls(corr_stren=(.8, .9), std=(14, 14, 14, 77, 77), means=(100, 
         cov[i, i] = noncors_std
         means.append(noncors_mean)
 
-    if log:  # if log then log the array
+    if log:
+        # if log then log the array
         means = np.log(np.array(means))
 
-    counts = multivariate_normal(means, cov, size).T # fill the count table
+    # fill the count table
+    counts = multivariate_normal(means, cov, size).T
 
     if log:
         counts = np.log(counts)

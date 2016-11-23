@@ -1,4 +1,3 @@
-import general
 import numpy as np
 from scipy.stats import spearmanr, pearsonr, kendalltau
 import warnings
@@ -19,16 +18,14 @@ def calculate_correlation(paired_iter, correl_method):
     return [str(otu_i), str(otu_j), correl[0], correl[1]]
 
 
-def paired_correlations_from_table(table, correl_method="spearman", p_adjust=general.bh_adjust, nprocs=1):
+def paired_correlations_from_table(table, correl_method="spearman", nprocs=1):
     """Takes a biom table and finds correlations between all pairs of otus."""
-
     if nprocs == 1:
         correls = list()
         correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau}
         for (data_i, otu_i, metadata_i), (data_j, otu_j, metadata_j) in table.iter_pairwise(axis='observation'):
             correl = correl_methods[correl_method](data_i, data_j)
             correls.append([str(otu_i), str(otu_j), correl[0], correl[1]])
-
     else:
         import multiprocessing
 
@@ -48,16 +45,10 @@ def paired_correlations_from_table(table, correl_method="spearman", p_adjust=gen
     header = ['feature1', 'feature2', 'r', 'p']
     correls_df = pd.DataFrame(correls, columns=header)
 
-    # adjust p-value if desired
-    if p_adjust is not None:
-        p_adjusted = p_adjust([i[3] for i in correls])
-        correls_df['adjusted_p'] = p_adjusted
-
     return correls_df
 
 
-def paired_correlations_from_table_with_outlier_removal(table, good_samples, min_keep=10, correl_method=spearmanr,
-                                                        p_adjust=general.bh_adjust):
+def paired_correlations_from_table_with_outlier_removal(table, good_samples, min_keep=10, correl_method=spearmanr,):
     """Takes a biom table and finds correlations between all pairs of otus."""
     correls = list()
 
@@ -72,9 +63,32 @@ def paired_correlations_from_table_with_outlier_removal(table, good_samples, min
     header = ['feature1', 'feature2', 'r', 'p']
     correls_df = pd.DataFrame(correls, columns=header)
 
-    # adjust p-value if desired
-    if p_adjust is not None:
-        p_adjusted = p_adjust([i[3] for i in correls])
-        correls_df['adjusted_p'] = p_adjusted
+    return correls_df
 
-    return correls
+
+def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=1):
+    """Take two biom tables and correlation"""
+    correls = list()
+
+    if nprocs == 1:
+        for data_i, otu_i, metadata_i in table1.iter(axis="observation"):
+            for data_j, otu_j, metadata_j in table2.iter(axis="observation"):
+                corr = correl_method(data_i, data_j)
+                correls.append([otu_i, otu_j, corr[0], corr[1]])
+    else:
+        import multiprocessing
+        if nprocs > multiprocessing.cpu_count():
+            warnings.warn("nprocs greater than CPU count, using all avaliable CPUs")
+            nprocs = multiprocessing.cpu_count()
+
+        pool = multiprocessing.Pool(nprocs)
+        print "Number of processors used: " + str(nprocs)
+
+        correls = list()
+        for data_i, otu_i, metadata_i in table1.iter(axis="observation"):
+            data_j = [data_j for data_j, otu_j, metadata_j in table2.iter(axis="observation")]
+            correls += pool.map(correl_method, [(data_i, j) for j in data_j])
+            pool.close()
+            pool.join()
+
+    return pd.DataFrame(correls, columns=['feature1', 'feature2', 'r', 'p'])

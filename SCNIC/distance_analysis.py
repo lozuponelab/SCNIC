@@ -1,12 +1,10 @@
 from __future__ import division
 
-import numpy as np
-from scipy.spatial.distance import braycurtis
-from collections import Counter
-import general
-from biom import Table
 import multiprocessing
 import warnings
+from collections import Counter
+import numpy as np
+from biom import Table
 from functools import partial
 from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra
 import pandas as pd
@@ -114,9 +112,6 @@ def bootstrap_distance_vals(table, dist_metric='braycurtis', nprocs=1, bootstrap
         pool.close()
         pool.join()
 
-    dists['p_val'] = np.sum(multi_results, axis=0)/bootstraps
-
-    if p_adjust is not None:
-        dists['p_adjusted'] = p_adjust(dists['p_val'])
+    dists['p'] = np.sum(multi_results, axis=0)/bootstraps
 
     return dists

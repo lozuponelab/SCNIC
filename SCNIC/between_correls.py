@@ -1,26 +1,16 @@
-__author__ = 'shafferm'
-
+"""
+Workflow script for finding correlations between pairs of biom tables, making networks, finding modules and collapsing
+modules.
+"""
+import os
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr
-import general
-import os
 import networkx as nx
 import numpy as np
+from SCNIC import general
+from SCNIC.correlation_analysis import between_correls_from_tables
 
-
-def between_correls_from_tables(table1, table2, correl_method=spearmanr, p_adjust=general.bh_adjust):
-    correls = list()
-
-    for data_i, otu_i, metadata_i in table1.iter(axis="observation"):
-        for data_j, otu_j, metadata_j in table2.iter(axis="observation"):
-            corr = correl_method(data_i, data_j)
-            correls.append([otu_i, otu_j, corr[0], corr[1]])
-
-    p_adjusted = p_adjust([i[3] for i in correls])
-    for i in xrange(len(correls)):
-            correls[i].append(p_adjusted[i])
-
-    return correls, ['feature1', 'feature2', 'r', 'p', 'p_adj']
+__author__ = 'shafferm'
 
 
 def between_correls(args):
@@ -56,22 +46,30 @@ def between_correls(args):
         logger["output directory"] = args.output
 
     # filter tables
-    table1 = general.filter_table(table1)
-    metadata = general.get_metadata_from_table(table1)
-    table2 = general.filter_table(table2)
-    metadata.update(general.get_metadata_from_table(table2))
+    if args.min_sample is not None:
+        table1 = general.filter_table(table1, args.min_sample)
+        metadata = general.get_metadata_from_table(table1)
+        table2 = general.filter_table(table2, args.min_sample)
+        metadata.update(general.get_metadata_from_table(table2))
+    else:
+        metadata = general.get_metadata_from_table(table1)
+        metadata.update(general.get_metadata_from_table(table2))
 
     # make correlations
     logger["correlation metric"] = args.correl_method
     logger["p adjustment method"] = args.p_adjust
-    correls, correl_header = between_correls_from_tables(table1, table2, correl_method, p_adjust)
-    general.print_delimited('correls.txt', correls, correl_header)
+    correls = between_correls_from_tables(table1, table2, correl_method)
+    correls.sort_values(correls.columns[-1], inplace=True)
+    correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
+
+    # adjust p-values
+    correls['p_adj'] = p_adjust(correls['p'])
 
     # make network
-    net = general.correls_to_net(correls, metadata=metadata, min_p=args.min_p)
+    net = general.correls_to_net(correls, metadata=metadata, min_p=args.min_p, min_r=args.min_r)
     logger["number of nodes"] = net.number_of_nodes()
     logger["number of edges"] = net.number_of_edges()
     nx.write_gml(net, 'crossnet.gml')
 
     logger.output_log()
-    print('\a')
+    print '\a'

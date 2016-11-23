@@ -4,7 +4,7 @@ __author__ = 'shafferm'
 
 setup(
     name="SCNIC",
-    version="0.1.1",
+    version="0.2",
     install_requires=["numpy", "scipy", "networkx", "biom-format", "pandas", "fast_sparCC", "pytest"],
     scripts=["scripts/SCNIC_analysis.py"],
     packages=find_packages(),
@@ -12,5 +12,5 @@ setup(
     author="Michael Shaffer",
     author_email='michael.shaffer@ucdenver.edu',
     url="https://github.com/shafferm/SCNIC/",
-    download_url="https://github.com/shafferm/SCNIC/tarball/0.1.1"
+    download_url="https://github.com/shafferm/SCNIC/tarball/0.2"
 )

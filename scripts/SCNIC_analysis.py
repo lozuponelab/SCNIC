@@ -38,6 +38,7 @@ def main():
                              action="store_true")
     within_corr.add_argument("--sparcc_filter", help="filter as described in SparCC paper", default=False,
                              action="store_true")
+    within_corr.add_argument("--verbose", help="give verbose messages to STDOUT", default=False, action="store_true")
     within_corr.set_defaults(func=within_correls)
 
     between_corr.add_argument("-1", "--table1", help="table to be correlated", required=True)

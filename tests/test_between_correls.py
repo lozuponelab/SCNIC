@@ -13,9 +13,10 @@ def args():
             self.output = "out_dir"
             self.correl_method = "spearman"
             self.p_adjust = "bh"
+            self.min_sample = None
+            self.min_p = None
+            self.min_r = None
 
-        def __getattr__(self, name):
-            return None
     return Arguments()
 
 

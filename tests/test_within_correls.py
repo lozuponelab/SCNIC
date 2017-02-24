@@ -10,16 +10,22 @@ def args():
         def __init__(self):
             self.input = "table1.biom"
             self.output = "out_dir"
-            self.correl_method = "pearson"
+            self.correl_method = "spearman"
             self.p_adjust = "bh"
             self.outlier_removal = False
             self.k_size = 3
+            self.verbose = False
+            self.force = False
+            self.min_sample = None
+            self.sparcc_filter = False
+            self.procs = 1
+            self.min_p = None
+            self.min_r = None
 
-        def __getattr__(self, name):
-            return None
     return Arguments()
 
 
+# integration test
 def test_within_correls(args, tmpdir):
     table = simulate_correls()
     loc = tmpdir.mkdir("with_correls_test")

@@ -36,9 +36,6 @@ def between_correls(args):
     table1 = table1.sort()
     table2 = table2.sort()
 
-    if not np.array_equal(table1.ids(), table2.ids()):
-        raise ValueError("Tables have different sets of samples present")
-
     # make new output directory and change to it
     if args.output is not None:
         os.makedirs(args.output)
@@ -46,24 +43,32 @@ def between_correls(args):
         logger["output directory"] = args.output
 
     # filter tables
+    if args.sparcc_filter is True:
+        table1 = general.sparcc_paper_filter(table1)
+        table2 = general.sparcc_paper_filter(table2)
+        print "Table 1 filtered: " + str(table1.shape[0]) + " observations"
+        print "Table 2 filtered: " + str(table2.shape[0]) + " observations"
+        print ""
+        logger["sparcc paper filter"] = True
+        logger["number of observations present in table 1 after filter"] = table1.shape[0]
+        logger["number of observations present in table 2 after filter"] = table2.shape[0]
     if args.min_sample is not None:
         table1 = general.filter_table(table1, args.min_sample)
-        metadata = general.get_metadata_from_table(table1)
         table2 = general.filter_table(table2, args.min_sample)
-        metadata.update(general.get_metadata_from_table(table2))
-    else:
-        metadata = general.get_metadata_from_table(table1)
-        metadata.update(general.get_metadata_from_table(table2))
+
+    if not np.array_equal(table1.ids(), table2.ids()):
+        raise ValueError("Tables have different sets of samples present")
+
+    metadata = general.get_metadata_from_table(table1)
+    metadata.update(general.get_metadata_from_table(table2))
 
     # make correlations
     logger["correlation metric"] = args.correl_method
     logger["p adjustment method"] = args.p_adjust
     correls = between_correls_from_tables(table1, table2, correl_method)
     correls.sort_values(correls.columns[-1], inplace=True)
-    correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
-
-    # adjust p-values
     correls['p_adj'] = p_adjust(correls['p'])
+    correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
 
     # make network
     net = general.correls_to_net(correls, metadata=metadata, min_p=args.min_p, min_r=args.min_r)

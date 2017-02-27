@@ -49,6 +49,8 @@ def main():
     between_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
     between_corr.add_argument("--min_p", help="minimum p-value to determine edges", type=float)
     between_corr.add_argument("--min_r", help="minimum R to determine edges", type=float)
+    between_corr.add_argument("--sparcc_filter", help="filter using parameters from SparCC publication", default=False,
+                              action="store_true")
     between_corr.set_defaults(func=between_correls)
 
     args = parser.parse_args()

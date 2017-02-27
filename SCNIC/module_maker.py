@@ -6,6 +6,7 @@ import networkx as nx
 import numpy as np
 from biom import Table
 import os
+from collections import OrderedDict
 
 
 def make_modules(graph, k=3, prefix="module"):
@@ -15,7 +16,7 @@ def make_modules(graph, k=3, prefix="module"):
     premodules = list(enumerate(premodules))
     premodules.reverse()
 
-    modules = dict()
+    modules = OrderedDict()
     seen = set()
     for i, module in premodules:
         # process module

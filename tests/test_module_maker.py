@@ -4,6 +4,7 @@ from SCNIC.correlation_analysis import paired_correlations_from_table
 from SCNIC.module_maker import make_modules, collapse_modules, write_modules_to_dir
 import os
 import glob
+from collections import OrderedDict
 
 
 @pytest.fixture()
@@ -27,7 +28,7 @@ def modules1_k3(net1):
 
 def test_module_maker(modules1_k3):
     assert len(modules1_k3) == 1
-    assert type(modules1_k3) is dict
+    assert type(modules1_k3) is OrderedDict
 
 
 def test_collapse_modules(biom_table1, modules1_k3):

@@ -227,8 +227,8 @@ def plot_networkx(graph):
     plt.show()
 
 
-def simulate_correls(corr_stren=(.8, .9), std=(14, 14, 14, 77, 77), means=(100, 100, 100, 100, 100), size=30,
-                     noncors=10, noncors_mean=100, noncors_std=14, subsample=None, log=False):
+def simulate_correls(corr_stren=(.99, .99), std=(1, 1, 1, 2, 2), means=(100, 100, 100, 100, 100), size=30,
+                     noncors=10, noncors_mean=100, noncors_std=100, subsample=None, log=False):
     """
     Generates a correlation matrix with diagonal of stds based on input parameters and fills rest of matrix with
     uncorrelated values all with same  mean and standard deviations. Output should have a triangle of correlated

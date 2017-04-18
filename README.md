@@ -1,4 +1,4 @@
-[![Travis](https://img.shields.io/travis/shafferm/SCNIC.svg)](https://travis-ci.org/shafferm/SCNIC) [![Codacy grade](https://img.shields.io/codacy/grade/44d7474307bf4c62a271a9264c0c213a.svg)](https://www.codacy.com/app/shafferm/SCNIC/dashboard)
+[![Travis](https://img.shields.io/travis/shafferm/SCNIC.svg)](https://travis-ci.org/shafferm/SCNIC) [![Codacy grade](https://img.shields.io/codacy/grade/44d7474307bf4c62a271a9264c0c213a.svg)](https://www.codacy.com/app/shafferm/SCNIC/dashboard) [![PyPI](https://img.shields.io/pypi/v/SCNIC.svg)](https://pypi.python.org/pypi/SCNIC/0.2.1)
 
 # SCNIC
 Sparse Cooccurnce Network Investigation for Compositional data

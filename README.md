@@ -1,3 +1,5 @@
+[![Travis](https://img.shields.io/travis/shafferm/SCNIC.svg)](https://travis-ci.org/shafferm/SCNIC)
+
 # SCNIC
 Sparse Cooccurnce Network Investigation for Compositional data
 Pronounced 'scenic'.

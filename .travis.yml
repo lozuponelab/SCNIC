@@ -1,0 +1,20 @@
+language: python
+python:
+  - '2.7'
+cache: pip
+before_install:
+  - pip install --upgrade pip
+  - pip install pytest pytest-cov
+  - pip install coveralls
+install:
+  - pip install --no-cache-dir --editable .
+script:
+  - python setup.py test
+after_success:
+  - coveralls
+deploy:
+  provider: pypi
+  user: michael.shaffer
+  on:
+    tags: true
+

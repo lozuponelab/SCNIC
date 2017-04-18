@@ -6,7 +6,7 @@ import pandas as pd
 
 
 def biom_pairwise_iter_no_metadata(biom_pairwise_iter):
-    for (data_i, otu_i, metadata_i), (data_j, otu_j, metadata_j) in biom_pairwise_iter:
+    for (data_i, otu_i, _), (data_j, otu_j, _) in biom_pairwise_iter:
         yield (data_i, otu_i), (data_j, otu_j)
 
 
@@ -23,7 +23,7 @@ def paired_correlations_from_table(table, correl_method="spearman", nprocs=1):
     if nprocs == 1:
         correls = list()
         correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau}
-        for (data_i, otu_i, metadata_i), (data_j, otu_j, metadata_j) in table.iter_pairwise(axis='observation'):
+        for (data_i, otu_i, _), (data_j, otu_j, _) in table.iter_pairwise(axis='observation'):
             correl = correl_methods[correl_method](data_i, data_j)
             correls.append([str(otu_i), str(otu_j), correl[0], correl[1]])
     else:
@@ -71,8 +71,8 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=
     correls = list()
 
     if nprocs == 1:
-        for data_i, otu_i, metadata_i in table1.iter(axis="observation"):
-            for data_j, otu_j, metadata_j in table2.iter(axis="observation"):
+        for data_i, otu_i, _ in table1.iter(axis="observation"):
+            for data_j, otu_j, _ in table2.iter(axis="observation"):
                 corr = correl_method(data_i, data_j)
                 correls.append([otu_i, otu_j, corr[0], corr[1]])
     else:

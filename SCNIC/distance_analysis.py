@@ -27,7 +27,7 @@ def paired_distances_from_table(table, dist_metric='braycurtis'):
     dist_metric = dist_methods[dist_metric]
     dists = list()
 
-    for (data_i, otu_i, metadata_i), (data_j, otu_j, metadata_j) in table.iter_pairwise(axis='observation'):
+    for (data_i, otu_i, _), (data_j, otu_j, _) in table.iter_pairwise(axis='observation'):
         dist = dist_metric(data_i, data_j)
         dists.append([str(otu_i), str(otu_j), dist])
 

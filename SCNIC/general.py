@@ -52,7 +52,7 @@ def biom_to_df(biom):
 
 def get_metadata_from_table(table):
     metadata = dict()
-    for data_i, otu_i, metadata_i in table.iter(axis="observation"):
+    for _, otu_i, metadata_i in table.iter(axis="observation"):
         if metadata_i is not None:
             metadata[otu_i] = metadata_i
     return metadata
@@ -136,7 +136,7 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
             correls = correls[np.abs(correls.r) > min_r]
 
     graph = nx.Graph()
-    for index, correl in correls.iterrows():
+    for _, correl in correls.iterrows():
         graph.add_node(correl.feature1)
         if correl.feature1 in metadata:
             for key in metadata[correl.feature1]:

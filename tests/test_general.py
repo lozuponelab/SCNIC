@@ -14,7 +14,7 @@ import networkx as nx
 @pytest.fixture()
 def biom_table1():
     table1 = simulate_correls()
-    assert type(table1) is Table
+    assert isinstance(table1, Table)
     return table1
 
 
@@ -37,12 +37,12 @@ def unadj_ps():
 
 def test_get_metadata_from_table(biom_table1):
     metadata = get_metadata_from_table(biom_table1)
-    assert type(metadata) is dict
+    assert isinstance(metadata, dict)
 
 
 def test_filter_table(biom_table1):
     table_filt = filter_table(biom_table1, min_samples=10)
-    assert type(table_filt) is Table
+    assert isinstance(table_filt, Table)
 
 
 def test_sparcc_paper_filter(biom_table1):
@@ -53,18 +53,18 @@ def test_sparcc_paper_filter(biom_table1):
 def test_bonferroni_adjust(unadj_ps):
     adj_ps = np.array([.03, .15, 1.5])
     bon_ps = bonferroni_adjust(unadj_ps)
-    assert type(bon_ps) is np.ndarray
+    assert isinstance(bon_ps, np.ndarray)
     assert_allclose(adj_ps, bon_ps)
 
 
 def test_bh_adjust(unadj_ps):
     adj_ps = np.array([.03, .075, .5])
     bh_ps = bh_adjust(unadj_ps)
-    assert type(bh_ps) is np.ndarray
+    assert isinstance(bh_ps, np.ndarray)
     assert_allclose(adj_ps, bh_ps)
 
 
 def test_correls_to_net(net1):
-    assert type(net1) is nx.Graph
+    assert isinstance(net1, nx.Graph)
     assert len(net1.edges()) == 4
     assert len(net1.nodes()) == 5

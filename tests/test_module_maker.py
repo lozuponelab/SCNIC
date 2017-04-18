@@ -22,13 +22,13 @@ def net1(biom_table1):
 
 @pytest.fixture()
 def modules1_k3(net1):
-    net, modules_k3 = make_modules(net1)
+    _, modules_k3 = make_modules(net1)
     return modules_k3
 
 
 def test_module_maker(modules1_k3):
     assert len(modules1_k3) == 1
-    assert type(modules1_k3) is OrderedDict
+    assert isinstance(modules1_k3, OrderedDict)
 
 
 def test_collapse_modules(biom_table1, modules1_k3):

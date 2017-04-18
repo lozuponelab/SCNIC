@@ -52,7 +52,7 @@ def paired_correlations_from_table_with_outlier_removal(table, good_samples, min
     """Takes a biom table and finds correlations between all pairs of otus."""
     correls = list()
 
-    for (data_i, otu_i, metadata_i), (data_j, otu_j, metadata_j) in table.iter_pairwise(axis='observation'):
+    for (data_i, otu_i, _), (data_j, otu_j, _) in table.iter_pairwise(axis='observation'):
         samp_union = np.union1d(good_samples[otu_i], good_samples[otu_j])
         # remove zero zero points
         # samp_union = [ind for i, ind in enumerate(samp_union) if data_i[i]!=0 and data_j[i]!=0]
@@ -85,8 +85,8 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=
         print "Number of processors used: " + str(nprocs)
 
         correls = list()
-        for data_i, otu_i, metadata_i in table1.iter(axis="observation"):
-            data_j = [data_j for data_j, otu_j, metadata_j in table2.iter(axis="observation")]
+        for data_i, otu_i, _ in table1.iter(axis="observation"):
+            data_j = [data_j for data_j, otu_j, _ in table2.iter(axis="observation")]
             correls += pool.map(correl_method, [(data_i, j) for j in data_j])
             pool.close()
             pool.join()

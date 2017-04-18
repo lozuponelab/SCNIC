@@ -47,7 +47,7 @@ def test_filter_table(biom_table1):
 
 def test_sparcc_paper_filter(biom_table1):
     table_filt = sparcc_paper_filter(biom_table1)
-    assert type(table_filt) is Table
+    assert isinstance(table_filt, Table)
 
 
 def test_bonferroni_adjust(unadj_ps):

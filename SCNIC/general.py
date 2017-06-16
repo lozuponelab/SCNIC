@@ -187,7 +187,7 @@ def filter_table(table, min_samples=None, to_file=False):
 def remove_outliers(table, min_obs=10):
     """returns indicies of good samples in numpy array"""
     good_samples = dict()
-    for data_i, otu_i, metadata_i in table.iter(axis="observation"):
+    for data_i, otu_i, _ in table.iter(axis="observation"):
         q75, q25 = np.percentile(data_i, (75, 25))
         iqr = q75 - q25
         med = np.median(data_i)

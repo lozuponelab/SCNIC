@@ -74,7 +74,7 @@ def within_correls(args):
 
     logger["number of processors used"] = args.procs
 
-    # correlate feature
+    # correlate features
     if correl_method in [spearmanr, pearsonr, kendalltau]:
         # use outlier removal
         logger["correlation method used"] = args.correl_method

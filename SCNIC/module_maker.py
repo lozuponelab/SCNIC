@@ -2,64 +2,60 @@
 
 from __future__ import division
 
-import networkx as nx
 import numpy as np
 from biom import Table
 import os
-from collections import OrderedDict
+from scipy.cluster.hierarchy import complete
+from scipy.spatial.distance import squareform
+from skbio.tree import TreeNode
+from itertools import combinations
 
 
-def make_modules(graph, k=3, prefix="module"):
-    """make modules with networkx k-clique communities and annotate network"""
-    premodules = list(nx.k_clique_communities(graph, k))
-    # reverse modules so observations will be added to smallest modules
-    premodules = list(enumerate(premodules))
-    premodules.reverse()
-
-    modules = OrderedDict()
+def make_cliques(cor, min_correl=.35):
+    # convert from correlation matrix to distance matrix
+    dist = 1 - ((cor + 1) / 2)
+    # create inkage matrix using complete linkage
+    Z = complete(squareform(dist, checks=False))
+    # make tree from linkage matrix with names from dist
+    tree = TreeNode.from_linkage_matrix(Z, dist.index)
+    # get all tips so in the end we can check if we are done
+    all_tips = [i for i in tree.postorder() if i.is_tip()]
+    cliques = set()
     seen = set()
-    for i, module in premodules:
-        # process module
-        module = module-seen
-        seen = seen | module
-        modules[prefix+"_"+str(i)] = module
-        for node in module:
-            graph.node[node][prefix] = i
-    return graph, modules
+    for node in tree.levelorder():
+        if node.is_tip():
+            seen.add(node.name)
+        else:
+            tip_names = frozenset((i.name for i in node.postorder() if i.is_tip()))
+            if tip_names.issubset(seen):
+                continue
+            correls = (cor.loc[tip1, tip2] < min_correl for tip1, tip2 in combinations(tip_names, 2))
+            if any(correls):
+                continue
+            else:
+                cliques.add(tip_names)
+                seen.update(tip_names)
+        if len(seen) == len(all_tips):
+            return cliques
+    raise ValueError("Well, how did I get here?")
 
 
-def make_modules_multik(graph, k=None):
-    """make modules with networkx k-clique communities and annotate network"""
-    if k is None:
-        k = [2, 3, 4, 5, 6]
-    communities = dict()
-    for k_val in list(k):
-        cliques = list(nx.k_clique_communities(graph, k_val))
-        cliques = [list(i) for i in cliques]
-        communities[k_val] = cliques
-        for i, clique in enumerate(cliques):
-            for node in clique:
-                graph.node[node]['k_' + str(k_val)] = i
-    return graph, {k: list(v) for k, v in communities.iteritems()}
-
-
-def collapse_modules(table, modules):
+def collapse_modules(table, modules, prefix="module"):
     """collapse created modules in a biom table, members of multiple modules will be added to the smallest module"""
     table = table.copy()
     module_array = np.zeros((len(modules), table.shape[1]))
 
     seen = set()
-    for i, module in modules.iteritems():
+    for i, module in enumerate(modules):
         seen = seen | module
         # sum everything in the module
-        module_array[int(i.split("_")[-1])] = np.sum([table.data(feature, axis="observation") for feature in module],
-                                                     axis=0)
+        module_array[i] = np.sum([table.data(feature, axis="observation") for feature in module], axis=0)
 
     table.filter(seen, axis='observation', invert=True)
 
     # make new table
     new_table_matrix = np.concatenate((table.matrix_data.toarray(), module_array))
-    new_table_obs = list(table.ids(axis='observation')) + modules.keys()
+    new_table_obs = list(table.ids(axis='observation')) + ['_'.join([prefix, i]) for i in xrange(len(modules))]
     return Table(new_table_matrix, new_table_obs, table.ids())
 
 
@@ -78,22 +74,3 @@ def write_modules_to_file(modules):
     with open("modules.txt", 'w') as f:
         for i, module in modules.iteritems():
             f.write(i + '\t' + '\t'.join([str(j) for j in module]) + '\n')
-
-
-def collapse_modules_multik(table, cliques, prefix="module_"):
-    """collapse created modules in a biom table"""
-    in_module = set()
-    modules = np.zeros((len(cliques), table.shape[1]))
-
-    # for each clique merge values
-    for i, clique in enumerate(cliques):
-        in_module = in_module | set(clique)
-        for feature in clique:
-            modules[i] += table.data(feature, axis='observation')
-    table.filter(in_module, axis='observation')
-
-    # make new table
-    new_table_matrix = np.concatenate((table.matrix_data.toarray(), modules))
-    new_table_obs = list(table.ids(axis='observation')) + [prefix + str(i) for i in range(0, len(cliques))]
-    return Table(new_table_matrix, new_table_obs, table.ids(), table.metadata(axis="observation"),
-                 table.metadata(axis="sample"))

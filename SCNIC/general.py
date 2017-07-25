@@ -184,6 +184,15 @@ def filter_table(table, min_samples=None, to_file=False):
     return table
 
 
+def correls_to_df(correls, column='r'):
+    features = set(correls.feature1)
+    df = pd.DataFrame(np.ones((len(features), len(features))), list(features), list(features))
+    for correl in correls:
+        df.loc[correl.feature1, correl.feature2] = correl[column]
+        df.loc[correl.feature2, correl.feature1] = correl[column]
+    return df
+
+
 def remove_outliers(table, min_obs=10):
     """returns indicies of good samples in numpy array"""
     good_samples = dict()

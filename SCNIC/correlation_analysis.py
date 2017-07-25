@@ -5,6 +5,11 @@ from functools import partial
 import pandas as pd
 
 
+def cor_to_dist(cor):
+    # convert from correlation to distance
+    return 1 - ((cor + 1) / 2)
+
+
 def biom_pairwise_iter_no_metadata(biom_pairwise_iter):
     for (data_i, otu_i, _), (data_j, otu_j, _) in biom_pairwise_iter:
         yield (data_i, otu_i), (data_j, otu_j)

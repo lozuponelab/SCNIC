@@ -19,6 +19,18 @@ def biom_table1():
 
 
 @pytest.fixture()
+def biom_table2():
+    arr = np.array([[250,   0, 100, 446,   75],
+                    [  0,   0,   1,   1,    2],
+                    [  2,   2,   2,   2,    2],
+                    [100, 100, 500,   1, 1000],
+                    [500,   5,   0,  50,  100]])
+    obs_ids = ["otu_%s" % i for i in xrange(5)]
+    samp_ids = ["samp_%s" % i for i in xrange(5)]
+    return Table(arr, obs_ids, samp_ids)
+
+
+@pytest.fixture()
 def correls1(biom_table1):
     correls = paired_correlations_from_table(biom_table1)
     return correls
@@ -45,9 +57,21 @@ def test_filter_table(biom_table1):
     assert isinstance(table_filt, Table)
 
 
+def test_filter_better(biom_table2):
+    table_filt = filter_table(biom_table2, min_samples=4)
+    assert len(table_filt.ids(axis="observation")) == 4
+    assert len(table_filt.ids(axis="sample")) == 5
+
+
 def test_sparcc_paper_filter(biom_table1):
     table_filt = sparcc_paper_filter(biom_table1)
     assert isinstance(table_filt, Table)
+
+
+def test_sparcc_paper_filter_better(biom_table2):
+    table_filt = sparcc_paper_filter(biom_table2)
+    assert len(table_filt.ids(axis="observation")) == 4
+    assert len(table_filt.ids(axis="sample")) == 3
 
 
 def test_bonferroni_adjust(unadj_ps):

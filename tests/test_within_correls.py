@@ -13,14 +13,13 @@ def args():
             self.correl_method = "spearman"
             self.p_adjust = "bh"
             self.outlier_removal = False
-            self.k_size = 3
             self.verbose = False
             self.force = False
             self.min_sample = None
             self.sparcc_filter = False
             self.procs = 1
             self.min_p = None
-            self.min_r = None
+            self.min_r = .35
 
     return Arguments()
 

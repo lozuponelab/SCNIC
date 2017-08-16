@@ -4,6 +4,7 @@ from __future__ import division
 
 import os
 import shutil
+from functools import partial
 
 import networkx as nx
 import pandas as pd
@@ -15,7 +16,7 @@ from sparcc_fast import sparcc_functions
 from sparcc_fast.sparcc_functions import basis_corr
 from sparcc_fast.utils import df_to_correls
 from scipy.stats import spearmanr, pearsonr, kendalltau
-from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra, squareform
+from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra, squareform, pdist
 
 import general
 import correlation_analysis as ca
@@ -87,8 +88,8 @@ def within_correls(args):
             if args.verbose:
                 print "Correlating with " + args.correl_method
             # correlate feature
-            cor_partial = partial(ca.cor_func, metric=correl_method, index=0)
-            cor = pdist(general.biom_to_df(table_filt))
+            cor, p_vals = correl_method(general.biom_to_df(table_filt))
+            cor = squareform(cor, checks=False)
         else:
             if args.verbose:
                 print "Correlating using sparcc"
@@ -126,9 +127,10 @@ def within_correls(args):
         print ""
     coll_table.to_json('make_modules.py', open('collapsed.biom', 'w'))
 
-    # make correlation network
+    # print correls and make correlation network
     correls = df_to_correls(pd.DataFrame(squareform(cor), index=table_filt.ids(axis="observation"),
                                          columns=table_filt.ids(axis="observation")))
+    correls.to_csv('correls.txt', sep='\t', index=False)
     metadata = general.get_metadata_from_table(table_filt)
     net = general.correls_to_net(correls, conet=True, metadata=metadata, min_p=args.min_p, min_r=args.min_r)
     for i, otus in enumerate(modules):

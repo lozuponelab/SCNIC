@@ -69,8 +69,8 @@ def write_modules_to_dir(table, modules):
         module_table.to_json("modulemaker.py", open("modules/%s.biom" % i, 'w'))
 
 
-def write_modules_to_file(modules):
+def write_modules_to_file(modules, prefix="module"):
     # write all modules to file
     with open("modules.txt", 'w') as f:
         for i, module in enumerate(modules):
-            f.write(str(i) + '\t' + '\t'.join([str(j) for j in module]) + '\n')
+            f.write('_'.join([prefix, str(i)]) + '\t' + '\t'.join([str(j) for j in module]) + '\n')

@@ -11,16 +11,13 @@ import pandas as pd
 import numpy as np
 
 from biom import load_table
-from sparcc_fast import sparcc_correlation, sparcc_correlation_w_bootstraps
-from sparcc_fast import sparcc_functions
 from sparcc_fast.sparcc_functions import basis_corr
 from sparcc_fast.utils import df_to_correls
 from scipy.stats import spearmanr, pearsonr, kendalltau
-from scipy.spatial.distance import jaccard, braycurtis, euclidean, canberra, squareform, pdist
+from scipy.spatial.distance import squareform
 
 import general
 import correlation_analysis as ca
-import distance_analysis as da
 import module_maker as mm
 
 

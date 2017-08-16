@@ -1,6 +1,6 @@
 import pytest
 from SCNIC.general import simulate_correls
-from SCNIC.correlation_analysis import paired_correlations_from_table, between_correls_from_tables
+from SCNIC.correlation_analysis import between_correls_from_tables
 import pandas as pd
 from scipy.misc import comb
 
@@ -14,18 +14,6 @@ def biom_table1():
 @pytest.fixture()
 def biom_table2():
     return simulate_correls()
-
-
-def test_paired_correlations_from_table(biom_table1):
-    spearman_correls = paired_correlations_from_table(biom_table1)
-    assert isinstance(spearman_correls, pd.DataFrame)
-    assert comb(biom_table1.shape[0], 2) == spearman_correls.shape[0]
-    pearson_correls = paired_correlations_from_table(biom_table1, correl_method="pearson")
-    assert isinstance(pearson_correls, pd.DataFrame)
-    assert comb(biom_table1.shape[0], 2) == pearson_correls.shape[0]
-    kendall_correls = paired_correlations_from_table(biom_table1, correl_method="kendall")
-    assert isinstance(kendall_correls, pd.DataFrame)
-    assert comb(biom_table1.shape[0], 2) == kendall_correls.shape[0]
 
 
 def test_between_correls_from_tables(biom_table1, biom_table2):

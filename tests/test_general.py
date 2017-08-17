@@ -1,10 +1,9 @@
 import pytest
 from SCNIC.general import simulate_correls, get_metadata_from_table, filter_table, sparcc_paper_filter,\
-                          bonferroni_adjust, bh_adjust, correls_to_net
+                          bonferroni_adjust, bh_adjust
 from biom.table import Table
 import numpy as np
 from numpy.testing import assert_allclose
-import networkx as nx
 
 # TODO: simulate sparse table to test filtering
 # TODO: include HMP table to test filtering?

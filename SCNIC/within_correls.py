@@ -4,7 +4,6 @@ from __future__ import division
 
 import os
 import shutil
-from functools import partial
 
 import networkx as nx
 import pandas as pd

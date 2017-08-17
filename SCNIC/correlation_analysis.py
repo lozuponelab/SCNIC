@@ -25,13 +25,13 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=
             nprocs = multiprocessing.cpu_count()
 
         pool = multiprocessing.Pool(nprocs)
-        print "Number of processors used: " + str(nprocs)
-
-        correls = list()
         for data_i, otu_i, _ in table1.iter(axis="observation"):
-            data_j = [data_j for data_j, otu_j, _ in table2.iter(axis="observation")]
-            correls += pool.map(correl_method, [(data_i, j) for j in data_j])
-            pool.close()
-            pool.join()
+            datas_j = (data_j for data_j, _, _ in table2.iter(axis="observation"))
+            corr = partial(correl_method, b=data_i)
+            corrs = pool.map(corr, datas_j)
+            correls += [(otu_i, table2.ids(axis="observation")[i], corrs[i][0], corrs[i][1])
+                        for i in xrange(len(corrs))]
+        pool.close()
+        pool.join()
 
     return pd.DataFrame(correls, columns=['feature1', 'feature2', 'r', 'p'])

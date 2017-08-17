@@ -98,16 +98,6 @@ def bonferroni_adjust(pvalues):
     return new_pvalues
 
 
-def print_delimited(out_fp, lines, header=None):
-    """print a tab delimited file with optional header"""
-    out = open(out_fp, 'w')
-    if header is not None:
-        out.write('\t'.join([str(i) for i in header])+'\n')
-    for line in lines:
-        out.write('\t'.join([str(i) for i in line])+'\n')
-    out.close()
-
-
 def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
     """correls is a pandas dataframe which has columns feature1, feature2, r and optionally p and p_adj and optionally
     any others"""
@@ -182,58 +172,6 @@ def filter_table(table, min_samples=None, to_file=False):
         # open("filtered_rel_abund.txt", 'w').write(table.to_tsv())
 
     return table
-
-
-def correls_to_df(correls, column='r'):
-    features = set(correls.feature1)
-    df = pd.DataFrame(np.ones((len(features), len(features))), list(features), list(features))
-    for correl in correls:
-        df.loc[correl.feature1, correl.feature2] = correl[column]
-        df.loc[correl.feature2, correl.feature1] = correl[column]
-    return df
-
-
-def remove_outliers(table, min_obs=10):
-    """returns indicies of good samples in numpy array"""
-    good_samples = dict()
-    for data_i, otu_i, _ in table.iter(axis="observation"):
-        q75, q25 = np.percentile(data_i, (75, 25))
-        iqr = q75 - q25
-        med = np.median(data_i)
-        good_indicies = np.array([i for i, data in enumerate(data_i) if 3 * iqr + med > data > med - 3 * iqr])
-        if np.sum(good_indicies) > min_obs:
-            good_samples[otu_i] = good_indicies
-    return good_samples
-
-
-def compare_slopes(table1, table2, otu1, otu2):
-    x1 = table1.data(otu1, axis="observation")
-    y1 = table1.data(otu2, axis="observation")
-    x2 = table2.data(otu1, axis="observation")
-    y2 = table2.data(otu2, axis="observation")
-    lin1 = linregress(x1, y1)
-    slope1 = lin1[0]
-    lin2 = linregress(x2, y2)
-    slope2 = lin2[0]
-    print "slope1: " + str(slope1) + " slope2: " + str(slope2)
-
-
-def plot_networkx(graph):
-    """plot networkx object in matplotlib"""
-
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError:
-        print "matplotlib not installed, please install to use plotting functions"
-        return None
-
-    graph_pos = nx.circular_layout(graph)
-
-    nx.draw_networkx_nodes(graph, graph_pos, node_size=1000, node_color='blue', alpha=0.3)
-    nx.draw_networkx_edges(graph, graph_pos, width=2, alpha=0.3, edge_color='green')
-    nx.draw_networkx_labels(graph, graph_pos, font_size=12, font_family='sans-serif')
-
-    plt.show()
 
 
 def simulate_correls(corr_stren=(.99, .99), std=(1, 1, 1, 2, 2), means=(100, 100, 100, 100, 100), size=30,

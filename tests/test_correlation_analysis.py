@@ -16,7 +16,13 @@ def biom_table2():
     return simulate_correls()
 
 
-def test_between_correls_from_tables(biom_table1, biom_table2):
+def test_between_correls_from_tables_single(biom_table1, biom_table2):
     correls = between_correls_from_tables(biom_table1, biom_table2)
+    assert isinstance(correls, pd.DataFrame)
+    assert correls.shape[0] == biom_table1.shape[0] * biom_table2.shape[0]
+
+
+def test_between_correls_from_tables_multi(biom_table1, biom_table2):
+    correls = between_correls_from_tables(biom_table1, biom_table2, nprocs=2)
     assert isinstance(correls, pd.DataFrame)
     assert correls.shape[0] == biom_table1.shape[0] * biom_table2.shape[0]

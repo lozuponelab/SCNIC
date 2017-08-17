@@ -51,6 +51,9 @@ def main():
     between_corr.add_argument("--min_r", help="minimum R to determine edges", type=float)
     between_corr.add_argument("--sparcc_filter", help="filter using parameters from SparCC publication", default=False,
                               action="store_true")
+    between_corr.add_argument("--procs", help="number of processors to use", default=1, type=int)
+    between_corr.add_argument("-f", "--force", help="force overwrite output folder if it already exists", default=False,
+                              action="store_true")
     between_corr.set_defaults(func=between_correls)
 
     args = parser.parse_args()

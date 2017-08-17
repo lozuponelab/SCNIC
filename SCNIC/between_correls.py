@@ -9,6 +9,7 @@ import networkx as nx
 import numpy as np
 from SCNIC import general
 from SCNIC.correlation_analysis import between_correls_from_tables
+import shutil
 
 __author__ = 'shafferm'
 
@@ -37,6 +38,8 @@ def between_correls(args):
     table2 = table2.sort()
 
     # make new output directory and change to it
+    if args.force and args.output is not None:
+        shutil.rmtree(args.output, ignore_errors=True)
     if args.output is not None:
         os.makedirs(args.output)
         os.chdir(args.output)
@@ -48,7 +51,6 @@ def between_correls(args):
         table2 = general.sparcc_paper_filter(table2)
         print "Table 1 filtered: " + str(table1.shape[0]) + " observations"
         print "Table 2 filtered: " + str(table2.shape[0]) + " observations"
-        print ""
         logger["sparcc paper filter"] = True
         logger["number of observations present in table 1 after filter"] = table1.shape[0]
         logger["number of observations present in table 2 after filter"] = table2.shape[0]
@@ -65,7 +67,7 @@ def between_correls(args):
     # make correlations
     logger["correlation metric"] = args.correl_method
     logger["p adjustment method"] = args.p_adjust
-    correls = between_correls_from_tables(table1, table2, correl_method)
+    correls = between_correls_from_tables(table1, table2, correl_method, nprocs=args.procs)
     correls.sort_values(correls.columns[-1], inplace=True)
     correls['p_adj'] = p_adjust(correls['p'])
     correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)

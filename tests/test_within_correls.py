@@ -24,25 +24,6 @@ def args1():
     return Arguments()
 
 
-@pytest.fixture()
-def args2():
-    class Arguments(object):
-        def __init__(self):
-            self.input = "table1.biom"
-            self.output = "out_dir"
-            self.correl_method = "sparcc"
-            self.p_adjust = "bh"
-            self.outlier_removal = False
-            self.verbose = False
-            self.force = False
-            self.min_sample = None
-            self.sparcc_filter = False
-            self.procs = 1
-            self.min_p = None
-            self.min_r = .35
-
-    return Arguments()
-
 
 # integration test
 def test_within_correls_classic_correlation_min_r(args1, tmpdir):

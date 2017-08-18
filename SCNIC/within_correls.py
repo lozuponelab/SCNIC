@@ -126,6 +126,8 @@ def within_correls(args):
     # print correls and make correlation network
     correls = df_to_correls(pd.DataFrame(squareform(cor), index=table_filt.ids(axis="observation"),
                                          columns=table_filt.ids(axis="observation")))
+    if 'p' in correls.columns:
+        correls['p-adj'] = p_adjust(correls['p'])
     correls.to_csv('correls.txt', sep='\t', index=False)
     metadata = general.get_metadata_from_table(table_filt)
     net = general.correls_to_net(correls, conet=True, metadata=metadata, min_p=args.min_p, min_r=args.min_r)

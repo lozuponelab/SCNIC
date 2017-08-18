@@ -87,7 +87,7 @@ def bootstrapped_distance(bootstrap, measured_dists, sparse_matrix, dist_metric)
     return dists['dist'] < measured_dists
 
 
-def bootstrap_distance_vals(table, dist_metric='braycurtis', nprocs=1, bootstraps=1000, p_adjust=None):
+def bootstrap_distance_vals(table, dist_metric='braycurtis', nprocs=1, bootstraps=1000):
     """"""
     dists = paired_distances_from_table(table, dist_metric=dist_metric)
     measured_dists = dists['dist']

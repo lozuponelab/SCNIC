@@ -13,8 +13,8 @@ including SparCC.
 
 This tool has two parts called 'within' and 'between'. The 'within' method takes as input BIOM formatted files
 (http://biom-format.org/) and forms cooccurence networks using a user specified correlation metric and edge cutoff. From
-this network SCNIC also finds modules of cooccuring observations in the cooccurence network by finding k-clique
-communities as implemented in networkx (https://networkx.github.io/). Modules are summarized and a new biom table with
+this network SCNIC also finds modules of cooccuring observations in the cooccurence network by finding groups of
+observations which all have a minimum pairwise correlation value. Modules are summarized and a new biom table with
 observations contained in modules collapsed into single observations are returned. This biom table along with a list of
 modules and their contents are output.  A gml file of the network that can be opened using network visualization tools
 such as cytoscape (http://www.cytoscape.org/) is created which contains all observation metadata provided in the input

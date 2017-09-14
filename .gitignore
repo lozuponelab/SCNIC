@@ -1,9 +1,0 @@
-.cache
-.eggs
-.idea
-*~
-*.pyc
-build/*
-SCNIC.egg-info/*
-dist/*
-writing/*

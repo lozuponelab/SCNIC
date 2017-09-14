@@ -1,10 +1,11 @@
 from setuptools import setup, find_packages
 
 __author__ = 'shafferm'
+__version__ = '0.2.1'
 
 setup(
     name="SCNIC",
-    version="0.2.1",
+    version=__version__,
     setup_requires=['pytest-runner'],
     test_require=['pytest'],
     install_requires=["numpy", "scipy", "networkx", "biom-format", "pandas", "fast_sparCC <= 0.1.6",
@@ -15,5 +16,5 @@ setup(
     author="Michael Shaffer",
     author_email='michael.shaffer@ucdenver.edu',
     url="https://github.com/shafferm/SCNIC/",
-    download_url="https://github.com/shafferm/SCNIC/tarball/0.2.1"
+    download_url="https://github.com/shafferm/SCNIC/tarball/%s" % __version__
 )

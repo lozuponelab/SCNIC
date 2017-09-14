@@ -18,7 +18,7 @@ def args():
             self.min_r = None
             self.sparcc_filter = False
             self.force = False
-            self.procs=1
+            self.procs = 1
 
     return Arguments()
 

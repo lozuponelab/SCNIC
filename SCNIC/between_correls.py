@@ -13,6 +13,7 @@ import shutil
 
 __author__ = 'shafferm'
 
+# TODO: output heat map with clusters
 
 def between_correls(args):
     """TABLES MUST SORT SO THAT SAMPLES ARE IN THE SAME ORDER """

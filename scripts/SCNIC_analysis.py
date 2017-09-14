@@ -26,14 +26,10 @@ def main():
     within_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     within_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
     within_corr.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
-    within_corr.add_argument("--k_size", help="desired k-size to determine cliques", default=3, type=int)
     within_corr.add_argument("--min_p", help="minimum p-value to determine edges", type=float)
     within_corr.add_argument("--min_r", help="minimum correlation value to determine edges", type=float)
-    within_corr.add_argument("--outlier_removal", help="outlier detection and removal", default=False,
-                             action="store_true")
     within_corr.add_argument("--procs", help="number of processors to use", default=1, type=int)
     within_corr.add_argument("-b", "--bootstraps", help="number of bootstraps", default=100, type=int)
-    within_corr.add_argument("-e", "--rarefaction_level", help="level of rarefaction", default=1000, type=int)
     within_corr.add_argument("-f", "--force", help="force overwrite output folder if it already exists", default=False,
                              action="store_true")
     within_corr.add_argument("--sparcc_filter", help="filter as described in SparCC paper", default=False,
@@ -58,6 +54,7 @@ def main():
 
     args = parser.parse_args()
     args.func(args)
+
 
 if __name__ == "__main__":
     main()

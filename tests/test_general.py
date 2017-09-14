@@ -1,9 +1,10 @@
 import pytest
 from SCNIC.general import simulate_correls, get_metadata_from_table, filter_table, sparcc_paper_filter,\
-                          bonferroni_adjust, bh_adjust
+                          bonferroni_adjust, bh_adjust, Logger, biom_to_df
 from biom.table import Table
 import numpy as np
 from numpy.testing import assert_allclose
+import pandas as pd
 
 # TODO: simulate sparse table to test filtering
 # TODO: include HMP table to test filtering?
@@ -29,8 +30,40 @@ def biom_table2():
 
 
 @pytest.fixture()
+def dataframe():
+    arr = np.array([[250,   0, 100, 446,   75],
+                    [  0,   0,   1,   1,    2],
+                    [  2,   2,   2,   2,    2],
+                    [100, 100, 500,   1, 1000],
+                    [500,   5,   0,  50,  100]])
+    arr = arr.transpose()
+    return pd.DataFrame(arr, index=["samp_%s" % i for i in xrange(5)], columns=["otu_%s" % i for i in xrange(5)])
+
+
+@pytest.fixture()
 def unadj_ps():
     return [.01, .05, .5]
+
+
+def test_Logger(tmpdir):
+    loc = tmpdir.mkdir("test")
+    log_path = str(loc) + "/log.txt"
+    logger = Logger(log_path)
+    logger["Testing"] = "1, 2, 3"
+    logger.output_log()
+    log = open(log_path).readlines()
+    assert len(log) == 4
+    assert log[0].startswith('start time')
+    assert log[1].startswith('Testing: 1, 2, 3')
+    assert log[-2].startswith('finish time')
+    assert log[-1].startswith('elapsed time')
+
+
+def test_biom_to_df(biom_table2, dataframe):
+    df = biom_to_df(biom_table2)
+    assert np.array_equal(df.as_matrix(), dataframe.as_matrix())
+    assert df.columns.equals(dataframe.columns)
+    assert df.index.equals(dataframe.index)
 
 
 def test_get_metadata_from_table(biom_table1):

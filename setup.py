@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 __author__ = 'shafferm'
-__version__ = '0.3.1'
+__version__ = '0.3.2'
 
 setup(
       name="SCNIC",

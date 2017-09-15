@@ -3,7 +3,6 @@
 from __future__ import division
 
 import os
-import shutil
 
 import networkx as nx
 import pandas as pd
@@ -47,10 +46,11 @@ def within_correls(args):
     logger["number of observations in input table"] = table.shape[0]
 
     # make new output directory and change to it
-    if args.output is not None and not os.path.isdir(args.output):
-        os.makedirs(args.output)
+    if args.output is not None:
+        if not os.path.isdir(args.output):
+            os.makedirs(args.output)
         os.chdir(args.output)
-        logger["output directory"] = args.output
+    logger["output directory"] = os.getcwd()
 
     # filter
     if args.sparcc_filter is True:

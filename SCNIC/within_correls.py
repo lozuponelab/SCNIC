@@ -46,13 +46,8 @@ def within_correls(args):
     logger["number of samples in input table"] = table.shape[1]
     logger["number of observations in input table"] = table.shape[0]
 
-    # check if output directory already exists and if it does delete it
-    # TODO: change this so it only deletes things used by SCNIC within or overwrites
-    if args.force and args.output is not None:
-        shutil.rmtree(args.output, ignore_errors=True)
-
     # make new output directory and change to it
-    if args.output is not None:
+    if args.output is not None and not os.path.isdir(args.output):
         os.makedirs(args.output)
         os.chdir(args.output)
         logger["output directory"] = args.output

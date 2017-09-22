@@ -151,7 +151,7 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
         graph.add_edge(correl.feature1, correl.feature2)
         for i in correl.index[2:]:
             graph_key = i.replace('_', '')
-            graph.edge[correl.feature1][correl.feature2][graph_key] = correl[i]
+            graph.edges[correl.feature1, correl.feature2][graph_key] = correl[i]
     return graph
 
 

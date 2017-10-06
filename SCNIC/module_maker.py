@@ -61,7 +61,8 @@ def collapse_modules(table, modules, prefix="module"):
 
 def write_modules_to_dir(table, modules):
     # for each module merge values and print modules to file
-    os.makedirs("modules")
+    if not os.path.isdir("modules"):
+        os.makedirs("modules")
     # reverse modules so observations will be added to smallest modules
     for i, module in enumerate(modules):
         # make biom tables for each module and write to file

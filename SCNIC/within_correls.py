@@ -89,11 +89,11 @@ def within_correls(args):
         dist = ca.cor_to_dist(cor)
         min_dist = ca.cor_to_dist(args.min_r)
     elif args.min_p is not None:
+        # TODO: This
         raise NotImplementedError()
     else:
         raise ValueError("min_p and min_r not given, one or other needs to be set")
     logger["distance metric used"] = args.correl_method
-
     if args.verbose:
         print "Features Correlated"
         print ""

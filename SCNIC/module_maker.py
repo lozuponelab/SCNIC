@@ -19,7 +19,7 @@ def make_modules(dist, min_dist, obs_ids):
     tree = TreeNode.from_linkage_matrix(Z, obs_ids)
     # get all tips so in the end we can check if we are done
     all_tips = len([i for i in tree.postorder() if i.is_tip()])
-    cliques = set()
+    modules = set()
     seen = set()
     dist = pd.DataFrame(squareform(dist), index=obs_ids, columns=obs_ids)
     for node in tree.levelorder():
@@ -33,10 +33,11 @@ def make_modules(dist, min_dist, obs_ids):
             if any(dists):
                 continue
             else:
-                cliques.add(tip_names)
+                modules.add(tip_names)
                 seen.update(tip_names)
         if len(seen) == all_tips:
-            return cliques
+            modules = sorted(modules, key=len, reverse=True)
+            return modules
     raise ValueError("Well, how did I get here?")
 
 

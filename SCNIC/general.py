@@ -98,14 +98,18 @@ def bonferroni_adjust(pvalues):
     return new_pvalues
 
 
+def underscore_to_camelcase(str_):
+    str_ = str_.split('_')
+    if len(str_) > 1:
+        str_ = [str_[0]] + [i.capitalize() for i in str_[1:]]
+    return ''.join(str_)
+
+
 def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
     """correls is a pandas dataframe which has columns feature1, feature2, r and optionally p and p_adj and optionally
     any others"""
     if metadata is None:
         metadata = []
-
-    if min_p is None and min_r is None:
-        min_p = .05
 
     if conet:
         correls = correls[correls.r > 0]
@@ -130,7 +134,7 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
         graph.add_node(correl.feature1)
         if correl.feature1 in metadata:
             for key in metadata[correl.feature1]:
-                graph_key = str(key).replace('_', '')
+                graph_key = underscore_to_camelcase(str(key))
                 if metadata[correl.feature1][key] is None:
                     continue
                 if hasattr(metadata[correl.feature1][key], '__iter__'):
@@ -141,7 +145,7 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
         graph.add_node(correl.feature2)
         if correl.feature2 in metadata:
             for key in metadata[correl.feature2]:
-                graph_key = str(key).replace('_', '')
+                graph_key = graph_key = underscore_to_camelcase(str(key))
                 if metadata[correl.feature2][key] is None:
                     continue
                 if hasattr(metadata[correl.feature2][key], '__iter__'):
@@ -150,7 +154,7 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
                     graph.node[correl.feature2][graph_key] = metadata[correl.feature2][key]
         graph.add_edge(correl.feature1, correl.feature2)
         for i in correl.index[2:]:
-            graph_key = i.replace('_', '')
+            graph_key = underscore_to_camelcase(str(i))
             graph.edges[correl.feature1, correl.feature2][graph_key] = correl[i]
     return graph
 

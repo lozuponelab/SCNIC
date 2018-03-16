@@ -2,14 +2,36 @@
 
 from __future__ import division
 
+import general
+
 import numpy as np
 import pandas as pd
-from biom import Table
+from biom import load_table, Table
 import os
 from scipy.cluster.hierarchy import complete
 from scipy.spatial.distance import squareform
 from skbio.tree import TreeNode
 from itertools import combinations
+
+
+def correls_to_cor(correls, metric='r'):
+    # convert to square
+    cor = correls.unstack()[metric]
+    cor = cor.reindex(cor.columns)
+    # fill na's
+    for otu_i, otu_j in combinations(cor.index, 2):
+        if pd.isna(cor.loc[otu_i, otu_j]):
+            cor.loc[otu_i, otu_j] = cor.loc[otu_j, otu_i]
+        else:
+            cor.loc[otu_j, otu_i] = cor.loc[otu_i, otu_j]
+    # for otu in cor.index:
+    #     cor.loc[otu, otu] = 1
+    return squareform(cor, checks=False), cor.index
+
+
+def cor_to_dist(cor):
+    # convert from correlation to distance
+    return 1 - ((cor + 1) / 2)
 
 
 def make_modules(dist, min_dist, obs_ids):
@@ -76,3 +98,61 @@ def write_modules_to_file(modules, prefix="module"):
     with open("modules.txt", 'w') as f:
         for i, module in enumerate(modules):
             f.write('_'.join([prefix, str(i)]) + '\t' + '\t'.join([str(j) for j in module]) + '\n')
+
+
+def module_maker(args):
+    logger = general.Logger("SCNIC_within_log.txt")
+    logger["SCNIC analysis type"] = "within"
+
+    # read in correlations file
+    correls = pd.read_table(args.input, index_col=(0,1))
+
+    # sanity check args
+    if args.min_r is not None and args.min_p is not None:
+        raise ValueError("arguments min_p and min_r may not be used concurrently")
+    if args.min_r is None and args.min_p is None:
+        raise ValueError("argument min_p or min_r must be used")
+
+    if args.min_r is not None:
+        min_dist = cor_to_dist(args.min_r)
+        cor, labels = correls_to_cor(correls)
+        dist = cor_to_dist(cor)
+    if args.min_p is not None:
+        #TODO: This
+        raise NotImplementedError()
+
+    # make modules
+    modules = make_modules(dist, min_dist, obs_ids=labels)
+    logger["number of modules created"] = len(modules)
+    if args.verbose:
+        print "Modules Formed"
+        print "number of modules: %s" % len(modules)
+        print "number of observations in modules: %s" % np.sum([len(i) for i in modules])
+        print ""
+    write_modules_to_file(modules)
+
+    # collapse modules
+    if args.table is not None:
+        table = load_table(args.table)
+        coll_table = collapse_modules(table, modules)
+        write_modules_to_dir(table, modules)
+        logger["number of observations in output table"] = coll_table.shape[0]
+        if args.verbose:
+            print "Table Collapsed"
+            print "collapsed Table Observations: " + str(coll_table.shape[0])
+            print ""
+        coll_table.to_json('make_modules.py', open('collapsed.biom', 'w'))
+
+    # make network
+    if args.table is not None:
+        metadata = general.get_metadata_from_table(table)
+        net = general.correls_to_net(correls, conet=True, metadata=metadata, min_p=args.min_p, min_r=args.min_r)
+    else:
+        net = general.correls_to_net(correls, conet=True, min_p=args.min_p, min_r=args.min_r)
+
+    if args.verbose:
+        print "Network Generated"
+        print "number of nodes: " + str(net.number_of_nodes())
+        print "number of edges: " + str(net.number_of_edges())
+    logger["number of nodes"] = net.number_of_nodes()
+    logger["number of edges"] = net.number_of_edges()

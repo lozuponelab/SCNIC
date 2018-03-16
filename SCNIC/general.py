@@ -106,8 +106,8 @@ def underscore_to_camelcase(str_):
 
 
 def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
-    """correls is a pandas dataframe which has columns feature1, feature2, r and optionally p and p_adj and optionally
-    any others"""
+    """correls is a pandas dataframe with a multiindex containing the correlated pair of features,
+    r and optionally p and p_adj and optionally any others"""
     if metadata is None:
         metadata = []
 
@@ -130,32 +130,34 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
             correls = correls[np.abs(correls.r) > min_r]
 
     graph = nx.Graph()
-    for _, correl in correls.iterrows():
-        graph.add_node(correl.feature1)
-        if correl.feature1 in metadata:
-            for key in metadata[correl.feature1]:
-                graph_key = underscore_to_camelcase(str(key))
-                if metadata[correl.feature1][key] is None:
-                    continue
-                if hasattr(metadata[correl.feature1][key], '__iter__'):
-                    graph.node[correl.feature1][graph_key] = ';'.join(metadata[correl.feature1][key])
-                else:
-                    graph.node[correl.feature1][graph_key] = metadata[correl.feature1][key]
+    for (otu_i, otu_j), correl in correls.iterrows():
+        if otu_i not in graph.node:
+            graph.add_node(otu_i)
+            if otu_i in metadata:
+                for key in metadata[otu_i]:
+                    graph_key = underscore_to_camelcase(str(key))
+                    if metadata[otu_i][key] is None:
+                        continue
+                    if hasattr(metadata[otu_i][key], '__iter__'):
+                        graph.node[otu_i][graph_key] = ';'.join(metadata[otu_i][key])
+                    else:
+                        graph.node[otu_i][graph_key] = metadata[correl.feature1][key]
 
-        graph.add_node(correl.feature2)
-        if correl.feature2 in metadata:
-            for key in metadata[correl.feature2]:
-                graph_key = graph_key = underscore_to_camelcase(str(key))
-                if metadata[correl.feature2][key] is None:
-                    continue
-                if hasattr(metadata[correl.feature2][key], '__iter__'):
-                    graph.node[correl.feature2][graph_key] = ';'.join(metadata[correl.feature2][key])
-                else:
-                    graph.node[correl.feature2][graph_key] = metadata[correl.feature2][key]
-        graph.add_edge(correl.feature1, correl.feature2)
-        for i in correl.index[2:]:
+        if otu_j not in graph.node:
+            graph.add_node(otu_j)
+            if otu_j in metadata:
+                for key in metadata[otu_j]:
+                    graph_key = underscore_to_camelcase(str(key))
+                    if metadata[otu_j][key] is None:
+                        continue
+                    if hasattr(metadata[otu_j][key], '__iter__'):
+                        graph.node[otu_j][graph_key] = ';'.join(metadata[otu_j][key])
+                    else:
+                        graph.node[otu_j][graph_key] = metadata[otu_j][key]
+        graph.add_edge(otu_i, otu_j)
+        for i in correl.index:
             graph_key = underscore_to_camelcase(str(i))
-            graph.edges[correl.feature1, correl.feature2][graph_key] = correl[i]
+            graph.edges[otu_i, otu_j][graph_key] = correl[i]
     return graph
 
 

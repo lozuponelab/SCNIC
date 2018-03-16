@@ -6,26 +6,26 @@ import os
 
 import networkx as nx
 import pandas as pd
-import numpy as np
 
 from biom import load_table
 from sparcc_fast.sparcc_functions import basis_corr
-from sparcc_fast.utils import df_to_correls
 from scipy.stats import spearmanr, pearsonr, kendalltau
 from scipy.spatial.distance import squareform
+from itertools import combinations
 
 import general
-import correlation_analysis as ca
-import module_maker as mm
+
+
+def df_to_correls(cor):
+    """takes a square correlation matrix and turns it into a long form dataframe"""
+    correls = pd.DataFrame(cor.stack().loc[list(combinations(cor.index, 2))], columns=['r'])
+    return correls
 
 
 def within_correls(args):
-    logger = general.Logger("SCNIC_log.txt")
+    logger = general.Logger("SCNIC_within_log.txt")
     logger["SCNIC analysis type"] = "within"
 
-    # sanity check args
-    if args.min_r is not None and args.min_p is not None:
-        raise ValueError("arguments min_p and min_r may not be used concurrently")
 
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau, 'sparcc': None}
@@ -36,7 +36,7 @@ def within_correls(args):
     else:
         p_adjust = None
 
-    # get features to be correlated and extract metadata
+    # get features to be correlated
     table = load_table(args.input)
     logger["input table"] = args.input
     if args.verbose:
@@ -73,68 +73,40 @@ def within_correls(args):
     logger["number of processors used"] = args.procs
 
     # correlate features
-    if args.min_r is not None:
-        if correl_method in [spearmanr, pearsonr, kendalltau]:
-            # calculate correlations
-            if args.verbose:
-                print "Correlating with " + args.correl_method
-            # correlate feature
-            cor, p_vals = correl_method(general.biom_to_df(table_filt))
-            cor = squareform(cor, checks=False)
-        else:
-            if args.verbose:
-                print "Correlating using sparcc"
-            cor, _ = basis_corr(general.biom_to_df(table_filt))
-            cor = squareform(cor, checks=False)
-        dist = ca.cor_to_dist(cor)
-        min_dist = ca.cor_to_dist(args.min_r)
-    elif args.min_p is not None:
-        # TODO: This
-        raise NotImplementedError()
+    if correl_method in [spearmanr, pearsonr, kendalltau]:
+        # calculate correlations
+        if args.verbose:
+            print "Correlating with " + args.correl_method
+        # correlate feature
+        cor, p_vals = correl_method(general.biom_to_df(table_filt))
+        cor = pd.DataFrame(cor, index=table_filt.ids(axis="observation"), columns=table_filt.ids(axis="observation"))
+        # cor = squareform(cor, checks=False)
+        if args.sparcc_p is not None:
+            raise NotImplementedError()
     else:
-        raise ValueError("min_p and min_r not given, one or other needs to be set")
+        if args.verbose:
+            print "Correlating using sparcc"
+        cor, _ = basis_corr(general.biom_to_df(table_filt))
+        # cor = squareform(cor, checks=False)
     logger["distance metric used"] = args.correl_method
     if args.verbose:
         print "Features Correlated"
         print ""
 
-    # make modules
-    modules = mm.make_modules(dist, min_dist, obs_ids=table_filt.ids(axis="observation"))
-    logger["number of modules created"] = len(modules)
-    if args.verbose:
-        print "Modules Formed"
-        print "number of modules: %s" % len(modules)
-        print "number of observations in modules: %s" % np.sum([len(i) for i in modules])
-        print ""
-    mm.write_modules_to_file(modules)
-
-    # collapse modules
-    coll_table = mm.collapse_modules(table, modules)
-    mm.write_modules_to_dir(table, modules)
-    logger["number of observations in output table"] = coll_table.shape[0]
-    if args.verbose:
-        print "Table Collapsed"
-        print "collapsed Table Observations: " + str(coll_table.shape[0])
-        print ""
-    coll_table.to_json('make_modules.py', open('collapsed.biom', 'w'))
-
-    # print correls and make correlation network
-    correls = df_to_correls(pd.DataFrame(squareform(cor), index=table_filt.ids(axis="observation"),
-                                         columns=table_filt.ids(axis="observation")))
+    # print correls
+    correls = df_to_correls(cor)
     if 'p' in correls.columns:
         correls['p-adj'] = p_adjust(correls['p'])
-    correls.to_csv('correls.txt', sep='\t', index=False)
-    metadata = general.get_metadata_from_table(table_filt)
-    net = general.correls_to_net(correls, conet=True, metadata=metadata, min_p=args.min_p, min_r=args.min_r)
-    for i, otus in enumerate(modules):
-        for otu in otus:
-            net.node[otu]["module"] = i
+    correls.to_csv('correls.txt', sep='\t')
     if args.verbose:
-        print "Network Generated"
-        print "number of nodes: " + str(net.number_of_nodes())
-        print "number of edges: " + str(net.number_of_edges())
-    logger["number of nodes"] = net.number_of_nodes()
-    logger["number of edges"] = net.number_of_edges()
-    nx.write_gml(net, 'conetwork.gml')
+        print "Correls.txt written"
+
+    # make correlation network
+    metadata = general.get_metadata_from_table(table_filt)
+    net = general.correls_to_net(correls, metadata=metadata)
+    nx.write_gml(net, 'correlation_network.gml')
+    if args.verbose:
+        print "Network made"
+        print ""
 
     logger.output_log()

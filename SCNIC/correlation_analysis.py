@@ -1,13 +1,8 @@
-import numpy as np
 from scipy.stats import spearmanr, pearsonr, kendalltau
 import warnings
 from functools import partial
 import pandas as pd
 
-
-def cor_to_dist(cor):
-    # convert from correlation to distance
-    return 1 - ((cor + 1) / 2)
 
 def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=1):
     """Take two biom tables and correlation"""

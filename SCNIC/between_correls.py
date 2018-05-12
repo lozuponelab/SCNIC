@@ -74,6 +74,7 @@ def between_correls(args):
     correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
 
     # make network
+    print(type(correls.index[0]))
     net = general.correls_to_net(correls, metadata=metadata, min_p=args.min_p, min_r=args.min_r)
     logger["number of nodes"] = net.number_of_nodes()
     logger["number of edges"] = net.number_of_edges()

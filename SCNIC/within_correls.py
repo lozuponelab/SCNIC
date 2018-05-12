@@ -81,7 +81,7 @@ def within_correls(args):
         # cor = squareform(cor, checks=False)
         if args.sparcc_p is not None:
             raise NotImplementedError()
-    else:
+    else: # TODO: reimplement with fastspar
         raise NotImplementedError
     logger["distance metric used"] = args.correl_method
     if args.verbose:

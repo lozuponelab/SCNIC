@@ -29,4 +29,5 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=
         pool.close()
         pool.join()
 
-    return pd.DataFrame(correls, columns=['feature1', 'feature2', 'r', 'p'])
+    correls = pd.DataFrame(correls, columns=['feature1', 'feature2', 'r', 'p'])
+    return correls.set_index(['feature1', 'feature2'])  # this needs to be fixed, needs to return multiindex

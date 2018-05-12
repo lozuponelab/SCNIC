@@ -51,10 +51,6 @@ def test_within_correls_classic_correlation_min_r_min_sample(args1, tmpdir):
     os.chdir(str(loc))
     within_correls(args1)
     files = os.listdir(str(loc)+'/out_dir')
-    assert "collapsed.biom" in files
-    assert "modules.txt" in files
-    assert "modules" in files
-    assert "conetwork.gml" in files
     assert "correls.txt" in files
 
 
@@ -66,8 +62,4 @@ def test_within_correls_classic_correlation_min_r_sparcc_filter(args2, tmpdir):
     os.chdir(str(loc))
     within_correls(args2)
     files = os.listdir(str(loc)+'/out_dir')
-    assert "collapsed.biom" in files
-    assert "modules.txt" in files
-    assert "modules" in files
-    assert "conetwork.gml" in files
     assert "correls.txt" in files

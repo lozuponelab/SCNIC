@@ -18,8 +18,7 @@ def args1():
             self.min_sample = 2
             self.sparcc_filter = False
             self.procs = 1
-            self.min_p = None
-            self.min_r = .35
+            self.sparcc_p = None
 
     return Arguments()
 
@@ -38,8 +37,8 @@ def args2():
             self.min_sample = None
             self.sparcc_filter = True
             self.procs = 1
-            self.min_p = None
-            self.min_r = .35
+            self.sparcc_p = None
+
 
     return Arguments()
 

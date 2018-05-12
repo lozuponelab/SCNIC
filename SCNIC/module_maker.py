@@ -12,6 +12,7 @@ from scipy.cluster.hierarchy import complete
 from scipy.spatial.distance import squareform
 from skbio.tree import TreeNode
 from itertools import combinations
+import networkx as nx
 
 
 def correls_to_cor(correls, metric='r'):
@@ -101,11 +102,14 @@ def write_modules_to_file(modules, prefix="module"):
 
 
 def module_maker(args):
-    logger = general.Logger("SCNIC_within_log.txt")
-    logger["SCNIC analysis type"] = "within"
+    logger = general.Logger("SCNIC_module_log.txt")
+    logger["SCNIC analysis type"] = "module"
 
     # read in correlations file
-    correls = pd.read_table(args.input, index_col=(0,1))
+    correls = pd.read_table(args.input, index_col=(0, 1), sep='\t', dtype={'feature1': str, 'feature2': str})
+    logger["input correls"] = args.input
+    if args.verbose:
+        print "correls.txt read"
 
     # sanity check args
     if args.min_r is not None and args.min_p is not None:
@@ -113,13 +117,29 @@ def module_maker(args):
     if args.min_r is None and args.min_p is None:
         raise ValueError("argument min_p or min_r must be used")
 
+    # read in correlations file and make distance matrix
     if args.min_r is not None:
         min_dist = cor_to_dist(args.min_r)
+        logger["minimum r value"] = args.min_r
         cor, labels = correls_to_cor(correls)
         dist = cor_to_dist(cor)
     if args.min_p is not None:
         #TODO: This
         raise NotImplementedError()
+
+    # read in biom table if given
+    if args.table is not None:
+        table = load_table(args.table)
+        logger["input uncollapsed table"] = args.table
+        if args.verbose:
+            print "otu table read"
+
+    # make new output directory and change to it
+    if args.output is not None:
+        if not os.path.isdir(args.output):
+            os.makedirs(args.output)
+        os.chdir(args.output)
+    logger["output directory"] = os.getcwd()
 
     # make modules
     modules = make_modules(dist, min_dist, obs_ids=labels)
@@ -133,7 +153,6 @@ def module_maker(args):
 
     # collapse modules
     if args.table is not None:
-        table = load_table(args.table)
         coll_table = collapse_modules(table, modules)
         write_modules_to_dir(table, modules)
         logger["number of observations in output table"] = coll_table.shape[0]
@@ -150,9 +169,12 @@ def module_maker(args):
     else:
         net = general.correls_to_net(correls, conet=True, min_p=args.min_p, min_r=args.min_r)
 
+    nx.write_gml(net, 'correlation_network.gml')
     if args.verbose:
         print "Network Generated"
         print "number of nodes: " + str(net.number_of_nodes())
         print "number of edges: " + str(net.number_of_edges())
     logger["number of nodes"] = net.number_of_nodes()
     logger["number of edges"] = net.number_of_edges()
+
+    logger.output_log()

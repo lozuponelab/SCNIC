@@ -8,7 +8,6 @@ import networkx as nx
 import pandas as pd
 
 from biom import load_table
-from sparcc_fast.sparcc_functions import basis_corr
 from scipy.stats import spearmanr, pearsonr, kendalltau
 from scipy.spatial.distance import squareform
 from itertools import combinations
@@ -26,7 +25,6 @@ def within_correls(args):
     logger = general.Logger("SCNIC_within_log.txt")
     logger["SCNIC analysis type"] = "within"
 
-
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau, 'sparcc': None}
     p_methods = {'bh': general.bh_adjust, 'bon': general.bonferroni_adjust}
@@ -40,8 +38,8 @@ def within_correls(args):
     table = load_table(args.input)
     logger["input table"] = args.input
     if args.verbose:
-        print "Table loaded: " + str(table.shape[0]) + " observations"
-        print ""
+        print("Table loaded: " + str(table.shape[0]) + " observations")
+        print("")
     logger["number of samples in input table"] = table.shape[1]
     logger["number of observations in input table"] = table.shape[0]
 
@@ -56,15 +54,15 @@ def within_correls(args):
     if args.sparcc_filter is True:
         table_filt = general.sparcc_paper_filter(table)
         if args.verbose:
-            print "Table filtered: " + str(table_filt.shape[0]) + " observations"
-            print ""
+            print("Table filtered: %s observations" % str(table_filt.shape[0]))
+            print("")
         logger["sparcc paper filter"] = True
         logger["number of observations present after filter"] = table_filt.shape[0]
     elif args.min_sample is not None:
         table_filt = general.filter_table(table, args.min_sample)
         if args.verbose:
-            print "Table filtered: " + str(table_filt.shape[0]) + " observations"
-            print ""
+            print("Table filtered: %s observations" % str(table_filt.shape[0]))
+            print("")
         logger["min samples present"] = args.min_sample
         logger["number of observations present after filter"] = table_filt.shape[0]
     else:
@@ -76,7 +74,7 @@ def within_correls(args):
     if correl_method in [spearmanr, pearsonr, kendalltau]:
         # calculate correlations
         if args.verbose:
-            print "Correlating with " + args.correl_method
+            print("Correlating with %s" % args.correl_method)
         # correlate feature
         cor, p_vals = correl_method(general.biom_to_df(table_filt))
         cor = pd.DataFrame(cor, index=table_filt.ids(axis="observation"), columns=table_filt.ids(axis="observation"))
@@ -84,14 +82,11 @@ def within_correls(args):
         if args.sparcc_p is not None:
             raise NotImplementedError()
     else:
-        if args.verbose:
-            print "Correlating using sparcc"
-        cor, _ = basis_corr(general.biom_to_df(table_filt))
-        # cor = squareform(cor, checks=False)
+        raise NotImplementedError
     logger["distance metric used"] = args.correl_method
     if args.verbose:
-        print "Features Correlated"
-        print ""
+        print("Features Correlated")
+        print("")
 
     # print correls
     correls = df_to_correls(cor)
@@ -99,14 +94,14 @@ def within_correls(args):
         correls['p-adj'] = p_adjust(correls['p'])
     correls.to_csv('correls.txt', sep='\t', index_label=('feature1', 'feature2'))
     if args.verbose:
-        print "Correls.txt written"
+        print("Correls.txt written")
 
     # make correlation network
     metadata = general.get_metadata_from_table(table_filt)
     net = general.correls_to_net(correls, metadata=metadata)
     nx.write_gml(net, 'correlation_network.gml')
     if args.verbose:
-        print "Network made"
-        print ""
+        print("Network made")
+        print("")
 
     logger.output_log()

@@ -50,8 +50,8 @@ def between_correls(args):
     if args.sparcc_filter is True:
         table1 = general.sparcc_paper_filter(table1)
         table2 = general.sparcc_paper_filter(table2)
-        print "Table 1 filtered: " + str(table1.shape[0]) + " observations"
-        print "Table 2 filtered: " + str(table2.shape[0]) + " observations"
+        print("Table 1 filtered: %s observations" % str(table1.shape[0]))
+        print("Table 2 filtered: %s observations" % str(table2.shape[0]))
         logger["sparcc paper filter"] = True
         logger["number of observations present in table 1 after filter"] = table1.shape[0]
         logger["number of observations present in table 2 after filter"] = table2.shape[0]
@@ -80,4 +80,3 @@ def between_correls(args):
     nx.write_gml(net, 'crossnet.gml')
 
     logger.output_log()
-    print '\a'

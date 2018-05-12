@@ -25,7 +25,7 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=
             corr = partial(correl_method, b=data_i)
             corrs = pool.map(corr, datas_j)
             correls += [(otu_i, table2.ids(axis="observation")[i], corrs[i][0], corrs[i][1])
-                        for i in xrange(len(corrs))]
+                        for i in range(len(corrs))]
         pool.close()
         pool.join()
 

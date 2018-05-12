@@ -79,7 +79,7 @@ def collapse_modules(table, modules, prefix="module"):
 
     # make new table
     new_table_matrix = np.concatenate((table.matrix_data.toarray(), module_array))
-    new_table_obs = list(table.ids(axis='observation')) + ['_'.join([prefix, str(i)]) for i in xrange(len(modules))]
+    new_table_obs = list(table.ids(axis='observation')) + ['_'.join([prefix, str(i)]) for i in range(len(modules))]
     return Table(new_table_matrix, new_table_obs, table.ids())
 
 
@@ -109,7 +109,7 @@ def module_maker(args):
     correls = pd.read_table(args.input, index_col=(0, 1), sep='\t', dtype={'feature1': str, 'feature2': str})
     logger["input correls"] = args.input
     if args.verbose:
-        print "correls.txt read"
+        print("correls.txt read")
 
     # sanity check args
     if args.min_r is not None and args.min_p is not None:
@@ -124,7 +124,7 @@ def module_maker(args):
         cor, labels = correls_to_cor(correls)
         dist = cor_to_dist(cor)
     if args.min_p is not None:
-        #TODO: This
+        # TODO: This
         raise NotImplementedError()
 
     # read in biom table if given
@@ -132,7 +132,7 @@ def module_maker(args):
         table = load_table(args.table)
         logger["input uncollapsed table"] = args.table
         if args.verbose:
-            print "otu table read"
+            print("otu table read")
 
     # make new output directory and change to it
     if args.output is not None:
@@ -145,10 +145,10 @@ def module_maker(args):
     modules = make_modules(dist, min_dist, obs_ids=labels)
     logger["number of modules created"] = len(modules)
     if args.verbose:
-        print "Modules Formed"
-        print "number of modules: %s" % len(modules)
-        print "number of observations in modules: %s" % np.sum([len(i) for i in modules])
-        print ""
+        print("Modules Formed")
+        print("number of modules: %s" % len(modules))
+        print("number of observations in modules: %s" % np.sum([len(i) for i in modules]))
+        print("")
     write_modules_to_file(modules)
 
     # collapse modules
@@ -157,9 +157,9 @@ def module_maker(args):
         write_modules_to_dir(table, modules)
         logger["number of observations in output table"] = coll_table.shape[0]
         if args.verbose:
-            print "Table Collapsed"
-            print "collapsed Table Observations: " + str(coll_table.shape[0])
-            print ""
+            print("Table Collapsed")
+            print("collapsed Table Observations: " + str(coll_table.shape[0]))
+            print("")
         coll_table.to_json('make_modules.py', open('collapsed.biom', 'w'))
 
     # make network
@@ -171,9 +171,9 @@ def module_maker(args):
 
     nx.write_gml(net, 'correlation_network.gml')
     if args.verbose:
-        print "Network Generated"
-        print "number of nodes: " + str(net.number_of_nodes())
-        print "number of edges: " + str(net.number_of_edges())
+        print("Network Generated")
+        print("number of nodes: %s" % str(net.number_of_nodes()))
+        print("number of edges: %s" % str(net.number_of_edges()))
     logger["number of nodes"] = net.number_of_nodes()
     logger["number of edges"] = net.number_of_edges()
 

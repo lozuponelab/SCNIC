@@ -1,6 +1,5 @@
 from __future__ import division
 
-from scipy.stats import linregress
 import numpy as np
 import networkx as nx
 from biom.table import Table
@@ -28,7 +27,7 @@ class Logger(OrderedDict):
         with open(self.output_file, 'w') as f:
             self['finish time'] = datetime.now()
             self['elapsed time'] = self['finish time'] - self['start time']
-            for key, value in self.iteritems():
+            for key, value in self.items():
                 f.write(key + ': ' + str(value) + '\n')
 
 
@@ -82,7 +81,7 @@ def bh_adjust(pvalues):
         rank = n - i
         pvalue, index = vals
         new_values.append((n/rank) * pvalue)
-    for i in xrange(0, int(n)-1):
+    for i in range(0, int(n)-1):
         if new_values[i] < new_values[i+1]:
             new_values[i+1] = new_values[i]
     for i, vals in enumerate(values):
@@ -211,15 +210,15 @@ def simulate_correls(corr_stren=(.99, .99), std=(1, 1, 1, 2, 2), means=(100, 100
            [0., 0., 0., corr_stren[1], std[4]]]
     cor = np.array(cor)
     cov = np.zeros(np.array(cor.shape) + noncors)  # generate empty covariance matrix to be filled
-    for i in xrange(cor.shape[0]):  # fill in all but diagonal of covariance matrix, first 5
-        for j in xrange(i + 1, cor.shape[0]):
+    for i in range(cor.shape[0]):  # fill in all but diagonal of covariance matrix, first 5
+        for j in range(i + 1, cor.shape[0]):
             curr_cov = cor[i, j] * cor[i, i] * cor[j, j]
             cov[i, j] = curr_cov
             cov[j, i] = curr_cov
-    for i in xrange(cor.shape[0]):  # fill diagonal of covariance matrix, first 5
+    for i in range(cor.shape[0]):  # fill diagonal of covariance matrix, first 5
         cov[i, i] = np.square(cor[i, i])
     means = list(means)
-    for i in xrange(cor.shape[0], cov.shape[0]):  # fill diagonal of covariance, 6 to end and populate mean list
+    for i in range(cor.shape[0], cov.shape[0]):  # fill diagonal of covariance, 6 to end and populate mean list
         cov[i, i] = noncors_std
         means.append(noncors_mean)
 
@@ -235,8 +234,8 @@ def simulate_correls(corr_stren=(.99, .99), std=(1, 1, 1, 2, 2), means=(100, 100
 
     counts = np.round(counts)
 
-    observ_ids = ["Observ_" + str(i) for i in xrange(cov.shape[0])]
-    sample_ids = ["Sample_" + str(i) for i in xrange(size)]
+    observ_ids = ["Observ_" + str(i) for i in range(cov.shape[0])]
+    sample_ids = ["Sample_" + str(i) for i in range(size)]
     table = Table(counts, observ_ids, sample_ids)
 
     if subsample is not None:

@@ -61,7 +61,7 @@ def refill_table(table):
     matrix = table.matrix_data.todense()
     new_matrix = np.zeros(matrix.shape)
     sums = np.sum(matrix, axis=1)
-    for i in xrange(sums.shape[0]):
+    for i in range(sums.shape[0]):
         rands = np.random.randint(0, matrix.shape[1], size=sums[i])
         counts = Counter(rands)
         for val in counts:
@@ -73,7 +73,7 @@ def refill_table_matrix(sparse_matrix):
     matrix = sparse_matrix.todense()
     new_matrix = np.zeros(matrix.shape)
     sums = np.sum(matrix, axis=1)
-    for i in xrange(sums.shape[0]):
+    for i in range(sums.shape[0]):
         rands = np.random.randint(0, matrix.shape[1], size=sums[i])
         counts = Counter(rands)
         for val in counts:
@@ -93,9 +93,9 @@ def bootstrap_distance_vals(table, dist_metric='braycurtis', nprocs=1, bootstrap
     measured_dists = dists['dist']
 
     if nprocs == 1:
-        print "Using 1 processor to calculate distances"
+        print("Using 1 processor to calculate distances")
         multi_results = np.zeros((bootstraps, len(dists)), dtype=bool)
-        for i in xrange(bootstraps):
+        for i in range(bootstraps):
             multi_results[i] = bootstrapped_distance(None, measured_dists, table.matrix_data, dist_metric)
 
     else:
@@ -104,7 +104,7 @@ def bootstrap_distance_vals(table, dist_metric='braycurtis', nprocs=1, bootstrap
             nprocs = multiprocessing.cpu_count()
 
         pool = multiprocessing.Pool(nprocs)
-        print "Number of processors used: " + str(nprocs)
+        print("Number of processors used: " + str(nprocs))
 
         pfun = partial(bootstrapped_distance, measured_dists=measured_dists, sparse_matrix=table.matrix_data,
                        dist_metric=dist_metric)

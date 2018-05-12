@@ -1,15 +1,14 @@
 from setuptools import setup, find_packages
 
 __author__ = 'shafferm'
-__version__ = '0.4.0'
+__version__ = '0.5.0'
 
 setup(
       name="SCNIC",
       version=__version__,
       setup_requires=['pytest-runner'],
       test_require=['pytest'],
-      install_requires=["numpy", "scipy", "networkx", "biom-format", "pandas", "fast_sparCC <= 0.1.6",
-                        "scikit-bio == 0.4.2"],
+      install_requires=["numpy", "scipy", "networkx", "biom-format", "pandas", "scikit-bio"],
       scripts=["scripts/SCNIC_analysis.py"],
       packages=find_packages(),
       description="A tool for finding and summarizing modules of highly correlated observations in compositional data",

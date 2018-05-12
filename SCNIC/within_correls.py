@@ -12,7 +12,7 @@ from scipy.stats import spearmanr, pearsonr, kendalltau
 from scipy.spatial.distance import squareform
 from itertools import combinations
 
-import general
+from SCNIC import general
 
 
 def df_to_correls(cor):

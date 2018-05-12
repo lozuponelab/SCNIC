@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-import general
+from SCNIC import general
 
 import numpy as np
 import pandas as pd

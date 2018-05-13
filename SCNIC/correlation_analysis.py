@@ -1,7 +1,23 @@
-from scipy.stats import spearmanr, pearsonr, kendalltau
+from scipy.stats import spearmanr
 import warnings
 from functools import partial
 import pandas as pd
+from biom.table import Table
+import subprocess
+from itertools import combinations
+
+
+def df_to_correls(cor):
+    """takes a square correlation matrix and turns it into a long form dataframe"""
+    correls = pd.DataFrame(cor.stack().loc[list(combinations(cor.index, 2))], columns=['r'])
+    return correls
+
+
+def fastspar_correlation(table: Table) -> pd.DataFrame:
+    # TODO: update this to use temporary file
+    table.to_dataframe().to_dense().to_csv('otu_table.tsv', sep='\t', index_label='#OTU ID')
+    subprocess.run(['fastspar', '-c',  'otu_table.tsv', '-r', 'correl_table.tsv', '-a', 'covar_table.tsv'])
+    return pd.read_table('correl_table.tsv', index_col=0)
 
 
 def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=1):

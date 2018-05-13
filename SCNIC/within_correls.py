@@ -9,16 +9,9 @@ import pandas as pd
 
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr, kendalltau
-from scipy.spatial.distance import squareform
-from itertools import combinations
 
 from SCNIC import general
-
-
-def df_to_correls(cor):
-    """takes a square correlation matrix and turns it into a long form dataframe"""
-    correls = pd.DataFrame(cor.stack().loc[list(combinations(cor.index, 2))], columns=['r'])
-    return correls
+from SCNIC import correlation_analysis as ca
 
 
 def within_correls(args):
@@ -78,18 +71,17 @@ def within_correls(args):
         # correlate feature
         cor, p_vals = correl_method(general.biom_to_df(table_filt))
         cor = pd.DataFrame(cor, index=table_filt.ids(axis="observation"), columns=table_filt.ids(axis="observation"))
-        # cor = squareform(cor, checks=False)
+    else:
+        cor = ca.fastspar_correlation(table_filt)
         if args.sparcc_p is not None:
-            raise NotImplementedError()
-    else: # TODO: reimplement with fastspar
-        raise NotImplementedError
+            raise NotImplementedError()  # TODO: reimplement with fastspar
     logger["distance metric used"] = args.correl_method
     if args.verbose:
         print("Features Correlated")
         print("")
 
     # print correls
-    correls = df_to_correls(cor)
+    correls = ca.df_to_correls(cor)
     if 'p' in correls.columns:
         correls['p-adj'] = p_adjust(correls['p'])
     correls.to_csv('correls.txt', sep='\t', index_label=('feature1', 'feature2'))

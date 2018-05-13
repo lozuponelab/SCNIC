@@ -14,8 +14,8 @@ def biom_table1():
                     [  2,   2,   2,   2,    2],
                     [100, 100, 500,   1, 1000],
                     [500,   5,   0,  50,  100]])
-    obs_ids = ["otu_%s" % i for i in xrange(5)]
-    samp_ids = ["samp_%s" % i for i in xrange(5)]
+    obs_ids = ["otu_%s" % i for i in range(5)]
+    samp_ids = ["samp_%s" % i for i in range(5)]
     return Table(arr, obs_ids, samp_ids)
 
 
@@ -31,7 +31,7 @@ def dist1():
 
 @pytest.fixture()
 def obs_ids1():
-    obs_ids = ["otu_%s" % i for i in xrange(5)]
+    obs_ids = ["otu_%s" % i for i in range(5)]
     return obs_ids
 
 

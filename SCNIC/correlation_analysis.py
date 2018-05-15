@@ -5,6 +5,8 @@ import pandas as pd
 from biom.table import Table
 import subprocess
 from itertools import combinations
+import tempfile
+from os import path
 
 
 def df_to_correls(cor):
@@ -13,11 +15,18 @@ def df_to_correls(cor):
     return correls
 
 
-def fastspar_correlation(table: Table) -> pd.DataFrame:
+def fastspar_correlation(table: Table, verbose: bool=False) -> pd.DataFrame:
     # TODO: update this to use temporary file
-    table.to_dataframe().to_dense().to_csv('otu_table.tsv', sep='\t', index_label='#OTU ID')
-    subprocess.run(['fastspar', '-c',  'otu_table.tsv', '-r', 'correl_table.tsv', '-a', 'covar_table.tsv'])
-    return pd.read_table('correl_table.tsv', index_col=0)
+    with tempfile.TemporaryDirectory(prefix='fastspar') as temp:
+        table.to_dataframe().to_dense().to_csv(path.join(temp, 'otu_table.tsv'), sep='\t', index_label='#OTU ID')
+        if verbose:
+            stdout = None
+        else:
+            stdout = subprocess.DEVNULL
+        subprocess.run(['fastspar', '-c',  path.join(temp, 'otu_table.tsv'), '-r',
+                        path.join(temp, path.join(temp, 'correl_table.tsv')), '-a',
+                        path.join(temp, 'covar_table.tsv')], stdout=stdout)
+        return pd.read_table(path.join(temp, 'correl_table.tsv'), index_col=0)
 
 
 def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=1):

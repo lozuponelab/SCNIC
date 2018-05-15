@@ -19,7 +19,7 @@ def within_correls(args):
     logger["SCNIC analysis type"] = "within"
 
     # correlation and p-value adjustment methods
-    correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau, 'sparcc': None}
+    correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau, 'sparcc': 'sparcc'}
     p_methods = {'bh': general.bh_adjust, 'bon': general.bonferroni_adjust}
     correl_method = correl_methods[args.correl_method.lower()]
     if args.p_adjust is not None:
@@ -71,10 +71,12 @@ def within_correls(args):
         # correlate feature
         cor, p_vals = correl_method(general.biom_to_df(table_filt))
         cor = pd.DataFrame(cor, index=table_filt.ids(axis="observation"), columns=table_filt.ids(axis="observation"))
-    else:
-        cor = ca.fastspar_correlation(table_filt)
+    elif correl_method == 'sparcc':
+        cor = ca.fastspar_correlation(table_filt, verbose=args.verbose)
         if args.sparcc_p is not None:
             raise NotImplementedError()  # TODO: reimplement with fastspar
+    else:
+        raise ValueError("How did this even happen?")
     logger["distance metric used"] = args.correl_method
     if args.verbose:
         print("Features Correlated")

@@ -1,5 +1,5 @@
 import pytest
-from SCNIC.module import make_modules, collapse_modules, write_modules_to_dir
+from SCNIC.module_analysis import make_modules, collapse_modules, write_modules_to_dir
 import os
 import glob
 from biom.table import Table

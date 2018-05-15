@@ -1,9 +1,9 @@
-#!/usr/local/bin/python2
+#!/usr/local/bin/python3
 
 import argparse
 from SCNIC.within_correls import within_correls
 from SCNIC.between_correls import between_correls
-from SCNIC.module_maker import module_maker
+from SCNIC.module import module_maker
 
 __author__ = 'shafferm'
 
@@ -18,7 +18,7 @@ def main():
     within_corr = subparsers.add_parser("within", help="Find pairwise correlations within a table",
                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     make_modules = subparsers.add_parser("modules", help="Make modules on a network",
-                                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     between_corr = subparsers.add_parser("between", help="Find correlations between two tables",
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 

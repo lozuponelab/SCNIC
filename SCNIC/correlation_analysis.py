@@ -16,7 +16,6 @@ def df_to_correls(cor):
 
 
 def fastspar_correlation(table: Table, verbose: bool=False) -> pd.DataFrame:
-    # TODO: update this to use temporary file
     with tempfile.TemporaryDirectory(prefix='fastspar') as temp:
         table.to_dataframe().to_dense().to_csv(path.join(temp, 'otu_table.tsv'), sep='\t', index_label='#OTU ID')
         if verbose:

@@ -3,10 +3,10 @@ from __future__ import division
 import numpy as np
 import networkx as nx
 from biom.table import Table
-import pandas as pd
 from datetime import datetime
 from collections import OrderedDict
 from numpy.random import multivariate_normal
+from statsmodels.sandbox.stats.multicomp import multipletests
 
 
 __author__ = 'shafferm'
@@ -31,6 +31,11 @@ class Logger(OrderedDict):
                 f.write(key + ': ' + str(value) + '\n')
 
 
+def p_adjust(pvalues, method='fdr_bh'):
+    res = multipletests(pvalues, method=method)
+    return np.array(res[1], dtype=float)
+
+
 def sparcc_paper_filter(table):
     """if a observation averages more than 2 reads per sample then keep,
     if a sample has more than 500 reads then keep"""
@@ -44,57 +49,12 @@ def df_to_biom(df):
     return Table(np.transpose(df.as_matrix()), list(df.columns), list(df.index))
 
 
-def biom_to_df(biom):
-    return pd.DataFrame(np.transpose(biom.matrix_data.todense()), index=biom.ids(),
-                        columns=biom.ids(axis="observation"))
-
-
 def get_metadata_from_table(table):
     metadata = dict()
     for _, otu_i, metadata_i in table.iter(axis="observation"):
         if metadata_i is not None:
             metadata[otu_i] = metadata_i
     return metadata
-
-
-def bh_adjust(pvalues):
-    """
-    benjamini-hochberg p-value adjustment stolen from
-    http://stackoverflow.com/questions/7450957/how-to-implement-rs-p-adjust-in-python
-
-    Parameters
-    ----------
-    pvalues: an iterable of p-values
-
-    Returns
-    -------
-    new_pvalues: a numpy array of BH adjusted p-values
-    """
-    pvalues = np.array(pvalues)
-    n = pvalues.shape[0]
-    new_pvalues = np.empty(n)
-    values = [(pvalue, i) for i, pvalue in enumerate(pvalues)]
-    values.sort()
-    values.reverse()
-    new_values = []
-    for i, vals in enumerate(values):
-        rank = n - i
-        pvalue, index = vals
-        new_values.append((n/rank) * pvalue)
-    for i in range(0, int(n)-1):
-        if new_values[i] < new_values[i+1]:
-            new_values[i+1] = new_values[i]
-    for i, vals in enumerate(values):
-        pvalue, index = vals
-        new_pvalues[index] = new_values[i]
-    return new_pvalues
-
-
-def bonferroni_adjust(pvalues):
-    pvalues = np.array(pvalues)
-    n = float(pvalues.shape[0])
-    new_pvalues = n * pvalues
-    return new_pvalues
 
 
 def underscore_to_camelcase(str_):

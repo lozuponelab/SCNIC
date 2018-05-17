@@ -23,12 +23,7 @@ def between_correls(args):
 
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr}
-    p_methods = {'bh': general.bh_adjust, 'bon': general.bonferroni_adjust}
     correl_method = correl_methods[args.correl_method]
-    if args.p_adjust is not None:
-        p_adjust = p_methods[args.p_adjust]
-    else:
-        p_adjust = None
 
     # load tables
     table1 = load_table(args.table1)
@@ -71,7 +66,7 @@ def between_correls(args):
     logger["p adjustment method"] = args.p_adjust
     correls = between_correls_from_tables(table1, table2, correl_method, nprocs=args.procs)
     correls.sort_values(correls.columns[-1], inplace=True)
-    correls['p_adj'] = p_adjust(correls['p'])
+    correls['p_adj'] = general.p_adjust(correls['p'])
     correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
 
     # make network

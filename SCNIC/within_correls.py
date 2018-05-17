@@ -20,12 +20,7 @@ def within_correls(args):
 
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau, 'sparcc': 'sparcc'}
-    p_methods = {'bh': general.bh_adjust, 'bon': general.bonferroni_adjust}
     correl_method = correl_methods[args.correl_method.lower()]
-    if args.p_adjust is not None:
-        p_adjust = p_methods[args.p_adjust]
-    else:
-        p_adjust = None
 
     # get features to be correlated
     table = load_table(args.input)
@@ -69,7 +64,7 @@ def within_correls(args):
         if args.verbose:
             print("Correlating with %s" % args.correl_method)
         # correlate feature
-        cor, p_vals = correl_method(general.biom_to_df(table_filt))
+        cor, p_vals = correl_method(table_filt.to_dataframe().to_dense().transpose())
         cor = pd.DataFrame(cor, index=table_filt.ids(axis="observation"), columns=table_filt.ids(axis="observation"))
     elif correl_method == 'sparcc':
         cor = ca.fastspar_correlation(table_filt, verbose=args.verbose)
@@ -85,7 +80,7 @@ def within_correls(args):
     # print correls
     correls = ca.df_to_correls(cor)
     if 'p' in correls.columns:
-        correls['p-adj'] = p_adjust(correls['p'])
+        correls['p-adj'] = general.p_adjust(correls['p'])
     correls.to_csv('correls.txt', sep='\t', index_label=('feature1', 'feature2'))
     if args.verbose:
         print("Correls.txt written")

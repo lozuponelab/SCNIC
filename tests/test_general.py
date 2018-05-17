@@ -1,10 +1,9 @@
 import pytest
-from SCNIC.general import simulate_correls, get_metadata_from_table, filter_table, sparcc_paper_filter,\
-                          bonferroni_adjust, bh_adjust, Logger, biom_to_df
+from SCNIC.general import simulate_correls, get_metadata_from_table, filter_table, sparcc_paper_filter, \
+                          p_adjust, Logger
 from biom.table import Table
 import numpy as np
 from numpy.testing import assert_allclose
-import pandas as pd
 
 # TODO: simulate sparse table to test filtering
 # TODO: include HMP table to test filtering?
@@ -30,17 +29,6 @@ def biom_table2():
 
 
 @pytest.fixture()
-def dataframe():
-    arr = np.array([[250,   0, 100, 446,   75],
-                    [  0,   0,   1,   1,    2],
-                    [  2,   2,   2,   2,    2],
-                    [100, 100, 500,   1, 1000],
-                    [500,   5,   0,  50,  100]])
-    arr = arr.transpose()
-    return pd.DataFrame(arr, index=["samp_%s" % i for i in range(5)], columns=["otu_%s" % i for i in range(5)])
-
-
-@pytest.fixture()
 def unadj_ps():
     return [.01, .05, .5]
 
@@ -57,13 +45,6 @@ def test_Logger(tmpdir):
     assert log[1].startswith('Testing: 1, 2, 3')
     assert log[-2].startswith('finish time')
     assert log[-1].startswith('elapsed time')
-
-
-def test_biom_to_df(biom_table2, dataframe):
-    df = biom_to_df(biom_table2)
-    assert np.array_equal(df.as_matrix(), dataframe.as_matrix())
-    assert df.columns.equals(dataframe.columns)
-    assert df.index.equals(dataframe.index)
 
 
 def test_get_metadata_from_table(biom_table1):
@@ -94,14 +75,14 @@ def test_sparcc_paper_filter_better(biom_table2):
 
 
 def test_bonferroni_adjust(unadj_ps):
-    adj_ps = np.array([.03, .15, 1.5])
-    bon_ps = bonferroni_adjust(unadj_ps)
+    adj_ps = np.array([.03, .15, 1])
+    bon_ps = p_adjust(unadj_ps, method='b')
     assert isinstance(bon_ps, np.ndarray)
     assert_allclose(adj_ps, bon_ps)
 
 
 def test_bh_adjust(unadj_ps):
     adj_ps = np.array([.03, .075, .5])
-    bh_ps = bh_adjust(unadj_ps)
+    bh_ps = p_adjust(unadj_ps, 'fdr_bh')
     assert isinstance(bh_ps, np.ndarray)
     assert_allclose(adj_ps, bh_ps)

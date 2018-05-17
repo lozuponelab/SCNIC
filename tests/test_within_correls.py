@@ -32,13 +32,12 @@ def args2():
             self.correl_method = "spearman"
             self.p_adjust = None
             self.outlier_removal = False
-            self.verbose = False
+            self.verbose = True
             self.force = False
             self.min_sample = None
             self.sparcc_filter = True
             self.procs = 1
             self.sparcc_p = None
-
 
     return Arguments()
 

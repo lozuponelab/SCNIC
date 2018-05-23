@@ -77,7 +77,7 @@ def within_correls(args):
         print("")
 
     if 'p' in correls.columns:
-        correls['padj'] = general.p_adjust(correls['p'])
+        correls['p_adj'] = general.p_adjust(correls['p'])
     correls.to_csv('correls.txt', sep='\t', index_label=('feature1', 'feature2'))
     if args.verbose:
         print("Correls.txt written")

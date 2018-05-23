@@ -1,5 +1,7 @@
 from __future__ import division
 
+import re
+
 import numpy as np
 import networkx as nx
 from biom.table import Table
@@ -58,7 +60,7 @@ def get_metadata_from_table(table):
 
 
 def underscore_to_camelcase(str_):
-    str_ = str_.split('_')
+    str_ = re.split('-_', str_)
     if len(str_) > 1:
         str_ = [str_[0]] + [i.capitalize() for i in str_[1:]]
     return ''.join(str_)
@@ -67,6 +69,9 @@ def underscore_to_camelcase(str_):
 def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
     """correls is a pandas dataframe with a multiindex containing the correlated pair of features,
     r and optionally p and p_adj and optionally any others"""
+    # TODO: allow non r column names
+    # TODO: allow cooccur only
+    # TODO: allow non p_adj column names
     if metadata is None:
         metadata = []
 

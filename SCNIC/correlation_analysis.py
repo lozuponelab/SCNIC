@@ -8,10 +8,27 @@ from itertools import combinations
 import tempfile
 from os import path
 
+from SCNIC.general import p_adjust
 
-def df_to_correls(cor):
+
+def df_to_correls(cor, col_label='r'):
     """takes a square correlation matrix and turns it into a long form dataframe"""
-    correls = pd.DataFrame(cor.stack().loc[list(combinations(cor.index, 2))], columns=['r'])
+    correls = pd.DataFrame(cor.stack().loc[list(combinations(cor.index, 2))], columns=[col_label])
+    return correls
+
+
+def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_method: str = 'fdr_bh') -> pd.DataFrame:
+    # TODO: multiprocess this
+    index = list()
+    data = list()
+    for (val_i, id_i, _), (val_j, id_j, _) in table.iter_pairwise(axis='observation'):
+        r, p = corr_method(val_i, val_j)
+        index.append((id_i, id_j))
+        data.append((r, p))
+    correls = pd.DataFrame(data, index=index, columns=['r', 'p'])
+    correls.index = pd.MultiIndex.from_tuples(correls.index)  # Turn tuple index into actual multiindex
+    if p_adjustment_method is not None:
+        correls['p_adjusted'] = p_adjust(correls.p, method=p_adjustment_method)
     return correls
 
 
@@ -26,7 +43,8 @@ def fastspar_correlation(table: Table, verbose: bool=False) -> pd.DataFrame:
         subprocess.run(['fastspar', '-c',  path.join(temp, 'otu_table.tsv'), '-r',
                         path.join(temp, path.join(temp, 'correl_table.tsv')), '-a',
                         path.join(temp, 'covar_table.tsv')], stdout=stdout)
-        return pd.read_table(path.join(temp, 'correl_table.tsv'), index_col=0)
+        cor = pd.read_table(path.join(temp, 'correl_table.tsv'), index_col=0)
+        return df_to_correls(cor)
 
 
 def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=1):

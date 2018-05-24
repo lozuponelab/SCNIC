@@ -92,3 +92,11 @@ def write_modules_to_file(modules, prefix="module"):
     with open("modules.txt", 'w') as f:
         for i, module_ in enumerate(modules):
             f.write('_'.join([prefix, str(i)]) + '\t' + '\t'.join([str(j) for j in module_]) + '\n')
+
+
+def add_modules_to_metadata(modules, metadata):
+    for module, otus in enumerate(modules):
+        for otu in otus:
+            metadata[str(otu)]['module'] = module
+    return metadata
+

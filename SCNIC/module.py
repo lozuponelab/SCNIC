@@ -2,14 +2,17 @@
 
 from __future__ import division
 
-from SCNIC import general
-from SCNIC import module_analysis as ma
+from collections import defaultdict
 
 import numpy as np
 import pandas as pd
 from biom import load_table
 import os
 import networkx as nx
+
+
+from SCNIC import general
+from SCNIC import module_analysis as ma
 
 
 def module_maker(args):
@@ -76,9 +79,10 @@ def module_maker(args):
     # make network
     if args.table is not None:
         metadata = general.get_metadata_from_table(table)
-        net = general.correls_to_net(correls, conet=True, metadata=metadata, min_p=args.min_p, min_r=args.min_r)
     else:
-        net = general.correls_to_net(correls, conet=True, min_p=args.min_p, min_r=args.min_r)
+        metadata = defaultdict(dict)
+    metadata = ma.add_modules_to_metadata(modules, metadata)
+    net = general.correls_to_net(correls, conet=True, metadata=metadata, min_p=args.min_p, min_r=args.min_r)
 
     nx.write_gml(net, 'correlation_network.gml')
     if args.verbose:

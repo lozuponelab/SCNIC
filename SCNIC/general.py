@@ -55,12 +55,12 @@ def get_metadata_from_table(table):
     metadata = dict()
     for _, otu_i, metadata_i in table.iter(axis="observation"):
         if metadata_i is not None:
-            metadata[otu_i] = metadata_i
+            metadata[str(otu_i)] = metadata_i
     return metadata
 
 
 def underscore_to_camelcase(str_):
-    str_ = re.split('-_', str_)
+    str_ = re.split('[-_]', str_)
     if len(str_) > 1:
         str_ = [str_[0]] + [i.capitalize() for i in str_[1:]]
     return ''.join(str_)
@@ -105,7 +105,7 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
                     if hasattr(metadata[otu_i][key], '__iter__'):
                         graph.node[otu_i][graph_key] = ';'.join(metadata[otu_i][key])
                     else:
-                        graph.node[otu_i][graph_key] = metadata[correl.feature1][key]
+                        graph.node[otu_i][graph_key] = metadata[otu_i][key]
 
         if otu_j not in graph.node:
             graph.add_node(otu_j)

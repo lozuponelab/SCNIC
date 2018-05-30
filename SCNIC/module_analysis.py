@@ -5,6 +5,7 @@ from itertools import combinations
 import pandas as pd
 import numpy as np
 from biom.table import Table
+from biom.util import biom_open
 import os
 
 
@@ -87,7 +88,8 @@ def write_modules_to_dir(table, modules):
     for i, module_ in enumerate(modules):
         # make biom tables for each module and write to file
         module_table = table.filter(module_, axis='observation', inplace=False)
-        module_table.to_json("modulemaker.py", open("modules/%s.biom" % i, 'w'))
+        with biom_open("modules/%s.biom" % i, 'w') as f:
+            module_table.to_hdf5(f, 'modulemaker.py')
 
 
 def write_modules_to_file(modules, prefix="module", path_str='modules.txt'):

@@ -3,6 +3,7 @@ import os
 from SCNIC.module import module_maker
 import pandas as pd
 from biom.table import Table
+from biom.util import biom_open
 import numpy as np
 
 
@@ -50,7 +51,8 @@ def correls():
 # integration test
 def test_within_correls_classic_correlation_min_r_min_sample(tmpdir, args1, correls, table):
     loc = tmpdir.mkdir("with_correls_test")
-    table.to_json("madebyme", open(str(loc)+"/table1.biom", 'w'))
+    with biom_open(str(loc.join("table1.biom")), 'w') as f:
+        table.to_hdf5(f, "madebyme")
     correls.to_csv(str(loc.join('correls.txt')), sep='\t')
     os.chdir(str(loc))
     module_maker(args1)

@@ -2,6 +2,7 @@ import pytest
 import os
 from SCNIC.general import simulate_correls
 from SCNIC.within_correls import within_correls
+from biom.util import biom_open
 
 
 @pytest.fixture()
@@ -46,7 +47,8 @@ def args2():
 def test_within_correls_classic_correlation_min_r_min_sample(args1, tmpdir):
     table = simulate_correls()
     loc = tmpdir.mkdir("with_correls_test")
-    table.to_json("madebyme", open(str(loc)+"/table1.biom", 'w'))
+    with biom_open(str(loc.join("table1.biom")), 'w') as f:
+        table.to_hdf5(f, 'madebyme')
     os.chdir(str(loc))
     within_correls(args1)
     files = os.listdir(str(loc)+'/out_dir')
@@ -57,7 +59,8 @@ def test_within_correls_classic_correlation_min_r_min_sample(args1, tmpdir):
 def test_within_correls_classic_correlation_min_r_sparcc_filter(args2, tmpdir):
     table = simulate_correls()
     loc = tmpdir.mkdir("with_correls_test")
-    table.to_json("madebyme", open(str(loc)+"/table1.biom", 'w'))
+    with biom_open(str(loc.join("table1.biom")), 'w') as f:
+        table.to_hdf5(f, 'madebyme')
     os.chdir(str(loc))
     within_correls(args2)
     files = os.listdir(str(loc)+'/out_dir')

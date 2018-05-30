@@ -7,6 +7,7 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 from biom import load_table
+from biom.util import biom_open
 import os
 import networkx as nx
 
@@ -76,7 +77,8 @@ def module_maker(args):
             print("Table Collapsed")
             print("collapsed Table Observations: " + str(coll_table.shape[0]))
             print("")
-        coll_table.to_json('make_modules.py', open('collapsed.biom', 'w'))
+        with biom_open('collapsed.biom', 'w') as f:
+            coll_table.to_hdf5(f, 'make_modules.py')
 
     # make network
     if args.table is not None:

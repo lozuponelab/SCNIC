@@ -2,6 +2,7 @@ import pytest
 import os
 from SCNIC.general import simulate_correls
 from SCNIC.between_correls import between_correls
+from biom.util import biom_open
 
 
 @pytest.fixture()
@@ -27,8 +28,10 @@ def test_between_correls(args, tmpdir):
     table1 = simulate_correls()
     table2 = simulate_correls()
     loc = tmpdir.mkdir("with_correls_test")
-    table1.to_json("madebyme", open(str(loc)+"/table1.biom", 'w'))
-    table2.to_json("madebyme", open(str(loc) + "/table2.biom", 'w'))
+    with biom_open(str(loc.join("table1.biom")), 'w') as f:
+        table1.to_hdf5(f, 'madebyme')
+    with biom_open(str(loc.join("table2.biom")), 'w') as f:
+        table2.to_hdf5(f, 'madebyme')
     os.chdir(str(loc))
     between_correls(args)
     files = os.listdir(str(loc)+'/out_dir')

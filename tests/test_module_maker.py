@@ -115,9 +115,9 @@ def test_write_modules_to_dir(biom_table1, modules1, tmpdir):
 
 
 def test_write_modules_to_file(modules1, tmpdir):
-    path = os.path.join(tmpdir, 'modules.txt')
-    write_modules_to_file(modules1, path_str=path)
-    data = open(path).readlines()
+    path = tmpdir.join('modules.txt')
+    write_modules_to_file(modules1, path_str=str(path))
+    data = open(str(path)).readlines()
     assert len(data) == 1
     assert len(data[0].strip().split()) == 4
 

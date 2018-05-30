@@ -16,7 +16,7 @@ def args():
             self.min_sample = None
             self.min_p = None
             self.min_r = None
-            self.sparcc_filter = False
+            self.sparcc_filter = True
             self.force = False
             self.procs = 1
 

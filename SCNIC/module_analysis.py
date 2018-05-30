@@ -9,18 +9,23 @@ import os
 
 
 def correls_to_cor(correls, metric='r'):
+    # TODO: Figure out a way to directly generate what would come from squareform
     # convert to square
-    cor = correls.unstack()[metric]
-    cor = cor.reindex(cor.columns)
-    # fill na's
-    for otu_i, otu_j in combinations(cor.index, 2):
-        if pd.isna(cor.loc[otu_i, otu_j]):
-            cor.loc[otu_i, otu_j] = cor.loc[otu_j, otu_i]
-        else:
-            cor.loc[otu_j, otu_i] = cor.loc[otu_i, otu_j]
-    # for otu in cor.index:
-    #     cor.loc[otu, otu] = 1
-    return squareform(cor, checks=False), cor.index
+    ids = sorted(set([j for i in correls.index for j in i]))
+    data = list()
+    # fill df
+    for i, id_i in enumerate(ids):
+        curr_data = list()
+        for j, id_j in enumerate(ids):
+            if id_i == id_j:
+                curr_data.append(1)
+            else:
+                try:
+                    curr_data.append(correls.loc[(id_i, id_j), metric])
+                except KeyError:
+                    curr_data.append(correls.loc[(id_j, id_i), metric])
+        data.append(curr_data)
+    return squareform(np.array(data), checks=False), ids
 
 
 def cor_to_dist(cor):
@@ -78,25 +83,26 @@ def collapse_modules(table, modules, prefix="module"):
 
 def write_modules_to_dir(table, modules):
     # for each module merge values and print modules to file
-    if not os.path.isdir("modules"):
-        os.makedirs("modules")
-    # reverse modules so observations will be added to smallest modules
+    os.makedirs("modules")
     for i, module_ in enumerate(modules):
         # make biom tables for each module and write to file
         module_table = table.filter(module_, axis='observation', inplace=False)
         module_table.to_json("modulemaker.py", open("modules/%s.biom" % i, 'w'))
 
 
-def write_modules_to_file(modules, prefix="module"):
+def write_modules_to_file(modules, prefix="module", path_str='modules.txt'):
     # write all modules to file
-    with open("modules.txt", 'w') as f:
+    with open(path_str, 'w') as f:
         for i, module_ in enumerate(modules):
             f.write('_'.join([prefix, str(i)]) + '\t' + '\t'.join([str(j) for j in module_]) + '\n')
 
 
 def add_modules_to_metadata(modules, metadata):
-    for module, otus in enumerate(modules):
+    """
+    modules is a list of lists of otus, metadata is a dictionary of dictionaries where outer dict keys
+    are features, inner dict keys are metadata names and values are metadata values
+    """
+    for module_, otus in enumerate(modules):
         for otu in otus:
-            metadata[str(otu)]['module'] = module
+            metadata[str(otu)]['module'] = module_
     return metadata
-

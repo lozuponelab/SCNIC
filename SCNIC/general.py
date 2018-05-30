@@ -51,9 +51,9 @@ def df_to_biom(df):
     return Table(np.transpose(df.as_matrix()), list(df.columns), list(df.index))
 
 
-def get_metadata_from_table(table):
+def get_metadata_from_table(table, axis='observation'):
     metadata = dict()
-    for _, otu_i, metadata_i in table.iter(axis="observation"):
+    for _, otu_i, metadata_i in table.iter(axis=axis):
         if metadata_i is not None:
             metadata[str(otu_i)] = metadata_i
     return metadata
@@ -66,15 +66,11 @@ def underscore_to_camelcase(str_):
     return ''.join(str_)
 
 
-def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
+def filter_correls(correls, min_p=None, min_r=None, conet=False):
     """correls is a pandas dataframe with a multiindex containing the correlated pair of features,
-    r and optionally p and p_adj and optionally any others"""
+    r and optionally p and p_adj and any others"""
     # TODO: allow non r column names
-    # TODO: allow cooccur only
     # TODO: allow non p_adj column names
-    if metadata is None:
-        metadata = []
-
     if conet:
         correls = correls[correls.r > 0]
 
@@ -88,64 +84,47 @@ def correls_to_net(correls, min_p=None, min_r=None, conet=False, metadata=None):
             raise ValueError("No p or p_adj in correls")
 
     if min_r is not None:
-        if conet:
-            correls = correls[correls.r > min_r]
-        else:
-            correls = correls[np.abs(correls.r) > min_r]
+        correls = correls[np.abs(correls.r) > min_r]
 
+    return correls
+
+
+def correls_to_net(correls, metadata=None):
+    if metadata is None:
+        metadata = {}
     graph = nx.Graph()
-    for (otu_i, otu_j), correl in correls.iterrows():
-        if otu_i not in graph.node:
-            graph.add_node(otu_i)
-            if otu_i in metadata:
-                for key in metadata[otu_i]:
-                    graph_key = underscore_to_camelcase(str(key))
-                    if metadata[otu_i][key] is None:
-                        continue
-                    if hasattr(metadata[otu_i][key], '__iter__'):
-                        graph.node[otu_i][graph_key] = ';'.join(metadata[otu_i][key])
-                    else:
-                        graph.node[otu_i][graph_key] = metadata[otu_i][key]
-
-        if otu_j not in graph.node:
-            graph.add_node(otu_j)
-            if otu_j in metadata:
-                for key in metadata[otu_j]:
-                    graph_key = underscore_to_camelcase(str(key))
-                    if metadata[otu_j][key] is None:
-                        continue
-                    if hasattr(metadata[otu_j][key], '__iter__'):
-                        graph.node[otu_j][graph_key] = ';'.join(metadata[otu_j][key])
-                    else:
-                        graph.node[otu_j][graph_key] = metadata[otu_j][key]
-        graph.add_edge(otu_i, otu_j)
+    for otu_pair, correl in correls.iterrows():
+        for otu in otu_pair:
+            if otu not in graph.node:
+                graph.add_node(otu)
+                if otu in metadata:
+                    for key in metadata[otu]:
+                        graph_key = underscore_to_camelcase(str(key))
+                        if metadata[otu][key] is None:
+                            continue
+                        if hasattr(metadata[otu][key], '__iter__'):
+                            graph.nodes[otu][graph_key] = ';'.join(metadata[otu][key])
+                        else:
+                            graph.nodes[otu][graph_key] = metadata[otu][key]
+        graph.add_edge(*otu_pair)
         for i in correl.index:
             graph_key = underscore_to_camelcase(str(i))
-            graph.edges[otu_i, otu_j][graph_key] = correl[i]
+            graph.edges[otu_pair][graph_key] = correl[i]
     return graph
 
 
-def filter_table(table, min_samples=None, to_file=False):
+def filter_table(table, min_samples):
     """filter relative abundance table, by default throw away things greater than 1/3 zeros"""
     table = table.copy()
     # first sample filter
-    if min_samples is not None:
-        to_keep = [i for i in table.ids(axis='observation')
-                   if sum(table.data(i, axis='observation') != 0) >= min_samples]
-    else:
-        to_keep = [i for i in table.ids(axis='observation')
-                   if sum(table.data(i, axis='observation') != 0) >= table.shape[1]/3]
+    to_keep = [i for i in table.ids(axis='observation')
+               if sum(table.data(i, axis='observation') != 0) >= min_samples]
     table.filter(to_keep, axis='observation')
-
-    if to_file:
-        table.to_json('filter_table', open("filtered_tab.biom", 'w'))
-        # open("filtered_rel_abund.txt", 'w').write(table.to_tsv())
-
     return table
 
 
 def simulate_correls(corr_stren=(.99, .99), std=(1, 1, 1, 2, 2), means=(100, 100, 100, 100, 100), size=30,
-                     noncors=10, noncors_mean=100, noncors_std=100, subsample=None, log=False):
+                     noncors=10, noncors_mean=100, noncors_std=100):
     """
     Generates a correlation matrix with diagonal of stds based on input parameters and fills rest of matrix with
     uncorrelated values all with same  mean and standard deviations. Output should have a triangle of correlated
@@ -161,8 +140,6 @@ def simulate_correls(corr_stren=(.99, .99), std=(1, 1, 1, 2, 2), means=(100, 100
     noncors: number of uncorrelated values
     noncors_mean: mean of uncorrelated values
     noncors_std: standard deviation of uncorrelated values
-    subsample: Rarefy data to give threshold
-    log: logonentiate mean values, if you are trying to detect log correlation
 
     Returns
     -------
@@ -187,23 +164,13 @@ def simulate_correls(corr_stren=(.99, .99), std=(1, 1, 1, 2, 2), means=(100, 100
         cov[i, i] = noncors_std
         means.append(noncors_mean)
 
-    if log:
-        # if log then log the array
-        means = np.log(np.array(means))
-
     # fill the count table
     counts = multivariate_normal(means, cov, size).T
-
-    if log:
-        counts = np.log(counts)
 
     counts = np.round(counts)
 
     observ_ids = ["Observ_" + str(i) for i in range(cov.shape[0])]
     sample_ids = ["Sample_" + str(i) for i in range(size)]
     table = Table(counts, observ_ids, sample_ids)
-
-    if subsample is not None:
-        table = table.subsample(subsample)
 
     return table

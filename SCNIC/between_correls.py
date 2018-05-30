@@ -71,7 +71,8 @@ def between_correls(args):
 
     # make network
     print(type(correls.index[0]))
-    net = general.correls_to_net(correls, metadata=metadata, min_p=args.min_p, min_r=args.min_r)
+    correls_filt = general.filter_correls(correls, min_p=args.min_p, min_r=args.min_r)
+    net = general.correls_to_net(correls_filt, metadata=metadata)
     logger["number of nodes"] = net.number_of_nodes()
     logger["number of edges"] = net.number_of_edges()
     nx.write_gml(net, 'crossnet.gml')

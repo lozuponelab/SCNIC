@@ -40,6 +40,8 @@ def module_maker(args):
     elif args.min_p is not None:
         # TODO: This
         raise NotImplementedError()
+    else:
+        raise ValueError("this is prevented above")
 
     # read in biom table if given
     if args.table is not None:
@@ -82,7 +84,8 @@ def module_maker(args):
     else:
         metadata = defaultdict(dict)
     metadata = ma.add_modules_to_metadata(modules, metadata)
-    net = general.correls_to_net(correls, conet=True, metadata=metadata, min_p=args.min_p, min_r=args.min_r)
+    correls_filter = general.filter_correls(correls, conet=True, min_p=args.min_p, min_r=args.min_r)
+    net = general.correls_to_net(correls_filter, metadata=metadata)
 
     nx.write_gml(net, 'correlation_network.gml')
     if args.verbose:

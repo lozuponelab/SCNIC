@@ -5,7 +5,6 @@ from __future__ import division
 import os
 
 import networkx as nx
-import pandas as pd
 
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr, kendalltau

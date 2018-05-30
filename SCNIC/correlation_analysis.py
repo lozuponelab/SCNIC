@@ -12,7 +12,7 @@ from SCNIC.general import p_adjust
 
 
 def df_to_correls(cor, col_label='r'):
-    """takes a square correlation matrix and turns it into a long form dataframe"""
+    """takes a square correlation dataframe and turns it into a long form dataframe"""
     correls = pd.DataFrame(cor.stack().loc[list(combinations(cor.index, 2))], columns=[col_label])
     return correls
 

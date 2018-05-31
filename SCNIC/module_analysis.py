@@ -10,23 +10,22 @@ import os
 
 
 def correls_to_cor(correls, metric='r'):
-    # TODO: Figure out a way to directly generate what would come from squareform
-    # convert to square
     ids = sorted(set([j for i in correls.index for j in i]))
-    data = list()
-    # fill df
-    for i, id_i in enumerate(ids):
-        curr_data = list()
-        for j, id_j in enumerate(ids):
-            if id_i == id_j:
-                curr_data.append(1)
+    data = np.zeros((len(ids), len(ids)))
+    for i in range(len(ids)):
+        for j in range(i, len(ids)):
+            if i == j:
+                data[i, i] = 1
             else:
+                id_i = ids[i]
+                id_j = ids[j]
                 try:
-                    curr_data.append(correls.loc[(id_i, id_j), metric])
+                    cor = correls.loc[(id_i, id_j), metric]
                 except KeyError:
-                    curr_data.append(correls.loc[(id_j, id_i), metric])
-        data.append(curr_data)
-    return squareform(np.array(data), checks=False), ids
+                    cor = correls.loc[(id_j, id_i), metric]
+                data[i, j] = cor
+                data[j, i] = cor
+    return squareform(data, checks=False), ids
 
 
 def cor_to_dist(cor):

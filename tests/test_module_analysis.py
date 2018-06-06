@@ -7,13 +7,21 @@ from biom.table import Table
 import numpy as np
 from scipy.spatial.distance import squareform
 import pandas as pd
+from pandas.testing import assert_frame_equal
 
 
+# @pytest.fixture()
+# def correls():
+#     index = (('otu_1', 'otu_2'),
+#              ('otu_1', 'otu_3'),
+#              ('otu_2', 'otu_3'))
+#     data = [.7, .01, .35]
+#     return pd.DataFrame(data, index=pd.MultiIndex.from_tuples(index), columns=['r'])
 @pytest.fixture()
 def correls():
-    index = (('otu_1', 'otu_2'),
-             ('otu_1', 'otu_3'),
-             ('otu_2', 'otu_3'))
+    index = (('4b5eeb300368260019c1fbc7a3c718fc', 'fe30ff0f71a38a39cf1717ec2be3a2fc'),
+             ('4b5eeb300368260019c1fbc7a3c718fc', '154709e160e8cada6bfb21115acc80f5'),
+             ('fe30ff0f71a38a39cf1717ec2be3a2fc', '154709e160e8cada6bfb21115acc80f5'))
     data = [.7, .01, .35]
     return pd.DataFrame(data, index=pd.MultiIndex.from_tuples(index), columns=['r'])
 
@@ -23,7 +31,8 @@ def cor():
     data = [(1.0, .70, .01),
             (.70, 1.0, .35),
             (.01, .35, 1.0)]
-    return squareform(np.array(data), checks=False)
+    ids = ['4b5eeb300368260019c1fbc7a3c718fc', 'fe30ff0f71a38a39cf1717ec2be3a2fc', '154709e160e8cada6bfb21115acc80f5']
+    return squareform(np.array(data), checks=False), ids
 
 
 @pytest.fixture()
@@ -81,12 +90,15 @@ def metadata():
 
 def test_correls_to_cor(correls, cor):
     test_cor, test_labels = correls_to_cor(correls)
-    assert set(test_labels) == set([j for i in correls.index for j in i])
-    assert np.array_equal(test_cor, cor)
+    test_cor_square = pd.DataFrame(squareform(test_cor), index=test_labels, columns=test_labels)
+    test_cor_square = test_cor_square.sort_index(axis=0).sort_index(axis=1)
+    cor_square = pd.DataFrame(squareform(cor[0]), index=cor[1], columns=cor[1])
+    cor_square = cor_square.sort_index(axis=0).sort_index(axis=1)
+    assert_frame_equal(test_cor_square, cor_square)
 
 
 def test_cor_to_dist(cor, dist):
-    test_dist = cor_to_dist(cor)
+    test_dist = cor_to_dist(cor[0])
     assert np.allclose(test_dist, dist)
 
 

@@ -105,5 +105,9 @@ def add_modules_to_metadata(modules, metadata):
     """
     for module_, otus in enumerate(modules):
         for otu in otus:
-            metadata[str(otu)]['module'] = module_
+            try:
+                metadata[str(otu)]['module'] = module_
+            except KeyError:
+                metadata[str(otu)] = dict()
+                metadata[str(otu)]['module'] = module_
     return metadata

@@ -67,10 +67,9 @@ def between_correls(args):
     correls = between_correls_from_tables(table1, table2, correl_method, nprocs=args.procs)
     correls.sort_values(correls.columns[-1], inplace=True)
     correls['p_adj'] = general.p_adjust(correls['p'])
-    correls.to_csv(open('correls.txt', 'w'), sep='\t', index=False)
+    correls.to_csv(open('correls.txt', 'w'), sep='\t', index=True)
 
     # make network
-    print(type(correls.index[0]))
     correls_filt = general.filter_correls(correls, min_p=args.min_p, min_r=args.min_r)
     net = general.correls_to_net(correls_filt, metadata=metadata)
     logger["number of nodes"] = net.number_of_nodes()

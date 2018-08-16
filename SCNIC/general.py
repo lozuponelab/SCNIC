@@ -48,7 +48,7 @@ def sparcc_paper_filter(table):
 
 
 def df_to_biom(df):
-    return Table(np.transpose(df.as_matrix()), list(df.columns), list(df.index))
+    return Table(np.transpose(df.values), [str(i) for i in df.columns], [str(i) for i in df.index])
 
 
 def get_metadata_from_table(table, axis='observation'):

@@ -7,9 +7,10 @@ from biom import load_table
 from scipy.stats import spearmanr, pearsonr
 import networkx as nx
 import numpy as np
-from SCNIC import general
-from SCNIC.correlation_analysis import between_correls_from_tables
 import shutil
+
+from SCNIC import general
+from SCNIC import correlation_analysis as ca
 
 __author__ = 'shafferm'
 
@@ -64,7 +65,7 @@ def between_correls(args):
     # make correlations
     logger["correlation metric"] = args.correl_method
     logger["p adjustment method"] = args.p_adjust
-    correls = between_correls_from_tables(table1, table2, correl_method, nprocs=args.procs)
+    correls = ca.between_correls_from_tables(table1, table2, correl_method, nprocs=args.procs)
     correls.sort_values(correls.columns[-1], inplace=True)
     correls['p_adj'] = general.p_adjust(correls['p'])
     correls.to_csv(open('correls.txt', 'w'), sep='\t', index=True)

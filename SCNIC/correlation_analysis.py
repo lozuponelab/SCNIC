@@ -14,6 +14,8 @@ from SCNIC.general import p_adjust
 
 def df_to_correls(cor, col_label='r'):
     """takes a square correlation dataframe and turns it into a long form dataframe"""
+    cor.index = [str(i) for i in cor.index]
+    cor.columns = [str(i) for i in cor.columns]
     correls = pd.DataFrame(cor.stack().loc[list(combinations(cor.index, 2))], columns=[col_label])
     return correls
 

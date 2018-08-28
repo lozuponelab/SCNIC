@@ -38,11 +38,28 @@ selection of correlation metrics. A gml correlation network is output as well as
 p-values of all correlations.
 
 ## Installation
+SCNIC depends on a variety of software all of which can be install via conda and most of which can be installed by pip. The recommended installation method is to use conda but if you do not want to use conda and instead would like to install via pip then you must install [fastspar](https://github.com/scwatts/fastspar) and have it in your path.
+
+### conda installation
+It is recommended to install all of SCNIC's dependencies via conda in a new conda environment. To do this you first need to create a new environment:
+
+```
+conda create -n SCNIC python=3 pandas scipy numpy statsmodels h5py biom-format biom-format networkx >2 scikit-bio fastspar
+```
+
+Then enter the environment and install SCNIC via pip using these commands:
+```
+source activate SCNIC
+pip install SCNIC
+```
+
+### Pip installation
 To download the latest release from PyPI install using this command:
 ```
 pip install SCNIC
 ```
 
+### Install the latest version from github
 To download the lastest changes to the repository use the following commands:
 ```
 git clone https://github.com/shafferm/SCNIC.git

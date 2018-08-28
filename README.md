@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9013f85974f84a06b544598aa934e032)](https://app.codacy.com/app/shafferm/SCNIC?utm_source=github.com&utm_medium=referral&utm_content=shafferm/SCNIC&utm_campaign=Badge_Grade_Dashboard)
 [![PyPI](https://img.shields.io/pypi/v/SCNIC.svg)](https://pypi.python.org/pypi/SCNIC/0.5) [![Travis](https://img.shields.io/travis/shafferm/SCNIC.svg)](https://travis-ci.org/shafferm/SCNIC) [![Codacy grade](https://img.shields.io/codacy/grade/44d7474307bf4c62a271a9264c0c213a.svg)](https://www.codacy.com/app/shafferm/SCNIC/dashboard) [![Coveralls](https://img.shields.io/coveralls/shafferm/SCNIC.svg)](https://coveralls.io/github/shafferm/SCNIC)
 
 # SCNIC

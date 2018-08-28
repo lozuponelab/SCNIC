@@ -1,4 +1,4 @@
-[![PyPI](https://img.shields.io/pypi/v/SCNIC.svg)](https://pypi.python.org/pypi/SCNIC/0.5) [![Travis](https://img.shields.io/travis/shafferm/SCNIC.svg)](https://travis-ci.org/shafferm/SCNIC) [![Codacy grade](https://img.shields.io/codacy/grade/44d7474307bf4c62a271a9264c0c213a.svg)](https://www.codacy.com/app/shafferm/SCNIC/dashboard) [![Coveralls](https://img.shields.io/coveralls/shafferm/SCNIC.svg)](https://coveralls.io/github/shafferm/SCNIC)
+[![PyPI](https://img.shields.io/pypi/v/SCNIC.svg)](https://pypi.python.org/pypi/SCNIC/0.5) [![Travis](https://img.shields.io/travis/shafferm/SCNIC.svg)](https://travis-ci.org/shafferm/SCNIC) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9013f85974f84a06b544598aa934e032)](https://www.codacy.com/app/shafferm/SCNIC?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=shafferm/SCNIC&amp;utm_campaign=Badge_Grade) [![Coveralls](https://img.shields.io/coveralls/shafferm/SCNIC.svg)](https://coveralls.io/github/shafferm/SCNIC)
 
 # SCNIC
 Sparse Cooccurnce Network Investigation for Compositional data
@@ -41,16 +41,9 @@ p-values of all correlations.
 SCNIC depends on a variety of software all of which can be install via conda and most of which can be installed by pip. The recommended installation method is to use conda but if you do not want to use conda and instead would like to install via pip then you must install [fastspar](https://github.com/scwatts/fastspar) and have it in your path.
 
 ### conda installation
-It is recommended to install all of SCNIC's dependencies via conda in a new conda environment. To do this you first need to create a new environment:
-
+It is recommended to install all of SCNIC's dependencies via conda in a new conda environment. To do this you only need to create a new environment with SCNIC installed:
 ```
-conda create -n SCNIC python=3 pandas scipy numpy statsmodels h5py biom-format biom-format networkx >2 scikit-bio fastspar
-```
-
-Then enter the environment and install SCNIC via pip using these commands:
-```
-source activate SCNIC
-pip install SCNIC
+conda create -n SCNIC python=3 scnic
 ```
 
 ### Pip installation

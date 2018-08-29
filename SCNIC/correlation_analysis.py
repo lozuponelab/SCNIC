@@ -35,8 +35,8 @@ def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_met
     return correls
 
 
-def fastspar_correlation(table: Table, verbose: bool=False, nprocs=1) -> pd.DataFrame:
-    # TODO: multiprocess support
+def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, bootstraps=1000, nprocs=1) \
+                         -> pd.DataFrame:
     with tempfile.TemporaryDirectory(prefix='fastspar') as temp:
         table.to_dataframe().to_dense().to_csv(path.join(temp, 'otu_table.tsv'), sep='\t', index_label='#OTU ID')
         if verbose:
@@ -47,43 +47,26 @@ def fastspar_correlation(table: Table, verbose: bool=False, nprocs=1) -> pd.Data
                         path.join(temp, path.join(temp, 'correl_table.tsv')), '-a',
                         path.join(temp, 'covar_table.tsv'), '-t', str(nprocs)],  stdout=stdout)
         cor = pd.read_table(path.join(temp, 'correl_table.tsv'), index_col=0)
-        return df_to_correls(cor)
-
-
-
-def fastspar_correlation_permutation(table: Table, verbose: bool=False, nprocs=1, bootstraps=1000) -> pd.DataFrame:
-    # TODO: multiprocess support
-    with tempfile.TemporaryDirectory(prefix='fastspar') as temp:
-        table.to_dataframe().to_dense().to_csv(path.join(temp, 'otu_table.tsv'), sep='\t', index_label='#OTU ID')
-        if verbose:
-            stdout = None
+        correls = df_to_correls(cor)
+        if not calc_pvalues:
+            return correls
         else:
-            stdout = subprocess.DEVNULL
-        # generate correlation table, -r, to compare against bootstraps
-        subprocess.run(['fastspar', '-c',  path.join(temp, 'otu_table.tsv'), '-r',
-                        path.join(temp, path.join(temp, 'correl_table.tsv')), '-a',
-                        path.join(temp, 'covar_table.tsv'), '-t', str(nprocs)], stdout=stdout)
-        # generate bootstraps with prefix, boot
-        #subprocess.run(['mkdir', path.join(temp, 'bootstraps')])
-        subprocess.run(['fastspar_bootstrap', '-c',  path.join(temp, 'otu_table.tsv'), '-n',
-                        str(bootstraps), '-p', path.join(temp, 'boot'),
-                        '-t', str(nprocs)], stdout=stdout)
-        # infer correlations for each bootstrap count using all available processes
-        # TODO specify number of dedicated processes
-        subprocess.run(['ls', temp], stdout=stdout)
-        subprocess.run(['parallel', '-j', str(nprocs), 'fastspar', '-c', '{}', '-r',
-                        path.join(temp, 'cor_{/}'), '-a', path.join(temp, 'cov_{/}'), '-i', str(5),
-                        ':::'] + glob(path.join(temp, 'boot*')), stdout=stdout)
-        # caluculate p_values for correlation table
-        subprocess.run(['fastspar_exactpvalues', '-c', path.join(temp, 'otu_table.tsv'), '-r',
-                         path.join(temp, 'correl_table.tsv'), '-p', path.join(temp, 'cor_boot'),
-                         '-t', str(nprocs), '-n', str(bootstraps), '-o',
-                         path.join(temp, 'pvalues.tsv')], stdout=stdout)
-
-        cor = pd.read_table(path.join(temp, 'correl_table.tsv'), index_col=0)
-        pvals = pd.read_table(path.join(temp, 'pvalues.tsv'), index_col=0)
-        return pd.concat([df_to_correls(cor), df_to_correls(pvals, col_label='pvalue')], axis=1, join='inner')
-
+            subprocess.run(['fastspar_bootstrap', '-c', path.join(temp, 'otu_table.tsv'), '-n',
+                            str(bootstraps), '-p', path.join(temp, 'boot'),
+                            '-t', str(nprocs)], stdout=stdout)
+            # infer correlations for each bootstrap count using all available processes
+            # TODO specify number of dedicated processes
+            subprocess.run(['parallel', '-j', str(nprocs), 'fastspar', '-c', '{}', '-r',
+                            path.join(temp, 'cor_{/}'), '-a', path.join(temp, 'cov_{/}'), '-i', str(5),
+                            ':::'] + glob(path.join(temp, 'boot*')), stdout=stdout)
+            # caluculate p_values for correlation table
+            subprocess.run(['fastspar_exactpvalues', '-c', path.join(temp, 'otu_table.tsv'), '-r',
+                            path.join(temp, 'correl_table.tsv'), '-p', path.join(temp, 'cor_boot'),
+                            '-t', str(nprocs), '-n', str(bootstraps), '-o',
+                            path.join(temp, 'pvalues.tsv')], stdout=stdout)
+            pvals = pd.read_table(path.join(temp, 'pvalues.tsv'), index_col=0)
+            pvals = df_to_correls(pvals, col_label='pvalue')
+            return pd.concat([correls, pvals], axis=1, join='inner')
 
 
 def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=1):

@@ -11,7 +11,8 @@ before_install:
 - export PATH="$MINICONDA_PREFIX/bin:$PATH"
 - conda config --set always_yes yes
 - conda update -q conda
-- conda config --add channels bioconda conda-forge
+- conda config --add channels bioconda
+- conda config --add channels conda-forge
 - conda info -a
 install:
 - conda env create -q -n test-env pytest pytest-cov coveralls networkx>=2 fastspar pandas numpy scipy biom-format pandas scikit-bio statsmodels h5py pytest-runner

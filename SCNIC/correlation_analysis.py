@@ -76,7 +76,7 @@ def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, 
                             '-t', str(nprocs), '-n', str(bootstraps), '-o',
                             path.join(temp, 'pvalues.tsv')], stdout=stdout)
             pvals = pd.read_table(path.join(temp, 'pvalues.tsv'), index_col=0)
-            pvals = df_to_correls(pvals, col_label='pvalue')
+            pvals = df_to_correls(pvals, col_label='p')
             return pd.concat([correls, pvals], axis=1, join='inner')
 
 

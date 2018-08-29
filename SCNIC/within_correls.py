@@ -1,5 +1,3 @@
-# TODO: Testing correls as list vs as pandas dataframe for speed
-
 from __future__ import division
 
 import os
@@ -63,9 +61,9 @@ def within_correls(args):
         if args.verbose:
             print("Correlating with %s" % args.correl_method)
         # correlate feature
-        correls = ca.calculate_correlations(table_filt, correl_method)
+        correls = ca.calculate_correlations(table_filt, correl_method, nprocs=args.procs)
     elif correl_method == 'sparcc':
-        correls = ca.fastspar_correlation(table_filt, verbose=args.verbose)
+        correls = ca.fastspar_correlation(table_filt, verbose=args.verbose, nprocs=args.procs)
         if args.sparcc_p is not None:
             raise NotImplementedError()  # TODO: reimplement with fastspar
     else:

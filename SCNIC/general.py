@@ -19,7 +19,6 @@ __author__ = 'shafferm'
 
 class Logger(OrderedDict):
     """"""
-    # TODO: break up into sections for correls making, network making and module making
     def __init__(self, output):
         super(Logger, self).__init__()
         self.output_file = output

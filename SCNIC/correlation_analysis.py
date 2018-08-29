@@ -8,6 +8,7 @@ from itertools import combinations
 import tempfile
 from os import path
 from glob import glob
+import multiprocessing
 
 from SCNIC.general import p_adjust
 
@@ -20,14 +21,24 @@ def df_to_correls(cor, col_label='r'):
     return correls
 
 
-def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_method: str = 'fdr_bh') -> pd.DataFrame:
-    # TODO: multiprocess this
-    index = list()
-    data = list()
-    for (val_i, id_i, _), (val_j, id_j, _) in table.iter_pairwise(axis='observation'):
-        r, p = corr_method(val_i, val_j)
-        index.append((id_i, id_j))
-        data.append((r, p))
+def calculate_correlation(data, corr_method=spearmanr):
+    (val_i, id_i, _), (val_j, id_j, _) = data
+    r, p = corr_method(val_i, val_j)
+    return (id_i, id_j), (r, p)
+
+
+def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_method: str = 'fdr_bh', nprocs=1) -> pd.DataFrame:
+    if nprocs > multiprocessing.cpu_count():
+        warnings.warn("nprocs greater than CPU count, using all avaliable CPUs")
+        nprocs = multiprocessing.cpu_count()
+
+    pool = multiprocessing.Pool(nprocs)
+    cor = partial(calculate_correlation, corr_method=corr_method)
+    results = pool.map(cor, table.iter_pairwise(axis='observation'))
+    index = [i[0] for i in results]
+    data = [i[1] for i in results]
+    pool.close()
+    pool.join()
     correls = pd.DataFrame(data, index=index, columns=['r', 'p'])
     correls.index = pd.MultiIndex.from_tuples(correls.index)  # Turn tuple index into actual multiindex
     if p_adjustment_method is not None:
@@ -73,26 +84,19 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=
     """Take two biom tables and correlation"""
     correls = list()
 
-    if nprocs == 1:
-        for data_i, otu_i, _ in table1.iter(axis="observation"):
-            for data_j, otu_j, _ in table2.iter(axis="observation"):
-                corr = correl_method(data_i, data_j)
-                correls.append([otu_i, otu_j, corr[0], corr[1]])
-    else:
-        import multiprocessing
-        if nprocs > multiprocessing.cpu_count():
-            warnings.warn("nprocs greater than CPU count, using all avaliable CPUs")
-            nprocs = multiprocessing.cpu_count()
+    if nprocs > multiprocessing.cpu_count():
+        warnings.warn("nprocs greater than CPU count, using all avaliable CPUs")
+        nprocs = multiprocessing.cpu_count()
 
-        pool = multiprocessing.Pool(nprocs)
-        for data_i, otu_i, _ in table1.iter(axis="observation"):
-            datas_j = (data_j for data_j, _, _ in table2.iter(axis="observation"))
-            corr = partial(correl_method, b=data_i)
-            corrs = pool.map(corr, datas_j)
-            correls += [(otu_i, table2.ids(axis="observation")[i], corrs[i][0], corrs[i][1])
-                        for i in range(len(corrs))]
-        pool.close()
-        pool.join()
+    pool = multiprocessing.Pool(nprocs)
+    for data_i, otu_i, _ in table1.iter(axis="observation"):
+        datas_j = (data_j for data_j, _, _ in table2.iter(axis="observation"))
+        corr = partial(correl_method, b=data_i)
+        corrs = pool.map(corr, datas_j)
+        correls += [(otu_i, table2.ids(axis="observation")[i], corrs[i][0], corrs[i][1])
+                    for i in range(len(corrs))]
+    pool.close()
+    pool.join()
 
     correls = pd.DataFrame(correls, columns=['feature1', 'feature2', 'r', 'p'])
     return correls.set_index(['feature1', 'feature2'])  # this needs to be fixed, needs to return multiindex

@@ -10,13 +10,6 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 
 
-# @pytest.fixture()
-# def correls():
-#     index = (('otu_1', 'otu_2'),
-#              ('otu_1', 'otu_3'),
-#              ('otu_2', 'otu_3'))
-#     data = [.7, .01, .35]
-#     return pd.DataFrame(data, index=pd.MultiIndex.from_tuples(index), columns=['r'])
 @pytest.fixture()
 def correls():
     index = (('4b5eeb300368260019c1fbc7a3c718fc', 'fe30ff0f71a38a39cf1717ec2be3a2fc'),
@@ -103,8 +96,9 @@ def test_cor_to_dist(cor, dist):
 
 
 def test_make_modules(modules1):
+    assert type(modules1) == dict
     assert len(modules1) == 1
-    assert np.sum([len(i) for i in modules1]) == 3
+    assert np.sum([len(otus) for module_, otus in modules1.items()]) == 3
 
 
 def test_collapse_modules(biom_table1, modules1):
@@ -138,10 +132,10 @@ def test_add_module_to_metadata(modules1, metadata):
     test_metadata = add_modules_to_metadata(modules1, metadata)
     assert len(metadata) == len(test_metadata)
     assert len(test_metadata['otu_0']) == 2
-    assert test_metadata['otu_0']['module'] == 0
+    assert test_metadata['otu_0']['module'] == 'module_0'
     assert len(test_metadata['otu_1']) == 2
-    assert test_metadata['otu_1']['module'] == 0
+    assert test_metadata['otu_1']['module'] == 'module_0'
     assert len(test_metadata['otu_2']) == 2
-    assert test_metadata['otu_2']['module'] == 0
+    assert test_metadata['otu_2']['module'] == 'module_0'
     assert len(test_metadata['otu_3']) == 1
     assert len(test_metadata['otu_4']) == 1

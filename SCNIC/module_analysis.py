@@ -33,7 +33,7 @@ def cor_to_dist(cor):
     return 1 - ((cor + 1) / 2)
 
 
-def make_modules(dist, min_dist, obs_ids):
+def make_modules(dist, min_dist, obs_ids, prefix="module"):
     # create linkage matrix using complete linkage
     z = complete(dist)
     # make tree from linkage matrix with names from dist
@@ -57,53 +57,54 @@ def make_modules(dist, min_dist, obs_ids):
                 modules.add(tip_names)
                 seen.update(tip_names)
         if len(seen) == all_tips:
-            modules = sorted(modules, key=len, reverse=True)
+            modules = {'%s_%s' % (prefix, i): otus for i, otus in enumerate(sorted(modules, key=len, reverse=True))}
             return modules
     raise ValueError("Well, how did I get here?")
 
 
-def collapse_modules(table, modules, prefix="module"):
+def collapse_modules(table, modules):
     """collapse created modules in a biom table, members of multiple modules will be added to the smallest module"""
     table = table.copy()
     module_array = np.zeros((len(modules), table.shape[1]))
 
     seen = set()
-    for i, module_ in enumerate(modules):
-        seen = seen | module_
+    for module_, otus in modules.items():
+        module_number = int(module_.split('_')[-1])
+        seen = seen | otus
         # sum everything in the module
-        module_array[i] = np.sum([table.data(feature, axis="observation") for feature in module_], axis=0)
+        module_array[module_number] = np.sum([table.data(feature, axis="observation") for feature in otus], axis=0)
 
     table.filter(seen, axis='observation', invert=True)
 
     # make new table
     new_table_matrix = np.concatenate((table.matrix_data.toarray(), module_array))
-    new_table_obs = list(table.ids(axis='observation')) + ['_'.join([prefix, str(i)]) for i in range(len(modules))]
+    new_table_obs = list(table.ids(axis='observation')) + list(modules.keys())
     return Table(new_table_matrix, new_table_obs, table.ids())
 
 
 def write_modules_to_dir(table, modules):
     # for each module merge values and print modules to file
     os.makedirs("modules")
-    for i, module_ in enumerate(modules):
+    for module_, otus in modules.items():
         # make biom tables for each module and write to file
-        module_table = table.filter(module_, axis='observation', inplace=False)
-        with biom_open("modules/%s.biom" % i, 'w') as f:
-            module_table.to_hdf5(f, 'modulemaker.py')
+        module_table = table.filter(otus, axis='observation', inplace=False)
+        with biom_open("modules/%s.biom" % module_, 'w') as f:
+            module_table.to_hdf5(f, 'SCNIC.module_analysis.write_modules_to_dir')
 
 
 def write_modules_to_file(modules, prefix="module", path_str='modules.txt'):
     # write all modules to file
     with open(path_str, 'w') as f:
-        for i, module_ in enumerate(modules):
-            f.write('_'.join([prefix, str(i)]) + '\t' + '\t'.join([str(j) for j in module_]) + '\n')
+        for module_, otus in modules.items():
+            f.write('%s\t%s\n' % (module_, '\t'.join([str(otu) for otu in otus])))
 
 
 def add_modules_to_metadata(modules, metadata):
     """
-    modules is a list of lists of otus, metadata is a dictionary of dictionaries where outer dict keys
+    modules is dict of otus, metadata is a dictionary of dictionaries where outer dict keys
     are features, inner dict keys are metadata names and values are metadata values
     """
-    for module_, otus in enumerate(modules):
+    for module_, otus in modules.items():
         for otu in otus:
             try:
                 metadata[str(otu)]['module'] = module_

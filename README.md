@@ -1,7 +1,7 @@
 [![PyPI](https://img.shields.io/pypi/v/SCNIC.svg)](https://pypi.python.org/pypi/SCNIC/0.5) [![Travis](https://img.shields.io/travis/shafferm/SCNIC.svg)](https://travis-ci.org/shafferm/SCNIC) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9013f85974f84a06b544598aa934e032)](https://www.codacy.com/app/shafferm/SCNIC?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=shafferm/SCNIC&amp;utm_campaign=Badge_Grade) [![Coveralls](https://img.shields.io/coveralls/shafferm/SCNIC.svg)](https://coveralls.io/github/shafferm/SCNIC)
 
 # SCNIC
-Sparse Cooccurnce Network Investigation for Compositional data
+Sparse Cooccurence Network Investigation for Compositional data
 Pronounced 'scenic'.
 
 *NOTE: SCNIC was recently updated to be python 3 only, old installations in python 2 only environments will not be

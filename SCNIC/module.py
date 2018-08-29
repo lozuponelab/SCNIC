@@ -1,7 +1,4 @@
 """Make modules of observations based on cooccurence networks and collapse table"""
-
-from __future__ import division
-
 from collections import defaultdict
 
 import numpy as np

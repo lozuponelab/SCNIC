@@ -4,10 +4,18 @@ python:
 - '3.6'
 cache: pip
 before_install:
-- pip install --upgrade pip
-- pip install pytest pytest-cov
-- pip install coveralls
+- wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O
+  miniconda.sh
+- export MINICONDA_PREFIX="$HOME/miniconda"
+- bash miniconda.sh -b -p $MINICONDA_PREFIX
+- export PATH="$MINICONDA_PREFIX/bin:$PATH"
+- conda config --set always_yes yes
+- conda update -q conda
+- conda config --add channels bioconda conda-forge
+- conda info -a
 install:
+- conda env create -q -n test-env pytest pytest-cov coveralls networkx>=2 fastspar pandas numpy scipy biom-format pandas scikit-bio statsmodels h5py pytest-runner
+- source activate test-env
 - pip install --no-cache-dir --editable .
 script:
 - py.test --cov SCNIC --cov-report term-missing

@@ -63,9 +63,11 @@ def within_correls(args):
         # correlate feature
         correls = ca.calculate_correlations(table_filt, correl_method, nprocs=args.procs)
     elif correl_method == 'sparcc':
-        correls = ca.fastspar_correlation(table_filt, verbose=args.verbose, nprocs=args.procs)
-        if args.sparcc_p is not None:
-            raise NotImplementedError()  # TODO: reimplement with fastspar
+        if args.sparcc_p is None:
+            correls = ca.fastspar_correlation(table_filt, verbose=args.verbose, nprocs=args.procs)
+        else:
+            correls = ca.fastspar_correlation(table_filt, calc_pvalues=True, bootstraps=args.sparcc_p,
+                                              verbose=args.verbose, nprocs=args.procs)
     else:
         raise ValueError("How did this even happen?")
     logger["distance metric used"] = args.correl_method

@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from glob import glob
 
 __author__ = 'shafferm'
 __version__ = '0.5.2'
@@ -9,7 +10,7 @@ setup(
       setup_requires=['pytest-runner'],
       test_require=['pytest'],
       install_requires=["numpy", "scipy", "networkx>=2", "biom-format", "pandas", "scikit-bio", "statsmodels", "h5py"],
-      scripts=["scripts/SCNIC_analysis.py"],
+      scripts=glob("scripts/*"),
       packages=find_packages(),
       description="A tool for finding and summarizing modules of highly correlated observations in compositional data",
       author="Michael Shaffer",

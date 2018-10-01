@@ -62,6 +62,7 @@ def get_correlation_dicts(correls, modules_across_rs):
                 module_three_plus_member = True
             module_membership[min_r].append(module_member)
             module_three_plus[min_r].append(module_three_plus_member)
+    print('\n')
     return correlated_items, module_membership, module_three_plus
 
 
@@ -114,7 +115,6 @@ def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc
                                module_three_plus)
     print("annotated correls")
     correls.to_csv(output_loc, sep='\t')
-    print('\n')
 
 
 ############################
@@ -191,6 +191,7 @@ def run_perms(correls, perms, procs, module_sizes, output_loc):
         with open(join(output_loc, 'pd_ko_stats_dict_%s.txt' % current_milli_time), 'a') as f:
             for key, values in pd_ko_stats_dict.items():
                 f.write('%s\t%s\t%s\n' % (min_r, key, '\t'.join([str(i) for i in values])))
+    print('\n')
 
 
 def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, output_loc):
@@ -201,7 +202,6 @@ def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, ou
     correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
     print("read correls")
     run_perms(correls, perms, procs, module_sizes_across_rs, output_loc)
-    print('\n')
 
 
 ############################
@@ -214,6 +214,12 @@ def get_perms(perms_loc):
         frame_list.append(frame)
     combined_frames = pd.concat(frame_list, axis=1)
     return combined_frames
+
+
+def perm_mannwhitneyu(x, y, dist, alternative):
+    stat, _ = mannwhitneyu(x, y, alternative=alternative)
+    pvalue = np.sum(stat < dist) / len(dist)
+    return stat, pvalue
 
 
 def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms):
@@ -233,23 +239,23 @@ def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms):
             if len(otus) >= 3:
                 frame = r_module_grouped.get_group(module)
                 # pd stats
-                pd_stat, _ = mannwhitneyu(frame.PD, non_cor.PD, alternative='less')
-                pd_pvalue = np.sum(np.abs(pd_stat) < pd_perms.loc[min_r, len(otus)])/pd_perms.shape[1]
+                pd_stat, pd_pvalue = perm_mannwhitneyu(frame.PD, non_cor.PD, pd_perms.loc[min_r, len(otus)],
+                                                       alternative='less')
                 # pd ko stats
                 residuals = calc_residuals(frame.PD, frame.percent_shared, popt_non_cor)
-                pd_ko_stat, _ = mannwhitneyu(residuals, non_cor_residuals, alternative='greater')
-                pd_ko_pvalue = np.sum(np.abs(pd_ko_stat) < pd_ko_perms.loc[min_r, len(otus)])/pd_ko_perms.shape[1]
+                pd_ko_stat, pd_ko_pvalue = perm_mannwhitneyu(residuals, non_cor_residuals,
+                                                             pd_ko_perms.loc[min_r, len(otus)], alternative='greater')
                 # add to lists
                 stats_df_index.append('%s_%s' % (min_r, module))
                 stats_df_data.append((pd_stat, pd_pvalue, pd_ko_stat, pd_ko_pvalue, min_r))
         stats_df = pd.DataFrame(stats_df_data, index=stats_df_index,
-                                columns=('pd_statistic', 'pd_pvalue', 'pd_ko_statistic', 'pd_ko_pvalue',
-                                         'r_level'))
+                                columns=('pd_statistic', 'pd_pvalue', 'pd_ko_statistic', 'pd_ko_pvalue', 'r_level'))
         if len(stats_df) > 0:
             stats_df['pd_adj_pvalue'] = p_adjust(stats_df.pd_pvalue)
             stats_df['pd_ko_adj_pvalue'] = p_adjust(stats_df.pd_ko_pvalue)
             stats_dfs.append(stats_df)
     stats_df = pd.concat(stats_dfs)
+    print('\n')
     return stats_df
 
 
@@ -276,7 +282,7 @@ def tabulate_stats(stats, modules_across_rs, alpha=.05):
     return tab_stats.transpose()
 
 
-def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc):
+def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, alpha=.05):
     correls = pd.read_table(correls_loc, index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
     print('correls read')
@@ -287,7 +293,7 @@ def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc):
     print('perms read')
     stats = get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms)
     stats.to_csv(join(output_loc, 'stats.txt'), sep='\t')
-    tab_stats = tabulate_stats(stats, modules_across_rs)
+    tab_stats = tabulate_stats(stats, modules_across_rs, alpha)
     tab_stats.to_csv(join(output_loc, 'tab_stats.txt'), sep='\t')
     _ = sns.regplot(x='index', y='pd_percent_sig', data=tab_stats.reset_index(), fit_reg=False,
                     scatter_kws={'s': tab_stats.module_count})
@@ -296,4 +302,3 @@ def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc):
     _ = sns.regplot(x='index', y='pd_ko_percent_sig', data=tab_stats.reset_index(), fit_reg=False,
                     scatter_kws={'s': tab_stats.module_count})
     plt.savefig(join(output_loc, 'pd_ko_sig_plot.png'))
-    print('\n')

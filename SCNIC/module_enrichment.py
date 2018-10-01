@@ -234,11 +234,11 @@ def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms):
                 frame = r_module_grouped.get_group(module)
                 # pd stats
                 pd_stat, _ = mannwhitneyu(frame.PD, non_cor.PD, alternative='less')
-                pd_pvalue = np.sum(np.abs(pd_stat) > pd_perms.loc[min_r, len(otus)])/pd_perms.shape[1]
+                pd_pvalue = np.sum(np.abs(pd_stat) < pd_perms.loc[min_r, len(otus)])/pd_perms.shape[1]
                 # pd ko stats
                 residuals = calc_residuals(frame.PD, frame.percent_shared, popt_non_cor)
                 pd_ko_stat, _ = mannwhitneyu(residuals, non_cor_residuals, alternative='greater')
-                pd_ko_pvalue = np.sum(np.abs(pd_ko_stat) > pd_ko_perms.loc[min_r, len(otus)])/pd_ko_perms.shape[1]
+                pd_ko_pvalue = np.sum(np.abs(pd_ko_stat) < pd_ko_perms.loc[min_r, len(otus)])/pd_ko_perms.shape[1]
                 # add to lists
                 stats_df_index.append('%s_%s' % (min_r, module))
                 stats_df_data.append((pd_stat, pd_pvalue, pd_ko_stat, pd_ko_pvalue, min_r))

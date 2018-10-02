@@ -2,18 +2,17 @@ import pytest
 from os import path
 import pandas as pd
 from biom.table import Table
-from scipy.optimize import curve_fit
-from numpy.testing import assert_almost_equal
-from glob import glob
+import numpy as np
 
-from SCNIC.module_enrichment import get_modules_across_rs, get_correlation_dicts, percent_shared, annotate_correls,\
-    get_module_sizes_across_rs, perm, func, run_perms, get_perms, get_stats, tabulate_stats, do_annotate_correls,\
-    do_multiprocessed_perms, do_stats
+from SCNIC.annotate_correls import get_modules_across_rs, get_correlation_dicts, percent_shared, add_correlation_dicts,\
+                                   do_annotate_correls, calc_popt, calc_residuals, get_residuals_across_rs
+
 
 @pytest.fixture()
 def modules():
     return {'module_0': ['otu1', 'otu2', 'otu3'],
             'module_1': ['otu4', 'otu5']}
+
 
 @pytest.fixture()
 def modules_loc(tmpdir, modules):
@@ -25,15 +24,16 @@ def modules_loc(tmpdir, modules):
 
 
 @pytest.fixture()
-def modules_across_rs(modules_loc):
-    return get_modules_across_rs(modules_loc)
+def modules_across_rs(modules):
+    return {0.35: modules}
 
 
-def test_get_modules_across_rs(modules_across_rs):
-    assert len(modules_across_rs) == 1
-    assert len(modules_across_rs[0.35])
-    assert len(modules_across_rs[0.35]['module_0']) == 3
-    assert len(modules_across_rs[0.35]['module_1']) == 2
+def test_get_modules_across_rs(modules_across_rs, modules_loc):
+    test_modules_across_res = get_modules_across_rs(modules_loc)
+    assert len(test_modules_across_res) == 1
+    assert len(test_modules_across_res[0.35])
+    assert len(test_modules_across_res[0.35]['module_0']) == 3
+    assert len(test_modules_across_res[0.35]['module_1']) == 2
 
 
 @pytest.fixture()
@@ -156,79 +156,46 @@ def annotated_correls():
 
 def test_annotate_correls(correls, correls_tip_tips, genome_table, correlation_dicts, annotated_correls):
     correlated_items, modules_membership, module_three_plus = correlation_dicts
-    correls_anno = annotate_correls(correls, correls_tip_tips, genome_table, correlated_items, modules_membership,
-                                    module_three_plus)
+    correls_anno = add_correlation_dicts(correls, correls_tip_tips, genome_table, correlated_items, modules_membership,
+                                         module_three_plus)
     assert len(correls_anno) == len(correls)
     pd.testing.assert_frame_equal(annotated_correls, correls_anno, check_dtype=False)
 
 
-######################
-@pytest.fixture()
-def module_sizes(modules_across_rs):
-    return get_module_sizes_across_rs(modules_across_rs)
-
-
-def test_get_module_sizes_across_rs(module_sizes):
-    assert len(module_sizes) == 1
-    assert module_sizes[.35] == {2, 3}
-
-
-def test_perm(annotated_correls):
-    non_cor = annotated_correls.loc[annotated_correls['correlated_%s' % 0.35] == False]
-    popt_non_cor, _ = curve_fit(func, non_cor.PD.astype(float), non_cor.percent_shared.astype(float))
-    non_cor_residuals = non_cor.percent_shared - func(non_cor.PD.astype(float), *popt_non_cor)
-    pd_stat, pd_ko_stat = perm(['otu1', 'otu5'], annotated_correls, non_cor.PD, non_cor_residuals,
-                               popt_non_cor)
-    assert_almost_equal(pd_stat, 1.5)
-    assert_almost_equal(pd_ko_stat, 5.5)
+def simple_func(x, a):
+    return x + a
 
 
 @pytest.fixture()
-def perms_loc(annotated_correls, module_sizes, modules_loc):
-    run_perms(annotated_correls, 3, 1, module_sizes, modules_loc)
-    run_perms(annotated_correls, 3, 1, module_sizes, modules_loc)
-    return modules_loc
+def popt(annotated_correls):
+    return calc_popt(annotated_correls.PD, annotated_correls.percent_shared, simple_func)
 
 
-def test_run_perms(perms_loc):
-    assert len(glob(path.join(perms_loc, 'pd_stats_dict_*'))) == 2
-    assert len(glob(path.join(perms_loc, 'pd_ko_stats_dict_*'))) == 2
-    pd_stats = pd.read_table(glob(path.join(perms_loc, 'pd_stats_dict_*'))[0], index_col=(0, 1), header=None)
-    assert pd_stats.shape == (1, 3)
-    pd_ko_stats = pd.read_table(glob(path.join(perms_loc, 'pd_ko_stats_dict_*'))[0], index_col=(0, 1), header=None)
-    assert pd_ko_stats.shape == (1, 3)
+def test_calc_popt(popt):
+    assert len(popt) == 1
+    assert popt[0] == -0.3402000000029235
 
 
 @pytest.fixture()
-def frames(perms_loc):
-    pd_frame = get_perms(path.join(perms_loc, 'pd_stats_dict_*.txt'))
-    pd_ko_frame = get_perms(path.join(perms_loc, 'pd_ko_stats_dict_*.txt'))
-    return pd_frame, pd_ko_frame
+def residuals():
+    return np.array([1.00586667, 1.3392, -0.6498, -0.3798, 0.20686667, -0.5998, -0.6198, -0.6398, -0.3698, 0.70686667])
 
 
-def test_get_perms(frames):
-    pd_frame, pd_ko_frame = frames
-    assert pd_frame.shape == (1, 6)
-    assert pd_ko_frame.shape == (1, 6)
+def test_calc_residuals(annotated_correls, popt, residuals):
+    test_residuals = calc_residuals(annotated_correls.PD, annotated_correls.percent_shared, popt, simple_func)
+    np.testing.assert_almost_equal(test_residuals, residuals)
 
 
 @pytest.fixture()
-def stats(annotated_correls, modules_across_rs, frames):
-    pd_frame, pd_ko_frame = frames
-    stats = get_stats(annotated_correls, modules_across_rs, pd_frame, pd_ko_frame)
-    return stats
+def annotated_correls_w_residuals(annotated_correls, residuals):
+    new_annotated_correls = annotated_correls.copy()
+    new_annotated_correls['residual_0.35'] = residuals
+    return new_annotated_correls
 
 
-def test_get_stats(stats):
-    assert stats.shape == (1, 7)
-
-
-def test_tabulate_stats(stats, modules_across_rs):
-    tab_stats = tabulate_stats(stats, modules_across_rs)
-    assert tab_stats.shape == (1, 5)
-
-
-########################
+def test_get_residuals_across_rs(annotated_correls, modules_across_rs, annotated_correls_w_residuals):
+    correls_w_residuals = get_residuals_across_rs(annotated_correls, modules_across_rs, simple_func)
+    assert correls_w_residuals.shape == (10, 7)
 
 
 @pytest.fixture()
@@ -258,20 +225,6 @@ def correls_anno_loc(annotated_correls, modules_loc):
 
 
 def test_do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc):
-    do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, path.join(modules_loc, 'test_correls_anno.txt'))
+    do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, path.join(modules_loc, 'test_correls_anno.txt'),
+                        simple_func)
     assert path.isfile(path.join(modules_loc, 'test_correls_anno.txt'))
-
-
-def test_do_multiprocessed_perms(correls_anno_loc, modules_loc, tmpdir):
-    loc = tmpdir.mkdir('test_multi')
-    do_multiprocessed_perms(correls_anno_loc, 3, 1, modules_loc, str(loc))
-    assert len(glob(path.join(loc, 'pd_stats_dict_*.txt'))) == 1
-    assert len(glob(path.join(loc, 'pd_ko_stats_dict_*.txt'))) == 1
-
-
-def test_do_stats(correls_anno_loc, modules_loc, perms_loc):
-    do_stats(correls_anno_loc, modules_loc, perms_loc, modules_loc)
-    assert path.isfile(path.join(modules_loc, 'stats.txt'))
-    assert path.isfile(path.join(modules_loc, 'tab_stats.txt'))
-    assert path.isfile(path.join(modules_loc, 'pd_sig_plot.png'))
-    assert path.isfile(path.join(modules_loc, 'pd_ko_sig_plot.png'))

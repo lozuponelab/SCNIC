@@ -4,7 +4,9 @@ import os
 os.environ['OMP_NUM_THREADS'] = '8'
 
 import argparse
-from SCNIC.module_enrichment import do_annotate_correls, do_multiprocessed_perms, do_stats
+from SCNIC.annotate_correls import do_annotate_correls
+from SCNIC.calculate_permutations import do_multiprocessed_perms
+from SCNIC.calculate_permutation_stats import do_stats
 
 
 def main():

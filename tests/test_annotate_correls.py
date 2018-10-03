@@ -5,7 +5,8 @@ from biom.table import Table
 import numpy as np
 
 from SCNIC.annotate_correls import get_modules_across_rs, get_correlation_dicts, percent_shared, add_correlation_dicts,\
-                                   do_annotate_correls, calc_popt, calc_residuals, get_residuals_across_rs
+                                   do_annotate_correls, calc_popt, calc_residuals, get_residuals_across_rs,\
+                                   add_pd_ko_data
 
 
 @pytest.fixture()
@@ -129,7 +130,7 @@ def correls_tip_tips():
 
 
 @pytest.fixture()
-def annotated_correls():
+def correlation_data():
     index = [('otu1', 'otu2'),
              ('otu1', 'otu3'),
              ('otu1', 'otu4'),
@@ -140,26 +141,57 @@ def annotated_correls():
              ('otu3', 'otu4'),
              ('otu3', 'otu5'),
              ('otu4', 'otu5')]
-    columns = ['r', 'PD', 'percent_shared', 'correlated_0.35', 'module_0.35', 'three_plus_0.35']
-    data = [[.9, .001, 2/3,  True, 'module_0',  True],
-            [.9, .001,   1,  True, 'module_0',  True],
-            [.1,  .99,   0, False,     'None',  True],
-            [.1,  .92, 1/5, False,     'None',  True],
-            [.8,   .8, 2/3,  True, 'module_0',  True],
-            [.1,  .94,   0, False,     'None',  True],
-            [.1,  .96,   0, False,     'None',  True],
-            [.1,  .98,   0, False,     'None',  True],
-            [.1,  .91, 1/5, False,     'None',  True],
-            [.9,   .3, 2/3,  True, 'module_1', False]]
+    columns = ['correlated_0.35', 'module_0.35', 'three_plus_0.35']
+    data = [[True, 'module_0',  True],
+            [True, 'module_0',  True],
+            [False,     'None',  True],
+            [False,     'None',  True],
+            [True, 'module_0',  True],
+            [False,     'None',  True],
+            [False,     'None',  True],
+            [False,     'None',  True],
+            [False,     'None',  True],
+            [True, 'module_1', False]]
     return pd.DataFrame(data, index=pd.MultiIndex.from_tuples(index), columns=columns)
 
 
-def test_annotate_correls(correls, correls_tip_tips, genome_table, correlation_dicts, annotated_correls):
+def test_annotate_correls(correls, correls_tip_tips, genome_table, correlation_dicts, correlation_data):
     correlated_items, modules_membership, module_three_plus = correlation_dicts
-    correls_anno = add_correlation_dicts(correls, correls_tip_tips, genome_table, correlated_items, modules_membership,
+    correls_anno = add_correlation_dicts(correls, correlated_items, modules_membership,
                                          module_three_plus)
     assert len(correls_anno) == len(correls)
-    pd.testing.assert_frame_equal(annotated_correls, correls_anno, check_dtype=False)
+    pd.testing.assert_frame_equal(correlation_data, correls_anno, check_dtype=False)
+
+
+@pytest.fixture()
+def pd_ko_data():
+    index = [('otu1', 'otu2'),
+             ('otu1', 'otu3'),
+             ('otu1', 'otu4'),
+             ('otu1', 'otu5'),
+             ('otu2', 'otu3'),
+             ('otu2', 'otu4'),
+             ('otu2', 'otu5'),
+             ('otu3', 'otu4'),
+             ('otu3', 'otu5'),
+             ('otu4', 'otu5')]
+    columns = ['PD', 'percent_shared']
+    data = [[.001, 2 / 3],
+            [.001, 1],
+            [.99, 0],
+            [.92, 1 / 5],
+            [.8, 2 / 3],
+            [.94, 0],
+            [.96, 0],
+            [.98, 0],
+            [.91, 1 / 5],
+            [.3, 2 / 3]]
+    return pd.DataFrame(data, index=pd.MultiIndex.from_tuples(index), columns=columns)
+
+
+def test_add_pd_ko_data(correls, correls_tip_tips, genome_table, pd_ko_data):
+    test_pd_ko_data = add_pd_ko_data(correls, correls_tip_tips, genome_table)
+    pd.testing.assert_frame_equal(test_pd_ko_data, pd_ko_data, check_dtype=False)
 
 
 def simple_func(x, a):
@@ -167,8 +199,8 @@ def simple_func(x, a):
 
 
 @pytest.fixture()
-def popt(annotated_correls):
-    return calc_popt(annotated_correls.PD, annotated_correls.percent_shared, simple_func)
+def popt(pd_ko_data):
+    return calc_popt(pd_ko_data.PD, pd_ko_data.percent_shared, simple_func)
 
 
 def test_calc_popt(popt):
@@ -181,21 +213,30 @@ def residuals():
     return np.array([1.00586667, 1.3392, -0.6498, -0.3798, 0.20686667, -0.5998, -0.6198, -0.6398, -0.3698, 0.70686667])
 
 
-def test_calc_residuals(annotated_correls, popt, residuals):
-    test_residuals = calc_residuals(annotated_correls.PD, annotated_correls.percent_shared, popt, simple_func)
+def test_calc_residuals(pd_ko_data, popt, residuals):
+    test_residuals = calc_residuals(pd_ko_data.PD, pd_ko_data.percent_shared, popt, simple_func)
     np.testing.assert_almost_equal(test_residuals, residuals)
 
 
 @pytest.fixture()
-def annotated_correls_w_residuals(annotated_correls, residuals):
-    new_annotated_correls = annotated_correls.copy()
-    new_annotated_correls['residual_0.35'] = residuals
-    return new_annotated_correls
+def residual_data(residuals):
+    index = [('otu1', 'otu2'),
+             ('otu1', 'otu3'),
+             ('otu1', 'otu4'),
+             ('otu1', 'otu5'),
+             ('otu2', 'otu3'),
+             ('otu2', 'otu4'),
+             ('otu2', 'otu5'),
+             ('otu3', 'otu4'),
+             ('otu3', 'otu5'),
+             ('otu4', 'otu5')]
+    columns = ['residuals_0.35']
+    return pd.DataFrame(np.transpose(residuals), index=index, columns=columns)
 
 
-def test_get_residuals_across_rs(annotated_correls, modules_across_rs, annotated_correls_w_residuals):
-    correls_w_residuals = get_residuals_across_rs(annotated_correls, modules_across_rs, simple_func)
-    assert correls_w_residuals.shape == (10, 7)
+def test_get_residuals_across_rs(correlation_data, pd_ko_data, modules_across_rs, residual_data):
+    correls_w_residuals = get_residuals_across_rs(correlation_data, pd_ko_data, modules_across_rs, simple_func)
+    assert correls_w_residuals.shape == residual_data.shape
 
 
 @pytest.fixture()
@@ -216,6 +257,11 @@ def tree_loc(modules_loc):
 def genome_loc(genome_frame, modules_loc):
     genome_frame.to_csv(path.join(modules_loc, 'genome_table.tsv'), sep='\t')
     return str(path.join(modules_loc, 'genome_table.tsv'))
+
+
+@pytest.fixture()
+def annotated_correls(correls, pd_ko_data, residual_data, correlation_data):
+    return pd.concat([correls, pd_ko_data, residual_data, correlation_data])
 
 
 @pytest.fixture()

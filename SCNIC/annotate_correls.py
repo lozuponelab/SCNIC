@@ -13,6 +13,15 @@ def log_linear_func(x, a, b, c, psuedocount=10e-20):
     return a*np.log(x+b+psuedocount)+c
 
 
+def genome_frame_to_table(genome_frame, otus_to_keep):
+    if otus_to_keep is not None:
+        genome_frame = genome_frame.loc[otus_to_keep]
+    genome_frame = genome_frame.loc[:, genome_frame.sum(axis=0) > 0]
+    genome_table = Table(genome_frame.transpose().values, observation_ids=genome_frame.columns,
+                         sample_ids=genome_frame.index)
+    return genome_table
+
+
 def get_modules_across_rs(module_directory_loc, verbose=False):
     modules_across_rs = OrderedDict()
     for dir_ in sorted(glob(module_directory_loc)):
@@ -56,22 +65,9 @@ def get_correlation_dicts(correls, modules_across_rs):
     return correlated_items, module_membership, module_three_plus
 
 
-def percent_shared(otu_i_arr, otu_j_arr):
-    otu_data = np.stack((otu_i_arr, otu_j_arr)).astype(bool).sum(axis=0)
-    shared = np.sum(otu_data == 2)
-    return shared / np.sum(otu_data > 0)
-
-
-def add_correlation_dicts(correls, correls_tip_tips, genome_table, correlated_items, module_membership, module_three_plus):
+def add_correlation_dicts(correls, correlated_items, module_membership, module_three_plus):
     new_index = list()
     new_rows = list()
-    new_index.append('PD')
-    new_rows.append([correls_tip_tips[otu_pair] for otu_pair in correls.index])
-    print('pd acquired')
-    new_index.append('percent_shared')
-    new_rows.append([percent_shared(genome_table.data(otu_pair[0]), genome_table.data(otu_pair[1]))
-                     for otu_pair in correls.index])
-    print('percent shared acquired')
     for min_r, list_ in correlated_items.items():
         new_index.append('correlated_%s' % min_r)
         new_rows.append(list_)
@@ -81,9 +77,26 @@ def add_correlation_dicts(correls, correls_tip_tips, genome_table, correlated_it
     for min_r, list_ in module_three_plus.items():
         new_index.append('three_plus_%s' % min_r)
         new_rows.append(list_)
-    print('correlation stats acquired')
     new_df = pd.DataFrame(new_rows, columns=correls.index, index=new_index)
-    return pd.merge(correls, new_df.transpose(), left_index=True, right_index=True)
+    return new_df.transpose()
+
+
+def percent_shared(otu_i_arr, otu_j_arr):
+    otu_data = np.stack((otu_i_arr, otu_j_arr)).astype(bool).sum(axis=0)
+    shared = np.sum(otu_data == 2)
+    return shared / np.sum(otu_data > 0)
+
+
+def add_pd_ko_data(correls, correls_tip_tips, genome_table):
+    new_index = list()
+    new_rows = list()
+    new_index.append('PD')
+    new_rows.append([correls_tip_tips[otu_pair] for otu_pair in correls.index])
+    new_index.append('percent_shared')
+    new_rows.append([percent_shared(genome_table.data(otu_pair[0]), genome_table.data(otu_pair[1]))
+                     for otu_pair in correls.index])
+    new_df = pd.DataFrame(new_rows, columns=correls.index, index=new_index)
+    return new_df.transpose()
 
 
 def calc_popt(x, y, func):
@@ -95,21 +108,20 @@ def calc_residuals(actual_x, actual_y, popt, func):
     return np.array(actual_y, dtype=np.float64) - func(np.array(actual_x, dtype=np.float64), *popt)
 
 
-def get_residuals_across_rs(correls, modules_across_rs, func):
+def get_residuals_across_rs(correlation_data, pd_ko_df, modules_across_rs, func):
     popt_across_rs = dict()
     for min_r in modules_across_rs.keys():
-        noncor_correls = correls[~correls['correlated_%s' % min_r]]
+        noncor_correls = pd_ko_df[~correlation_data['correlated_%s' % min_r]]
         popt = calc_popt(noncor_correls.PD, noncor_correls.percent_shared, func)
         popt_across_rs[min_r] = popt
     new_df_columns = ['residual_%s' % min_r for min_r in modules_across_rs.keys()]
     new_df_data = list()
-    for otu_pair, row in correls.iterrows():
+    for otu_pair, row in pd_ko_df.iterrows():
         new_row = [calc_residuals(row.PD, row.percent_shared, popt_across_rs[min_r], func)
                    for min_r in modules_across_rs.keys()]
         new_df_data.append(new_row)
-    new_df = pd.DataFrame(new_df_data, index=correls.index, columns=new_df_columns)
-    correls_w_resids = pd.merge(correls, new_df, left_index=True, right_index=True)
-    return correls_w_resids
+    new_df = pd.DataFrame(new_df_data, index=correlation_data.index, columns=new_df_columns)
+    return new_df
 
 
 def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc, func=log_linear_func):
@@ -120,17 +132,17 @@ def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc
     correls_tip_tips = tre.tip_tip_distances(set([otu for otu_pair in correls.index for otu in otu_pair]))
     print("read tree")
     genome_frame = pd.read_table(genome_loc, index_col=0)
-    genome_frame = genome_frame.loc[set([otu for otu_pair in correls.index for otu in otu_pair])]
-    genome_frame = genome_frame.loc[:, genome_frame.sum(axis=0) > 0]
-    genome_table = Table(genome_frame.transpose().values, observation_ids=genome_frame.columns,
-                         sample_ids=genome_frame.index)
+    genome_table = genome_frame_to_table(genome_frame, set([otu for otu_pair in correls.index for otu in otu_pair]))
     print("read table")
     modules_across_rs = get_modules_across_rs(module_loc)
     print("read modules")
     correlated_items, module_membership, module_three_plus = get_correlation_dicts(correls, modules_across_rs)
-    correls = add_correlation_dicts(correls, correls_tip_tips, genome_table, correlated_items, module_membership,
-                                    module_three_plus)
+    correlation_df = add_correlation_dicts(correls, correlated_items, module_membership,
+                                           module_three_plus)
     print("added correlation data")
-    correls = get_residuals_across_rs(correls, modules_across_rs, func)
+    pd_ko_df = add_pd_ko_data(correls, correls_tip_tips, genome_table)
+    print("added pd ko data")
+    residual_df = get_residuals_across_rs(correlation_df, pd_ko_df, modules_across_rs, func)
     print("added residuals")
+    correls = pd.concat([correls, pd_ko_df, residual_df, correlation_df])
     correls.to_csv(output_loc, sep='\t')

@@ -144,5 +144,5 @@ def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc
     print("added pd ko data")
     residual_df = get_residuals_across_rs(correlation_df, pd_ko_df, modules_across_rs, func)
     print("added residuals")
-    correls = pd.concat([correls, pd_ko_df, residual_df, correlation_df])
+    correls = pd.concat([correls, pd_ko_df, residual_df, correlation_df], axis=1)
     correls.to_csv(output_loc, sep='\t')

@@ -274,3 +274,5 @@ def test_do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc):
     do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, path.join(modules_loc, 'test_correls_anno.txt'),
                         simple_func)
     assert path.isfile(path.join(modules_loc, 'test_correls_anno.txt'))
+    test_annotated_correls = pd.read_table(path.join(modules_loc, 'test_correls_anno.txt'), index_col=(0,1))
+    assert test_annotated_correls.shape == (10, 7)

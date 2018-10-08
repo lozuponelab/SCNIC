@@ -96,15 +96,15 @@ def test_get_stats(stats):
 
 
 def test_tabulate_stats(stats, modules_across_rs):
-    tab_stats = tabulate_stats(stats, modules_across_rs)
-    assert tab_stats.shape == (1, 5)
+    tab_stats = tabulate_stats(stats, modules_across_rs, alphas=(.05, .1))
+    assert tab_stats.shape == (1, 11)
 
 
 def test_do_stats(correls_anno_loc, modules_loc, perms_loc):
-    do_stats(correls_anno_loc, modules_loc, perms_loc, modules_loc)
+    do_stats(correls_anno_loc, modules_loc, perms_loc, modules_loc, alphas=(0.05,))
     assert path.isfile(path.join(modules_loc, 'stats.txt'))
     assert path.isfile(path.join(modules_loc, 'tab_stats.txt'))
-    assert path.isfile(path.join(modules_loc, 'pd_sig_plot.png'))
-    assert path.isfile(path.join(modules_loc, 'pd_ko_sig_plot.png'))
+    assert path.isfile(path.join(modules_loc, 'pd_sig_plot_0.05.png'))
+    assert path.isfile(path.join(modules_loc, 'pd_ko_sig_plot_0.05.png'))
     assert path.isfile(path.join(modules_loc, 'pd_pvalue_boxplots.png'))
     assert path.isfile(path.join(modules_loc, 'pd_ko_pvalue_boxplots.png'))

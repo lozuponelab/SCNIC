@@ -78,40 +78,51 @@ def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms):
     return stats_df
 
 
-def tabulate_stats(stats, modules_across_rs, alpha=.05):
+def tabulate_stats(stats, modules_across_rs, alphas=(.01, .05, .1, .15, .2)):
     module_count = list()
-    pd_ko_sig = list()
-    pd_ko_percent_sig = list()
-    pd_sig = list()
-    pd_percent_sig = list()
     r_values = list()
     for group, frame in stats.groupby('r_level'):
         modules_greater_3 = len([module for module, otus in modules_across_rs[group].items() if len(otus) >= 3])
         if modules_greater_3 != 0:
             r_values.append(group)
             module_count.append(modules_greater_3)
-            pd_sig_frame = frame.loc[frame.pd_adj_pvalue < alpha]
-            pd_sig.append(pd_sig_frame.shape[0])
-            pd_percent_sig.append(pd_sig_frame.shape[0]/modules_greater_3)
-            pd_ko_sig_frame = frame.loc[frame.pd_ko_adj_pvalue < alpha]
-            pd_ko_sig.append(pd_ko_sig_frame.shape[0])
-            pd_ko_percent_sig.append(pd_ko_sig_frame.shape[0]/modules_greater_3)
-    tab_stats = pd.DataFrame([module_count, pd_sig, pd_percent_sig, pd_ko_sig, pd_ko_percent_sig], columns=r_values,
-                             index=('module_count', 'pd_sig', 'pd_percent_sig', 'pd_ko_sig', 'pd_ko_percent_sig'))
-    return tab_stats.transpose()
+    tab_stats = pd.DataFrame([module_count], columns=r_values,
+                             index=['module_count'])
+    tab_stats = tab_stats.transpose()
+    for p_val in alphas:
+        pd_sigs = list()
+        pd_ko_sigs = list()
+        for min_r in tab_stats.index:
+            stats_min_r = stats.loc[stats.r_level == min_r]
+            pd_sigs.append(np.sum(stats_min_r.pd_adj_pvalue <= p_val))
+            pd_ko_sigs.append(np.sum(stats_min_r.pd_ko_adj_pvalue <= p_val))
+        tab_stats['pd_sig_%s' % p_val] = pd_sigs
+        tab_stats['pd_percent_sig_%s' % p_val] = pd_sigs / tab_stats.module_count
+        tab_stats['pd_ko_sig_%s' % p_val] = pd_ko_sigs
+        tab_stats['pd_ko_percent_sig_%s' % p_val] = pd_ko_sigs / tab_stats.module_count
+    med_pd_pvalue = list()
+    med_pd_ko_pvalue = list()
+    for min_r in tab_stats.index:
+        stats_min_r = stats.loc[stats.r_level == min_r]
+        med_pd_pvalue.append(np.median(stats_min_r.pd_adj_pvalue))
+        med_pd_ko_pvalue.append(np.median(stats_min_r.pd_ko_adj_pvalue))
+    tab_stats['med_pd_pvalue'] = med_pd_pvalue
+    tab_stats['med_pd_ko_pvalue'] = med_pd_ko_pvalue
+    return tab_stats
 
 
-def make_plots(stats, tab_stats, output_loc):
-    # pd_plot
-    _ = sns.regplot(x='index', y='pd_percent_sig', data=tab_stats.reset_index(), fit_reg=False,
-                    scatter_kws={'s': tab_stats.module_count})
-    plt.savefig(join(output_loc, 'pd_sig_plot.png'))
-    plt.clf()
-    # pd_ko_plot
-    _ = sns.regplot(x='index', y='pd_ko_percent_sig', data=tab_stats.reset_index(), fit_reg=False,
-                    scatter_kws={'s': tab_stats.module_count})
-    plt.savefig(join(output_loc, 'pd_ko_sig_plot.png'))
-    plt.clf()
+def make_plots(stats, tab_stats, output_loc, alphas=(.01, .05, .1, .15, .2)):
+    for alpha in alphas:
+        # pd_plot
+        _ = sns.regplot(x='index', y='pd_percent_sig_%s' % alpha, data=tab_stats.reset_index(), fit_reg=False,
+                        scatter_kws={'s': tab_stats.module_count})
+        plt.savefig(join(output_loc, 'pd_sig_plot_%s.png' % alpha))
+        plt.clf()
+        # pd_ko_plot
+        _ = sns.regplot(x='index', y='pd_ko_percent_sig_%s' % alpha, data=tab_stats.reset_index(), fit_reg=False,
+                        scatter_kws={'s': tab_stats.module_count})
+        plt.savefig(join(output_loc, 'pd_ko_sig_plot_%s.png' % alpha))
+        plt.clf()
     # pvalue boxplot pd ko
     fig, ax = plt.subplots(figsize=[13, 3])
     _ = sns.boxplot(x='r_level', y='pd_ko_adj_pvalue', data=stats, ax=ax)
@@ -124,7 +135,7 @@ def make_plots(stats, tab_stats, output_loc):
     plt.clf()
 
 
-def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, alpha=.05):
+def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, alphas=(.01, .05, .1, .15, .2)):
     correls = pd.read_table(correls_loc, index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
     print('correls read')
@@ -135,6 +146,6 @@ def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, alpha=.0
     print('perms read')
     stats = get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms)
     stats.to_csv(join(output_loc, 'stats.txt'), sep='\t')
-    tab_stats = tabulate_stats(stats, modules_across_rs, alpha)
+    tab_stats = tabulate_stats(stats, modules_across_rs, alphas)
     tab_stats.to_csv(join(output_loc, 'tab_stats.txt'), sep='\t')
-    make_plots(stats, tab_stats, output_loc)
+    make_plots(stats, tab_stats, output_loc, alphas)

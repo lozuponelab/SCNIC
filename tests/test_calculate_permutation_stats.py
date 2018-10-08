@@ -106,3 +106,5 @@ def test_do_stats(correls_anno_loc, modules_loc, perms_loc):
     assert path.isfile(path.join(modules_loc, 'tab_stats.txt'))
     assert path.isfile(path.join(modules_loc, 'pd_sig_plot.png'))
     assert path.isfile(path.join(modules_loc, 'pd_ko_sig_plot.png'))
+    assert path.isfile(path.join(modules_loc, 'pd_pvalue_boxplots.png'))
+    assert path.isfile(path.join(modules_loc, 'pd_ko_pvalue_boxplots.png'))

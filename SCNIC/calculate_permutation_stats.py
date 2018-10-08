@@ -101,6 +101,29 @@ def tabulate_stats(stats, modules_across_rs, alpha=.05):
     return tab_stats.transpose()
 
 
+def make_plots(stats, tab_stats, output_loc):
+    # pd_plot
+    _ = sns.regplot(x='index', y='pd_percent_sig', data=tab_stats.reset_index(), fit_reg=False,
+                    scatter_kws={'s': tab_stats.module_count})
+    plt.savefig(join(output_loc, 'pd_sig_plot.png'))
+    plt.clf()
+    # pd_ko_plot
+    _ = sns.regplot(x='index', y='pd_ko_percent_sig', data=tab_stats.reset_index(), fit_reg=False,
+                    scatter_kws={'s': tab_stats.module_count})
+    plt.savefig(join(output_loc, 'pd_ko_sig_plot.png'))
+    plt.clf()
+    # pvalue boxplot pd ko
+    fig, ax = plt.subplots(figsize=[13, 3])
+    _ = sns.boxplot(x='r_level', y='pd_ko_adj_pvalue', data=stats, ax=ax)
+    plt.savefig(join(output_loc, 'pd_ko_pvalue_boxplots.png'))
+    plt.clf()
+    #pvalue boxplot pd
+    fig, ax = plt.subplots(figsize=[13, 3])
+    _ = sns.boxplot(x='r_level', y='pd_adj_pvalue', data=stats, ax=ax)
+    plt.savefig(join(output_loc, 'pd_pvalue_boxplots.png'))
+    plt.clf()
+
+
 def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, alpha=.05):
     correls = pd.read_table(correls_loc, index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
@@ -114,10 +137,4 @@ def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, alpha=.0
     stats.to_csv(join(output_loc, 'stats.txt'), sep='\t')
     tab_stats = tabulate_stats(stats, modules_across_rs, alpha)
     tab_stats.to_csv(join(output_loc, 'tab_stats.txt'), sep='\t')
-    _ = sns.regplot(x='index', y='pd_percent_sig', data=tab_stats.reset_index(), fit_reg=False,
-                    scatter_kws={'s': tab_stats.module_count})
-    plt.savefig(join(output_loc, 'pd_sig_plot.png'))
-    plt.clf()
-    _ = sns.regplot(x='index', y='pd_ko_percent_sig', data=tab_stats.reset_index(), fit_reg=False,
-                    scatter_kws={'s': tab_stats.module_count})
-    plt.savefig(join(output_loc, 'pd_ko_sig_plot.png'))
+    make_plots(stats, tab_stats, output_loc)

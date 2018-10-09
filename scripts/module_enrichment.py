@@ -39,7 +39,6 @@ def main():
     calc_stats.add_argument('--modules')
     calc_stats.add_argument('--perms')
     calc_stats.add_argument('--output')
-    calc_stats.add_argument('--alpha', type=float, default=.05)
 
     args = parser.parse_args()
 
@@ -48,7 +47,7 @@ def main():
     elif args.subparser_name == 'perms':
         do_multiprocessed_perms(args.correls, args.perms, args.procs, args.modules, args.output)
     elif args.subparser_name == 'stats':
-        do_stats(args.correls, args.modules, args.perms, args.output, args.alpha)
+        do_stats(args.correls, args.modules, args.perms, args.output)
     else:
         print('What the hell happened here?')
 

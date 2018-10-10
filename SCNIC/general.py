@@ -101,7 +101,9 @@ def correls_to_net(correls, metadata=None):
                         graph_key = underscore_to_camelcase(str(key))
                         if metadata[otu][key] is None:
                             continue
-                        if hasattr(metadata[otu][key], '__iter__'):
+                        elif type(metadata[otu][key]) == str:
+                            graph.nodes[otu][graph_key] = metadata[otu][key]
+                        elif hasattr(metadata[otu][key], '__iter__'):
                             graph.nodes[otu][graph_key] = ';'.join(metadata[otu][key])
                         else:
                             graph.nodes[otu][graph_key] = metadata[otu][key]

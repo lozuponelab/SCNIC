@@ -13,7 +13,7 @@ from SCNIC import general
 from SCNIC import module_analysis as ma
 
 
-def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', k=3, gamma=.4, table=None, prefix='module',
+def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', k_size=3, gamma=.4, table=None, prefix='module',
                  verbose=False):
     logger = general.Logger("SCNIC_module_log.txt")
     logger["SCNIC analysis type"] = "module"
@@ -41,7 +41,7 @@ def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', 
     if method == 'naive':
         modules = ma.make_modules_naive(correls, min_r, min_p, prefix=prefix)
     elif method == 'k_cliques':
-        modules = ma.make_modules_k_cliques(correls, min_r, min_p, k, prefix=prefix)
+        modules = ma.make_modules_k_cliques(correls, min_r, min_p, k_size, prefix=prefix)
     elif method == 'louvain':
         modules = ma.make_modules_louvain(correls, min_r, min_p, gamma, prefix=prefix)
     else:

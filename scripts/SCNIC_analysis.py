@@ -23,8 +23,8 @@ def main():
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # parser for making correlation network with a single biom table
-    within_corr.add_argument("-i", "--input", help="location of input biom file", required=True)
-    within_corr.add_argument("-o", "--output", help="output directory")
+    within_corr.add_argument("-i", "--input_loc", help="location of input biom file", required=True)
+    within_corr.add_argument("-o", "--output_loc", help="output directory")
     within_corr.add_argument("-m", "--correl_method", help="correlation method", default="sparcc")
     within_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     within_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
@@ -39,17 +39,17 @@ def main():
     within_corr.set_defaults(func=within_correls)
 
     # parser for finding modules in a correlation network
-    make_modules.add_argument("-i", "--input", help="location of input distance matrix", required=True)
-    make_modules.add_argument("-o", "--output", help="output directory")
+    make_modules.add_argument("-i", "--input_loc", help="location of input distance matrix", required=True)
+    make_modules.add_argument("-o", "--output_loc", help="output directory")
     make_modules.add_argument("--min_p", help="minimum p-value to determine edges, p must have been calculated",
                               type=float)
     make_modules.add_argument("--min_r", help="minimum correlation value to determine edges", type=float)
-    make_modules.add_argument("--method", help="method to be used for determining modules, pick from: naive, k_cliques"
+    make_modules.add_argument("--method", help="method to be used for determining modules, pick from: naive, k_cliques "
                                                "or louvain", default='naive')
-    make_modules.add_argument("--k", help="k value for use with the k-clique communities algorithm", type=int,
-                              default=3)
-    make_modules.add_argument("--gamma", help="gamma value for use with louvain modularity maximization, between 0 and"
-                                              "1 where 0 makes small modules and 1 large modules",
+    make_modules.add_argument("-k", "--k_size", help="k value for use with the k-clique communities algorithm",
+                              type=int, default=3)
+    make_modules.add_argument("-g", "--gamma", help="gamma value for use with louvain modularity maximization, between "
+                                                    "0 and 1 where 0 makes small modules and 1 large modules",
                               type=float, default=0.1)
     make_modules.add_argument("--table", help="biom table used to make network to be collapsed")
     make_modules.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
@@ -59,7 +59,7 @@ def main():
     # parser for building a bipartite correlation network between two data types
     between_corr.add_argument("-1", "--table1", help="table to be correlated", required=True)
     between_corr.add_argument("-2", "--table2", help="second table to be correlated", required=True)
-    between_corr.add_argument("-o", "--output", help="output file location")
+    between_corr.add_argument("-o", "--output_loc", help="output file location")
     between_corr.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
     between_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     between_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
@@ -73,7 +73,8 @@ def main():
     between_corr.set_defaults(func=between_correls)
 
     args = parser.parse_args()
-    args.func(**vars(args))
+    args_dict = {i: j for i, j in vars(args).items() if i != 'func'}
+    args.func(**args_dict)
 
 
 if __name__ == "__main__":

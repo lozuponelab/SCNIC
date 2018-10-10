@@ -81,12 +81,11 @@ def make_modules_k_cliques(correls, min_r=None, min_p=None, k=3, prefix="module"
     net = general.correls_to_net(correls_filt)
     premodules = list(nx.algorithms.community.k_clique_communities(net, k))
     # reverse modules so observations will be added to smallest modules
-    premodules = list(enumerate(premodules))
-    premodules.reverse()
+    premodules.sort(key=len, reverse=True)
 
     modules = dict()
     seen = set()
-    for i, module in premodules:
+    for i, module in enumerate(premodules):
         # process module
         module = module-seen
         seen = seen | module
@@ -100,7 +99,7 @@ def make_modules_louvain(correls, min_r=None, min_p=None, gamma=.01, prefix="mod
     import community as louvain
     correls_filt = general.filter_correls(correls, conet=True, min_p=min_p, min_r=min_r)
     net = general.correls_to_net(correls_filt)
-    partition = louvain.best_partition(net, gamma)
+    partition = louvain.best_partition(net, resolution=gamma)
 
     premodules = defaultdict(list)
     for otu, module in partition.items():

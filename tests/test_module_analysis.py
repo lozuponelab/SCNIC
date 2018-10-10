@@ -1,5 +1,5 @@
 import pytest
-from SCNIC.module_analysis import correls_to_cor, make_modules, collapse_modules, write_modules_to_dir, cor_to_dist, \
+from SCNIC.module_analysis import correls_to_cor, make_modules_naive, collapse_modules, write_modules_to_dir, cor_to_dist, \
                                   write_modules_to_file, add_modules_to_metadata
 import os
 import glob
@@ -65,18 +65,21 @@ def obs_ids1():
 
 
 @pytest.fixture()
-def modules1(dist1, obs_ids1):
-    return make_modules(dist1, min_dist=.21, obs_ids=obs_ids1)
+def modules1(correls, obs_ids1):
+    return make_modules_naive(correls, min_r=.6)
+
+
+@pytest.fixture()
+def modules2():
+    return {'module_0': ['otu_0', 'otu_1', 'otu_2'], 'module_1': ['otu_3', 'otu_4']}
 
 
 @pytest.fixture()
 def metadata():
     meta = {
-        'otu_0': {'taxonomy': 'k__Bacteria; p__Firmicutes; c__Bacilli; o__Bacillales; f__Staphylococcaceae; g__Staphylococcus; s__'},
-        'otu_1': {'taxonomy': 'k__Bacteria; p__Firmicutes; c__Bacilli; o__Bacillales; f__Paenibacillaceae; g__Paenibacillus; s__'},
-        'otu_2': {'taxonomy': 'k__Bacteria; p__Proteobacteria; c__Betaproteobacteria; o__Methylophilales; f__Methylophilaceae; g__; s__'},
-        'otu_3': {'taxonomy': 'k__Bacteria; p__Firmicutes; c__Clostridia; o__Clostridiales; f__Lachnospiraceae; g__[Ruminococcus]; s__'},
-        'otu_4': {'taxonomy': 'k__Bacteria; p__Actinobacteria; c__Actinobacteria; o__Actinomycetales; f__Microbacteriaceae; g__; s__'}
+        '4b5eeb300368260019c1fbc7a3c718fc': {'taxonomy': 'k__Bacteria; p__Firmicutes; c__Bacilli; o__Bacillales; f__Staphylococcaceae; g__Staphylococcus; s__'},
+        'fe30ff0f71a38a39cf1717ec2be3a2fc': {'taxonomy': 'k__Bacteria; p__Firmicutes; c__Bacilli; o__Bacillales; f__Paenibacillaceae; g__Paenibacillus; s__'},
+        '154709e160e8cada6bfb21115acc80f5': {'taxonomy': 'k__Bacteria; p__Proteobacteria; c__Betaproteobacteria; o__Methylophilales; f__Methylophilaceae; g__; s__'},
     }
     return meta
 
@@ -95,29 +98,29 @@ def test_cor_to_dist(cor, dist):
     assert np.allclose(test_dist, dist)
 
 
-def test_make_modules(modules1):
-    assert type(modules1) == dict
-    assert len(modules1) == 1
-    assert np.sum([len(otus) for module_, otus in modules1.items()]) == 3
+def test_make_modules(modules2):
+    assert type(modules2) == dict
+    assert len(modules2) == 2
+    assert np.sum([len(otus) for module_, otus in modules2.items()]) == 5
 
 
-def test_collapse_modules(biom_table1, modules1):
-    coll_table = collapse_modules(biom_table1, modules1)
-    assert coll_table.shape[0] == biom_table1.shape[0]-2
+def test_collapse_modules(biom_table1, modules2):
+    coll_table = collapse_modules(biom_table1, modules2)
+    assert coll_table.shape[0] == biom_table1.shape[0]-3
     assert coll_table.shape[1] == biom_table1.shape[1]
     assert coll_table.sum() == biom_table1.sum()
     assert np.array_equal(coll_table.sum(axis="sample"), biom_table1.sum(axis="sample"))
     # set since order doesn't matter
-    assert frozenset(coll_table.sum(axis="observation")) == frozenset(np.array([885, 1701, 655]))
+    assert frozenset(coll_table.sum(axis="observation")) == frozenset(np.array([885, 2356]))
 
 
-def test_write_modules_to_dir(biom_table1, modules1, tmpdir):
+def test_write_modules_to_dir(biom_table1, modules2, tmpdir):
     tempdir = tmpdir.mkdir("mods")
     os.chdir(str(tempdir))
-    write_modules_to_dir(biom_table1, modules1)
+    write_modules_to_dir(biom_table1, modules2)
     os.chdir("modules")
     fnames = glob.glob(str(tempdir)+"/modules/*.biom")
-    assert len(fnames) == len(modules1)
+    assert len(fnames) == len(modules2)
 
 
 def test_write_modules_to_file(modules1, tmpdir):
@@ -125,17 +128,14 @@ def test_write_modules_to_file(modules1, tmpdir):
     write_modules_to_file(modules1, path_str=str(path))
     data = open(str(path)).readlines()
     assert len(data) == 1
-    assert len(data[0].strip().split()) == 4
+    assert len(data[0].strip().split()) == 3
 
 
 def test_add_module_to_metadata(modules1, metadata):
     test_metadata = add_modules_to_metadata(modules1, metadata)
     assert len(metadata) == len(test_metadata)
-    assert len(test_metadata['otu_0']) == 2
-    assert test_metadata['otu_0']['module'] == 'module_0'
-    assert len(test_metadata['otu_1']) == 2
-    assert test_metadata['otu_1']['module'] == 'module_0'
-    assert len(test_metadata['otu_2']) == 2
-    assert test_metadata['otu_2']['module'] == 'module_0'
-    assert len(test_metadata['otu_3']) == 1
-    assert len(test_metadata['otu_4']) == 1
+    assert len(test_metadata['4b5eeb300368260019c1fbc7a3c718fc']) == 2
+    assert test_metadata['4b5eeb300368260019c1fbc7a3c718fc']['module'] == 'module_0'
+    assert len(test_metadata['fe30ff0f71a38a39cf1717ec2be3a2fc']) == 2
+    assert test_metadata['fe30ff0f71a38a39cf1717ec2be3a2fc']['module'] == 'module_0'
+    assert len(test_metadata['154709e160e8cada6bfb21115acc80f5']) == 1

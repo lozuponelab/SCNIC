@@ -13,6 +13,13 @@ import multiprocessing
 from SCNIC.general import p_adjust
 
 
+_spearmanr = spearmanr
+
+
+def spearmanr(x, y):
+    return _spearmanr(x, y)
+
+
 def df_to_correls(cor, col_label='r'):
     """takes a square correlation dataframe and turns it into a long form dataframe"""
     cor.index = [str(i) for i in cor.index]
@@ -91,7 +98,7 @@ def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=
     pool = multiprocessing.Pool(nprocs)
     for data_i, otu_i, _ in table1.iter(axis="observation"):
         datas_j = (data_j for data_j, _, _ in table2.iter(axis="observation"))
-        corr = partial(correl_method, b=data_i)
+        corr = partial(correl_method, y=data_i)
         corrs = pool.map(corr, datas_j)
         correls += [(otu_i, table2.ids(axis="observation")[i], corrs[i][0], corrs[i][1])
                     for i in range(len(corrs))]

@@ -8,19 +8,6 @@ import numpy as np
 
 
 @pytest.fixture()
-def args1():
-    class Arguments(object):
-        def __init__(self):
-            self.input = 'correls.txt'
-            self.output = 'out_dir'
-            self.min_r = .5
-            self.min_p = None
-            self.table = 'table1.biom'
-            self.verbose = True
-    return Arguments()
-
-
-@pytest.fixture()
 def table():
     arr = np.array([[250,   0, 100, 446,   75],
                     [  0,   0,   1,   1,    2],
@@ -49,12 +36,12 @@ def correls():
 
 
 # integration test
-def test_within_correls_classic_correlation_min_r_min_sample(tmpdir, args1, correls, table):
+def test_within_correls_classic_correlation_min_r_min_sample(tmpdir, correls, table):
     loc = tmpdir.mkdir("with_correls_test")
     with biom_open(str(loc.join("table1.biom")), 'w') as f:
         table.to_hdf5(f, "madebyme")
     correls.to_csv(str(loc.join('correls.txt')), sep='\t')
     os.chdir(str(loc))
-    module_maker(args1)
+    module_maker('correls.txt', 'out_dir', min_r=.6)
     files = os.listdir(str(loc)+'/out_dir')
     assert "modules.txt" in files

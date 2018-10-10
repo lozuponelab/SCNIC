@@ -11,81 +11,82 @@ from SCNIC import general
 from SCNIC import correlation_analysis as ca
 
 
-def within_correls(args):
+def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=False, min_sample=None, procs=1,
+                   sparcc_p=1000, verbose=False):
     logger = general.Logger("SCNIC_within_log.txt")
     logger["SCNIC analysis type"] = "within"
 
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau, 'sparcc': 'sparcc'}
-    correl_method = correl_methods[args.correl_method.lower()]
+    correl_method = correl_methods[correl_method.lower()]
 
     # get features to be correlated
-    table = load_table(args.input)
-    logger["input table"] = args.input
-    if args.verbose:
+    table = load_table(input_loc)
+    logger["input table"] = input_loc
+    if verbose:
         print("Table loaded: " + str(table.shape[0]) + " observations")
         print("")
     logger["number of samples in input table"] = table.shape[1]
     logger["number of observations in input table"] = table.shape[0]
 
     # make new output directory and change to it
-    if args.output is not None:
-        if not os.path.isdir(args.output):
-            os.makedirs(args.output)
-        os.chdir(args.output)
+    if output_loc is not None:
+        if not os.path.isdir(output_loc):
+            os.makedirs(output_loc)
+        os.chdir(output_loc)
     logger["output directory"] = os.getcwd()
 
     # filter
-    if args.sparcc_filter is True:
+    if sparcc_filter is True:
         table_filt = general.sparcc_paper_filter(table)
-        if args.verbose:
+        if verbose:
             print("Table filtered: %s observations" % str(table_filt.shape[0]))
             print("")
         logger["sparcc paper filter"] = True
         logger["number of observations present after filter"] = table_filt.shape[0]
-    elif args.min_sample is not None:
-        table_filt = general.filter_table(table, args.min_sample)
-        if args.verbose:
+    elif min_sample is not None:
+        table_filt = general.filter_table(table, min_sample)
+        if verbose:
             print("Table filtered: %s observations" % str(table_filt.shape[0]))
             print("")
-        logger["min samples present"] = args.min_sample
+        logger["min samples present"] = min_sample
         logger["number of observations present after filter"] = table_filt.shape[0]
     else:
         table_filt = table
 
-    logger["number of processors used"] = args.procs
+    logger["number of processors used"] = procs
 
     # correlate features
     if correl_method in [spearmanr, pearsonr, kendalltau]:
         # calculate correlations
-        if args.verbose:
-            print("Correlating with %s" % args.correl_method)
+        if verbose:
+            print("Correlating with %s" % correl_method)
         # correlate feature
-        correls = ca.calculate_correlations(table_filt, correl_method, nprocs=args.procs)
+        correls = ca.calculate_correlations(table_filt, correl_method, nprocs=procs)
     elif correl_method == 'sparcc':
-        if args.sparcc_p is None:
-            correls = ca.fastspar_correlation(table_filt, verbose=args.verbose, nprocs=args.procs)
+        if sparcc_p is None:
+            correls = ca.fastspar_correlation(table_filt, verbose=verbose, nprocs=procs)
         else:
-            correls = ca.fastspar_correlation(table_filt, calc_pvalues=True, bootstraps=args.sparcc_p,
-                                              verbose=args.verbose, nprocs=args.procs)
+            correls = ca.fastspar_correlation(table_filt, calc_pvalues=True, bootstraps=sparcc_p,
+                                              verbose=verbose, nprocs=procs)
     else:
         raise ValueError("How did this even happen?")
-    logger["distance metric used"] = args.correl_method
-    if args.verbose:
+    logger["distance metric used"] = correl_method
+    if verbose:
         print("Features Correlated")
         print("")
 
     if 'p' in correls.columns:
         correls['p_adj'] = general.p_adjust(correls['p'])
     correls.to_csv('correls.txt', sep='\t', index_label=('feature1', 'feature2'))
-    if args.verbose:
+    if verbose:
         print("Correls.txt written")
 
     # make correlation network
     metadata = general.get_metadata_from_table(table_filt)
     net = general.correls_to_net(correls, metadata=metadata)
     nx.write_gml(net, 'correlation_network.gml')
-    if args.verbose:
+    if verbose:
         print("Network made")
         print("")
 

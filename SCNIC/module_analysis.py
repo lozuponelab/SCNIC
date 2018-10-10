@@ -7,6 +7,10 @@ import numpy as np
 from biom.table import Table
 from biom.util import biom_open
 import os
+import networkx as nx
+from collections import defaultdict
+
+from SCNIC import general
 
 
 def correls_to_cor(correls, metric='r'):
@@ -33,16 +37,26 @@ def cor_to_dist(cor):
     return 1 - ((cor + 1) / 2)
 
 
-def make_modules(dist, min_dist, obs_ids, prefix="module"):
+def make_modules_naive(correls, min_r=None, min_p=None, prefix="module"):
+    # read in correlations file and make distance matrix
+    if min_r is not None:
+        min_dist = cor_to_dist(min_r)
+        cor, labels = correls_to_cor(correls)
+        dist = cor_to_dist(cor)
+    elif min_p is not None:
+        # TODO: This
+        raise NotImplementedError('Making modules based on a p-value is not currently supported')
+    else:
+        raise ValueError("this is prevented above")
     # create linkage matrix using complete linkage
     z = complete(dist)
     # make tree from linkage matrix with names from dist
-    tree = TreeNode.from_linkage_matrix(z, obs_ids)
+    tree = TreeNode.from_linkage_matrix(z, labels)
     # get all tips so in the end we can check if we are done
     all_tips = len([i for i in tree.postorder() if i.is_tip()])
     modules = set()
     seen = set()
-    dist = pd.DataFrame(squareform(dist), index=obs_ids, columns=obs_ids)
+    dist = pd.DataFrame(squareform(dist), index=labels, columns=labels)
     for node in tree.levelorder():
         if node.is_tip():
             seen.add(node.name)
@@ -62,6 +76,45 @@ def make_modules(dist, min_dist, obs_ids, prefix="module"):
     raise ValueError("Well, how did I get here?")
 
 
+def make_modules_k_cliques(correls, min_r=None, min_p=None, k=3, prefix="module"):
+    correls_filt = general.filter_correls(correls, conet=True, min_p=min_p, min_r=min_r)
+    net = general.correls_to_net(correls_filt)
+    premodules = list(nx.algorithms.community.k_clique_communities(net, k))
+    # reverse modules so observations will be added to smallest modules
+    premodules = list(enumerate(premodules))
+    premodules.reverse()
+
+    modules = dict()
+    seen = set()
+    for i, module in premodules:
+        # process module
+        module = module-seen
+        seen = seen | module
+        modules[prefix+"_"+str(i)] = module
+        for node in module:
+            net.node[node][prefix] = i
+    return modules
+
+
+def make_modules_louvain(correls, min_r=None, min_p=None, gamma=.01, prefix="module"):
+    import community as louvain
+    correls_filt = general.filter_correls(correls, conet=True, min_p=min_p, min_r=min_r)
+    net = general.correls_to_net(correls_filt)
+    partition = louvain.best_partition(net, gamma)
+
+    premodules = defaultdict(list)
+    for otu, module in partition.items():
+        premodules[module].append(otu)
+    premodules = list(premodules.values())
+    premodules.sort(key=len, reverse=True)
+
+    modules = dict()
+    for i, otus in enumerate(premodules):
+        if len(otus) > 1:
+            modules['%s_%s' % (prefix, i)] = otus
+    return modules
+
+
 def collapse_modules(table, modules):
     """collapse created modules in a biom table, members of multiple modules will be added to the smallest module"""
     table = table.copy()
@@ -70,7 +123,7 @@ def collapse_modules(table, modules):
     seen = set()
     for module_, otus in modules.items():
         module_number = int(module_.split('_')[-1])
-        seen = seen | otus
+        seen = seen | set(otus)
         # sum everything in the module
         module_array[module_number] = np.sum([table.data(feature, axis="observation") for feature in otus], axis=0)
 
@@ -92,7 +145,7 @@ def write_modules_to_dir(table, modules):
             module_table.to_hdf5(f, 'SCNIC.module_analysis.write_modules_to_dir')
 
 
-def write_modules_to_file(modules, prefix="module", path_str='modules.txt'):
+def write_modules_to_file(modules, path_str='modules.txt'):
     # write all modules to file
     with open(path_str, 'w') as f:
         for module_, otus in modules.items():
@@ -106,9 +159,9 @@ def add_modules_to_metadata(modules, metadata):
     """
     for module_, otus in modules.items():
         for otu in otus:
-            try:
+            if str(otu) in metadata:
                 metadata[str(otu)]['module'] = module_
-            except KeyError:
+            else:
                 metadata[str(otu)] = dict()
                 metadata[str(otu)]['module'] = module_
     return metadata

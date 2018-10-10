@@ -48,7 +48,7 @@ def get_correlation_dicts(correls, modules_across_rs):
         for min_r, modules in modules_across_rs.items():
             module_member = 'None'
             module_three_plus_member = False
-            correlated = row.r > min_r
+            correlated = row.r >= min_r
             correlated_items[min_r].append(correlated)
             if correlated:
                 for module_name, otus in modules.items():  # check if otu pair is from a module

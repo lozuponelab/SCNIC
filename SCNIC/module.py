@@ -57,7 +57,7 @@ def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', 
     # collapse modules
     if table_loc is not None:
         table = load_table(table_loc)
-        logger["input uncollapsed table"] = table
+        logger["input uncollapsed table"] = table_loc
         if verbose:
             print("otu table read")
         coll_table = ma.collapse_modules(table, modules)

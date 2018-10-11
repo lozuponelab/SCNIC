@@ -39,7 +39,8 @@ def main():
     within_corr.set_defaults(func=within_correls)
 
     # parser for finding modules in a correlation network
-    make_modules.add_argument("-i", "--input_loc", help="location of input distance matrix", required=True)
+    make_modules.add_argument("-i", "--input_loc", help="location of output from SCNIC_analysis.py within",
+                              required=True)
     make_modules.add_argument("-o", "--output_loc", help="output directory")
     make_modules.add_argument("--min_p", help="minimum p-value to determine edges, p must have been calculated",
                               type=float)
@@ -51,7 +52,7 @@ def main():
     make_modules.add_argument("-g", "--gamma", help="gamma value for use with louvain modularity maximization, between "
                                                     "0 and 1 where 0 makes small modules and 1 large modules",
                               type=float, default=0.1)
-    make_modules.add_argument("--table", help="biom table used to make network to be collapsed")
+    make_modules.add_argument("--table_loc", help="biom table used to make network to be collapsed")
     make_modules.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
     make_modules.add_argument("-v", "--verbose", help="give verbose messages to STDOUT")
     make_modules.set_defaults(func=module_maker)

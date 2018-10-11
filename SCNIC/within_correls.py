@@ -1,6 +1,7 @@
 from __future__ import division
 
 import os
+from os import path
 
 import networkx as nx
 
@@ -13,7 +14,7 @@ from SCNIC import correlation_analysis as ca
 
 def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=False, min_sample=None, procs=1,
                    sparcc_p=1000, verbose=False):
-    logger = general.Logger("SCNIC_within_log.txt")
+    logger = general.Logger(path.join(output_loc, "SCNIC_within_log.txt"))
     logger["SCNIC analysis type"] = "within"
 
     # correlation and p-value adjustment methods
@@ -29,12 +30,11 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
     logger["number of samples in input table"] = table.shape[1]
     logger["number of observations in input table"] = table.shape[0]
 
-    # make new output directory and change to it
+    # make new output directory
     if output_loc is not None:
-        if not os.path.isdir(output_loc):
+        if not path.isdir(output_loc):
             os.makedirs(output_loc)
-        os.chdir(output_loc)
-    logger["output directory"] = os.getcwd()
+    logger["output directory"] = path.abspath(output_loc)
 
     # filter
     if sparcc_filter is True:
@@ -78,14 +78,14 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
 
     if 'p' in correls.columns:
         correls['p_adj'] = general.p_adjust(correls['p'])
-    correls.to_csv('correls.txt', sep='\t', index_label=('feature1', 'feature2'))
+    correls.to_csv(path.join(output_loc, 'correls.txt'), sep='\t', index_label=('feature1', 'feature2'))
     if verbose:
         print("Correls.txt written")
 
     # make correlation network
     metadata = general.get_metadata_from_table(table_filt)
     net = general.correls_to_net(correls, metadata=metadata)
-    nx.write_gml(net, 'correlation_network.gml')
+    nx.write_gml(net, path.join(output_loc, 'correlation_network.gml'))
     if verbose:
         print("Network made")
         print("")

@@ -3,6 +3,7 @@ Workflow script for finding correlations between pairs of biom tables, making ne
 modules.
 """
 import os
+from os import path
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr
 import networkx as nx
@@ -26,7 +27,7 @@ def spearmanr(x, y):
 def between_correls(table1, table2, output_loc, min_p=None, min_r=None, correl_method='spearman', sparcc_filter=False,
                     min_sample=None, p_adjust='fdr_bh', procs=1, force=False):
     """TABLES MUST SORT SO THAT SAMPLES ARE IN THE SAME ORDER """
-    logger = general.Logger("SCNIC_log.txt")
+    logger = general.Logger(path.join(output_loc, "SCNIC_log.txt"))
     logger["SCNIC analysis type"] = "between"
 
     # correlation and p-value adjustment methods
@@ -47,7 +48,6 @@ def between_correls(table1, table2, output_loc, min_p=None, min_r=None, correl_m
         shutil.rmtree(output_loc, ignore_errors=True)
     if output_loc is not None:
         os.makedirs(output_loc)
-        os.chdir(output_loc)
         logger["output directory"] = output_loc
 
     # filter tables
@@ -75,13 +75,13 @@ def between_correls(table1, table2, output_loc, min_p=None, min_r=None, correl_m
     correls = ca.between_correls_from_tables(table1, table2, correl_method, nprocs=procs)
     correls.sort_values(correls.columns[-1], inplace=True)
     correls['p_adj'] = general.p_adjust(correls['p'], method=p_adjust)
-    correls.to_csv(open('correls.txt', 'w'), sep='\t', index=True)
+    correls.to_csv(open(path.join(output_loc, 'correls.txt'), 'w'), sep='\t', index=True)
 
     # make network
     correls_filt = general.filter_correls(correls, min_p=min_p, min_r=min_r)
     net = general.correls_to_net(correls_filt, metadata=metadata)
     logger["number of nodes"] = net.number_of_nodes()
     logger["number of edges"] = net.number_of_edges()
-    nx.write_gml(net, 'crossnet.gml')
+    nx.write_gml(net, path.join(output_loc, 'crossnet.gml'))
 
     logger.output_log()

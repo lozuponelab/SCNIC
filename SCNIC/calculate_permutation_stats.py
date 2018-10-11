@@ -74,6 +74,8 @@ def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms):
             stats_df['pd_ko_adj_pvalue'] = p_adjust(stats_df.pd_ko_pvalue)
             stats_dfs.append(stats_df)
     stats_df = pd.concat(stats_dfs)
+    stats_df['pd_adj_pvalue_all'] = p_adjust(stats_df.pd_pvalue)
+    stats_df['pd_ko_adj_pvalue_all'] = p_adjust(stats_df.pd_ko_pvalue)
     print('\n')
     return stats_df
 

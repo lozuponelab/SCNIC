@@ -92,7 +92,7 @@ def stats(annotated_correls, modules_across_rs, frames):
 
 
 def test_get_stats(stats):
-    assert stats.shape == (1, 7)
+    assert stats.shape == (1, 9)
 
 
 def test_tabulate_stats(stats, modules_across_rs):

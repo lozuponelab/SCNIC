@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from biom import load_table
 from biom.util import biom_open
+from os import path
 import os
 import networkx as nx
 
@@ -13,9 +14,9 @@ from SCNIC import general
 from SCNIC import module_analysis as ma
 
 
-def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', k_size=3, gamma=.4, table=None, prefix='module',
-                 verbose=False):
-    logger = general.Logger("SCNIC_module_log.txt")
+def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', k_size=3, gamma=.4, table_loc=None,
+                 prefix='module', verbose=False):
+    logger = general.Logger(path.join(output_loc, "SCNIC_module_log.txt"))
     logger["SCNIC analysis type"] = "module"
 
     # read in correlations file
@@ -32,10 +33,9 @@ def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', 
 
     # make new output directory and change to it
     if output_loc is not None:
-        if not os.path.isdir(output_loc):
+        if not path.isdir(output_loc):
             os.makedirs(output_loc)
-        os.chdir(output_loc)
-    logger["output directory"] = os.getcwd()
+    logger["output directory"] = path.abspath(output_loc)
 
     # make modules
     if method == 'naive':
@@ -52,22 +52,22 @@ def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', 
         print("number of modules: %s" % len(modules))
         print("number of observations in modules: %s" % np.sum([len(i) for i in modules]))
         print("")
-    ma.write_modules_to_file(modules)
+    ma.write_modules_to_file(modules, path_str=path.join(output_loc, 'modules.txt'))
 
     # collapse modules
-    if table is not None:
-        table = load_table(table)
+    if table_loc is not None:
+        table = load_table(table_loc)
         logger["input uncollapsed table"] = table
         if verbose:
             print("otu table read")
         coll_table = ma.collapse_modules(table, modules)
-        ma.write_modules_to_dir(table, modules)
+        # ma.write_modules_to_dir(table, modules)
         logger["number of observations in output table"] = coll_table.shape[0]
         if verbose:
             print("Table Collapsed")
             print("collapsed Table Observations: " + str(coll_table.shape[0]))
             print("")
-        with biom_open('collapsed.biom', 'w') as f:
+        with biom_open(path.join(output_loc, 'collapsed.biom'), 'w') as f:
             coll_table.to_hdf5(f, 'make_modules.py')
         metadata = general.get_metadata_from_table(table)
     else:
@@ -78,7 +78,7 @@ def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', 
     correls_filter = general.filter_correls(correls, conet=True, min_p=min_p, min_r=min_r)
     net = general.correls_to_net(correls_filter, metadata=metadata)
 
-    nx.write_gml(net, 'correlation_network.gml')
+    nx.write_gml(net, path.join(output_loc, 'correlation_network.gml'))
     if verbose:
         print("Network Generated")
         print("number of nodes: %s" % str(net.number_of_nodes()))

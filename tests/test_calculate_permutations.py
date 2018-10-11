@@ -25,7 +25,7 @@ def modules_loc(tmpdir, modules):
 
 @pytest.fixture()
 def modules_across_rs(modules):
-    return {0.35: modules}
+    return {'minr_0.35': modules}
 
 
 @pytest.fixture()
@@ -35,7 +35,7 @@ def module_sizes(modules_across_rs):
 
 def test_get_module_sizes_across_rs(module_sizes):
     assert len(module_sizes) == 1
-    assert module_sizes[.35] == {2, 3}
+    assert module_sizes['minr_0.35'] == {2, 3}
 
 
 @pytest.fixture()
@@ -50,7 +50,8 @@ def annotated_correls():
              ('otu3', 'otu4'),
              ('otu3', 'otu5'),
              ('otu4', 'otu5')]
-    columns = ['r', 'PD', 'percent_shared', 'correlated_0.35', 'module_0.35', 'three_plus_0.35', 'residual_0.35']
+    columns = ['r', 'PD', 'percent_shared', 'correlated_minr_0.35', 'module_minr_0.35', 'three_plus_minr_0.35',
+               'residual_minr_0.35']
     data = [[.9, .001, 2/3,  True, 'module_0',  True, 1.549],
             [.9, .001,   1,  True, 'module_0',  True, 1.88233333334],
             [.1,  .99,   0, False,     'None',  True, -0.106666666663],
@@ -65,7 +66,7 @@ def annotated_correls():
 
 
 def test_perm(annotated_correls):
-    pd_stat, pd_ko_stat = perm(['otu1', 'otu2', 'otu5'], annotated_correls, 0.35)
+    pd_stat, pd_ko_stat = perm(['otu1', 'otu2', 'otu5'], annotated_correls, 'minr_0.35')
     assert_almost_equal(pd_stat, -1.5683439896662443)
     assert_almost_equal(pd_ko_stat, 1.5995043482002014)
 

@@ -4,7 +4,7 @@ from skbio import TreeNode
 from biom.table import Table
 from collections import defaultdict, OrderedDict
 from glob import glob
-from os.path import join
+from os import path
 from tqdm import tqdm
 from scipy.optimize import curve_fit
 
@@ -25,16 +25,15 @@ def genome_frame_to_table(genome_frame, otus_to_keep):
 def get_modules_across_rs(module_directory_loc, verbose=False):
     modules_across_rs = OrderedDict()
     for dir_ in sorted(glob(module_directory_loc)):
-        min_r = float(dir_.split('/')[-1][6:])
         min_r_modules = OrderedDict()
-        with open(join(dir_, 'modules.txt')) as f:
+        with open(path.join(dir_, 'modules.txt')) as f:
             for line in f.readlines():
                 line = line.split()
                 min_r_modules[line[0]] = line[1:]
-        modules_across_rs[min_r] = min_r_modules
+        modules_across_rs[path.basename(dir_)] = min_r_modules
         if verbose:
             print("There are %s modules with %s features with min R %s" %
-                  (len(min_r_modules), sum([len(i) for i in list(min_r_modules.values())]), min_r))
+                  (len(min_r_modules), sum([len(i) for i in list(min_r_modules.values())]), dir_))
     return modules_across_rs
 
 
@@ -48,7 +47,9 @@ def get_correlation_dicts(correls, modules_across_rs):
         for min_r, modules in modules_across_rs.items():
             module_member = 'None'
             module_three_plus_member = False
-            correlated = row.r >= min_r
+            params = min_r.split('_')
+            param_dict = {params[i]: float(params[i+1]) for i in range(0, len(params), 2)}
+            correlated = row.r >= param_dict['minr']
             correlated_items[min_r].append(correlated)
             if correlated:
                 for module_name, otus in modules.items():  # check if otu pair is from a module

@@ -24,7 +24,7 @@ def modules_loc(tmpdir, modules):
 
 @pytest.fixture()
 def modules_across_rs(modules):
-    return {0.35: modules}
+    return {'minr_0.35': modules}
 
 
 @pytest.fixture()
@@ -44,7 +44,8 @@ def annotated_correls():
              ('otu3', 'otu4'),
              ('otu3', 'otu5'),
              ('otu4', 'otu5')]
-    columns = ['r', 'PD', 'percent_shared', 'correlated_0.35', 'module_0.35', 'three_plus_0.35', 'residual_0.35']
+    columns = ['r', 'PD', 'percent_shared', 'correlated_minr_0.35', 'module_minr_0.35', 'three_plus_minr_0.35',
+               'residual_minr_0.35']
     data = [[.9, .001, 2/3,  True, 'module_0',  True, 1.549],
             [.9, .001,   1,  True, 'module_0',  True, 1.88233333334],
             [.1,  .99,   0, False,     'None',  True, -0.106666666663],
@@ -97,7 +98,7 @@ def test_get_stats(stats):
 
 def test_tabulate_stats(stats, modules_across_rs):
     tab_stats = tabulate_stats(stats, modules_across_rs, alphas=(.05, .1))
-    assert tab_stats.shape == (1, 11)
+    assert tab_stats.shape == (1, 12)
 
 
 def test_do_stats(correls_anno_loc, modules_loc, perms_loc):

@@ -7,6 +7,7 @@ from glob import glob
 from scipy.stats import mannwhitneyu, ttest_ind
 from tqdm import tqdm
 from os.path import join
+from collections import defaultdict
 
 from SCNIC.annotate_correls import get_modules_across_rs
 
@@ -46,7 +47,7 @@ def perm_ttest_ind(x, y, dist, alternative='two_sided'):
 
 def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms):
     stats_dfs = list()
-    min_rs = sorted([float(i.split('_')[-1]) for i in correls.columns if 'module_' in i])
+    min_rs = sorted(['_'.join(i.split('_')[1:]) for i in correls.columns if 'module_' in i])
 
     for min_r in tqdm(min_rs):
         # going through the modules
@@ -110,18 +111,24 @@ def tabulate_stats(stats, modules_across_rs, alphas=(.01, .05, .1, .15, .2)):
         med_pd_ko_pvalue.append(np.median(stats_min_r.pd_ko_adj_pvalue))
     tab_stats['med_pd_pvalue'] = med_pd_pvalue
     tab_stats['med_pd_ko_pvalue'] = med_pd_ko_pvalue
+    params_dict = defaultdict(list)
+    for min_r in tab_stats.index:
+        params = min_r.split('_')
+        for i in range(0, len(params), 2):
+            params_dict[params[i]].append(params[i + 1])
+    for param, values in params_dict.items():
+        tab_stats[param] = values
     return tab_stats
 
 
 def make_plots(stats, tab_stats, output_loc, alphas=(.01, .05, .1, .15, .2)):
     for alpha in alphas:
         # pd_plot
-        _ = sns.regplot(x='index', y='pd_percent_sig_%s' % alpha, data=tab_stats.reset_index(), fit_reg=False,
-                        scatter_kws={'s': tab_stats.module_count})
+        _ = sns.regplot(x='minr', y='pd_percent_sig_%s' % alpha, data=tab_stats, fit_reg=False, scatter_kws={'s': tab_stats.module_count})
         plt.savefig(join(output_loc, 'pd_sig_plot_%s.png' % alpha))
         plt.clf()
         # pd_ko_plot
-        _ = sns.regplot(x='index', y='pd_ko_percent_sig_%s' % alpha, data=tab_stats.reset_index(), fit_reg=False,
+        _ = sns.regplot(x='minr', y='pd_ko_percent_sig_%s' % alpha, data=tab_stats, fit_reg=False,
                         scatter_kws={'s': tab_stats.module_count})
         plt.savefig(join(output_loc, 'pd_ko_sig_plot_%s.png' % alpha))
         plt.clf()

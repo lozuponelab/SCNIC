@@ -26,15 +26,15 @@ def modules_loc(tmpdir, modules):
 
 @pytest.fixture()
 def modules_across_rs(modules):
-    return {0.35: modules}
+    return {'minr_0.35': modules}
 
 
 def test_get_modules_across_rs(modules_across_rs, modules_loc):
     test_modules_across_res = get_modules_across_rs(modules_loc)
     assert len(test_modules_across_res) == 1
-    assert len(test_modules_across_res[0.35])
-    assert len(test_modules_across_res[0.35]['module_0']) == 3
-    assert len(test_modules_across_res[0.35]['module_1']) == 2
+    assert len(test_modules_across_res['minr_0.35'])
+    assert len(test_modules_across_res['minr_0.35']['module_0']) == 3
+    assert len(test_modules_across_res['minr_0.35']['module_1']) == 2
 
 
 @pytest.fixture()
@@ -71,12 +71,12 @@ def correlation_dicts(correls, modules_across_rs):
 def test_get_correlation_dicts(correlation_dicts):
     correlated_items, modules_membership, module_three_plus = correlation_dicts
     assert len(correlated_items) == 1
-    assert sum(correlated_items[0.35]) == 4
+    assert sum(correlated_items['minr_0.35']) == 4
     assert len(modules_membership) == 1
-    assert modules_membership[0.35] == ['module_0', 'module_0', 'None', 'None', 'module_0',
+    assert modules_membership['minr_0.35'] == ['module_0', 'module_0', 'None', 'None', 'module_0',
                                         'None', 'None', 'None', 'None', 'module_1']
     assert len(module_three_plus) == 1
-    assert sum(module_three_plus[.35]) == 9
+    assert sum(module_three_plus['minr_0.35']) == 9
 
 
 @pytest.fixture()
@@ -141,7 +141,7 @@ def correlation_data():
              ('otu3', 'otu4'),
              ('otu3', 'otu5'),
              ('otu4', 'otu5')]
-    columns = ['correlated_0.35', 'module_0.35', 'three_plus_0.35']
+    columns = ['correlated_minr_0.35', 'module_minr_0.35', 'three_plus_minr_0.35']
     data = [[True, 'module_0',  True],
             [True, 'module_0',  True],
             [False,     'None',  True],
@@ -230,7 +230,7 @@ def residual_data(residuals):
              ('otu3', 'otu4'),
              ('otu3', 'otu5'),
              ('otu4', 'otu5')]
-    columns = ['residuals_0.35']
+    columns = ['residuals_minr_0.35']
     return pd.DataFrame(np.transpose(residuals), index=index, columns=columns)
 
 

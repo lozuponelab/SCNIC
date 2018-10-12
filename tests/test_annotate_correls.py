@@ -159,7 +159,7 @@ def test_annotate_correls(correls, correls_tip_tips, genome_table, correlation_d
     correlated_items, modules_membership, module_three_plus = correlation_dicts
     correls_anno = add_correlation_dicts(correls, correlated_items, modules_membership,
                                          module_three_plus)
-    assert len(correls_anno) == len(correls)
+    assert correls_anno.shape == correlation_data.shape
     pd.testing.assert_frame_equal(correlation_data, correls_anno, check_dtype=False)
 
 

@@ -51,14 +51,13 @@ def get_correlation_dicts(correls, modules_across_rs):
             param_dict = {params[i]: float(params[i+1]) for i in range(0, len(params), 2)}
             correlated = row.r >= param_dict['minr']
             correlated_items[min_r].append(correlated)
-            if correlated:
-                for module_name, otus in modules.items():  # check if otu pair is from a module
-                    if otu_pair[0] in otus and otu_pair[1] in otus:
-                        module_member = module_name
-                        if len(otus) >= 3:
-                            module_three_plus_member = True
-                        break
-            else:  # if not correlated include for not closed and in closed include if both are closed ref
+            for module_name, otus in modules.items():  # check if otu pair is from a module
+                if otu_pair[0] in otus and otu_pair[1] in otus:
+                    module_member = module_name
+                    if len(otus) >= 3:
+                        module_three_plus_member = True
+                    break
+            if module_member == 'None':
                 module_three_plus_member = True
             module_membership[min_r].append(module_member)
             module_three_plus[min_r].append(module_three_plus_member)

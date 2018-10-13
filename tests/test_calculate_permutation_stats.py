@@ -1,10 +1,16 @@
 import pytest
 
 from os import path
+import os
 from SCNIC.calculate_permutations import run_perms, get_module_sizes_across_rs
 import pandas as pd
 
 from SCNIC.calculate_permutation_stats import get_perms, get_stats, tabulate_stats, do_stats
+
+
+@pytest.fixture()
+def data_loc(tmpdir):
+    return tmpdir.mkdir('data')
 
 
 @pytest.fixture()
@@ -14,12 +20,13 @@ def modules():
 
 
 @pytest.fixture()
-def modules_loc(tmpdir, modules):
-    loc = tmpdir.mkdir('minr_0.35')
+def modules_loc(tmpdir, data_loc, modules):
+    loc = path.join(data_loc, 'minr_0.35')
+    os.mkdir(loc)
     with open(path.join(loc, 'modules.txt'), 'w') as f:
         for module, otus in modules.items():
             f.write('%s\t%s\n' % (module, '\t'.join(otus)))
-    return str(loc)
+    return path.join(data_loc, '*', 'modules.txt')
 
 
 @pytest.fixture()
@@ -60,10 +67,10 @@ def annotated_correls():
 
 
 @pytest.fixture()
-def perms_loc(annotated_correls, module_sizes, modules_loc):
-    run_perms(annotated_correls, 3, 1, module_sizes, modules_loc)
-    run_perms(annotated_correls, 3, 1, module_sizes, modules_loc)
-    return modules_loc
+def perms_loc(annotated_correls, module_sizes, data_loc):
+    run_perms(annotated_correls, 3, 1, module_sizes, data_loc)
+    run_perms(annotated_correls, 3, 1, module_sizes, data_loc)
+    return data_loc
 
 
 @pytest.fixture()
@@ -74,9 +81,9 @@ def frames(perms_loc):
 
 
 @pytest.fixture()
-def correls_anno_loc(annotated_correls, modules_loc):
-    annotated_correls.to_csv(path.join(modules_loc, 'correls_anno.txt'), sep='\t')
-    return path.join(modules_loc, 'correls_anno.txt')
+def correls_anno_loc(annotated_correls, data_loc):
+    annotated_correls.to_csv(path.join(data_loc, 'correls_anno.txt'), sep='\t')
+    return path.join(data_loc, 'correls_anno.txt')
 
 
 def test_get_perms(frames):
@@ -101,11 +108,11 @@ def test_tabulate_stats(stats, modules_across_rs):
     assert tab_stats.shape == (1, 12)
 
 
-def test_do_stats(correls_anno_loc, modules_loc, perms_loc):
-    do_stats(correls_anno_loc, modules_loc, perms_loc, modules_loc, alphas=(0.05,))
-    assert path.isfile(path.join(modules_loc, 'stats.txt'))
-    assert path.isfile(path.join(modules_loc, 'tab_stats.txt'))
-    assert path.isfile(path.join(modules_loc, 'pd_sig_plot_0.05.png'))
-    assert path.isfile(path.join(modules_loc, 'pd_ko_sig_plot_0.05.png'))
-    assert path.isfile(path.join(modules_loc, 'pd_pvalue_boxplots.png'))
-    assert path.isfile(path.join(modules_loc, 'pd_ko_pvalue_boxplots.png'))
+def test_do_stats(correls_anno_loc, modules_loc, perms_loc, data_loc):
+    do_stats(correls_anno_loc, modules_loc, perms_loc, data_loc, alphas=(0.05,))
+    assert path.isfile(path.join(data_loc, 'stats.txt'))
+    assert path.isfile(path.join(data_loc, 'tab_stats.txt'))
+    assert path.isfile(path.join(data_loc, 'pd_sig_plot_0.05.png'))
+    assert path.isfile(path.join(data_loc, 'pd_ko_sig_plot_0.05.png'))
+    assert path.isfile(path.join(data_loc, 'pd_pvalue_boxplots.png'))
+    assert path.isfile(path.join(data_loc, 'pd_ko_pvalue_boxplots.png'))

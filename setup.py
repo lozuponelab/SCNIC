@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-from glob import glob
 
 __author__ = 'shafferm'
 __version__ = '0.5.2'

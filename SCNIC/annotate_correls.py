@@ -22,18 +22,24 @@ def genome_frame_to_table(genome_frame, otus_to_keep):
     return genome_table
 
 
-def get_modules_across_rs(module_directory_loc, verbose=False):
+def get_modules(premodules):
+    modules = OrderedDict()
+    for line in premodules:
+        line = line.split()
+        modules[line[0]] = line[1:]
+    return modules
+
+
+def get_modules_across_rs(modules_loc, verbose=False):
     modules_across_rs = OrderedDict()
-    for dir_ in sorted(glob(module_directory_loc)):
-        min_r_modules = OrderedDict()
-        with open(path.join(dir_, 'modules.txt')) as f:
-            for line in f.readlines():
-                line = line.split()
-                min_r_modules[line[0]] = line[1:]
-        modules_across_rs[path.basename(dir_)] = min_r_modules
+    for module_loc in sorted(glob(modules_loc)):
+        with open(module_loc) as f:
+            key = module_loc.split('/')[-2]
+            modules_across_rs[key] = get_modules(f.readlines())
         if verbose:
             print("There are %s modules with %s features with min R %s" %
-                  (len(min_r_modules), sum([len(i) for i in list(min_r_modules.values())]), dir_))
+                  (len(modules_across_rs[key]),
+                   sum([len(i) for i in list(modules_across_rs[key])]), key))
     return modules_across_rs
 
 

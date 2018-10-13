@@ -1,11 +1,17 @@
 import pytest
 
 from os import path
+import os
 from glob import glob
 from numpy.testing import assert_almost_equal
 import pandas as pd
 
 from SCNIC.calculate_permutations import get_module_sizes_across_rs, perm, run_perms, do_multiprocessed_perms
+
+
+@pytest.fixture()
+def data_loc(tmpdir):
+    return tmpdir.mkdir('data')
 
 
 @pytest.fixture()
@@ -15,12 +21,13 @@ def modules():
 
 
 @pytest.fixture()
-def modules_loc(tmpdir, modules):
-    loc = tmpdir.mkdir('minr_0.35')
+def modules_loc(tmpdir, data_loc, modules):
+    loc = path.join(data_loc, 'minr_0.35')
+    os.mkdir(loc)
     with open(path.join(loc, 'modules.txt'), 'w') as f:
         for module, otus in modules.items():
             f.write('%s\t%s\n' % (module, '\t'.join(otus)))
-    return str(loc)
+    return path.join(data_loc, '*', 'modules.txt')
 
 
 @pytest.fixture()
@@ -72,10 +79,10 @@ def test_perm(annotated_correls):
 
 
 @pytest.fixture()
-def perms_loc(annotated_correls, module_sizes, modules_loc):
-    run_perms(annotated_correls, 3, 1, module_sizes, modules_loc)
-    run_perms(annotated_correls, 3, 1, module_sizes, modules_loc)
-    return modules_loc
+def perms_loc(annotated_correls, module_sizes, data_loc):
+    run_perms(annotated_correls, 3, 1, module_sizes, data_loc)
+    run_perms(annotated_correls, 3, 1, module_sizes, data_loc)
+    return data_loc
 
 
 def test_run_perms(perms_loc):
@@ -88,9 +95,9 @@ def test_run_perms(perms_loc):
 
 
 @pytest.fixture()
-def correls_anno_loc(annotated_correls, modules_loc):
-    annotated_correls.to_csv(path.join(modules_loc, 'correls_anno.txt'), sep='\t')
-    return path.join(modules_loc, 'correls_anno.txt')
+def correls_anno_loc(annotated_correls, data_loc):
+    annotated_correls.to_csv(path.join(data_loc, 'correls_anno.txt'), sep='\t')
+    return path.join(data_loc, 'correls_anno.txt')
 
 
 def test_do_multiprocessed_perms(correls_anno_loc, modules_loc, tmpdir):

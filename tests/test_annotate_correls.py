@@ -1,5 +1,6 @@
 import pytest
 from os import path
+import os
 import pandas as pd
 from biom.table import Table
 import numpy as np
@@ -16,12 +17,39 @@ def modules():
 
 
 @pytest.fixture()
-def modules_loc(tmpdir, modules):
-    loc = tmpdir.mkdir('minr_0.35')
+def modules1():
+    return {'module_0': ['otu_1', 'otu_3', 'otu_5']}
+
+
+@pytest.fixture()
+def modules_loc1(tmpdir, modules, modules1):
+    loc = tmpdir.mkdir('modules')
+    modules1_loc = path.join(loc, 'minr_0.35')
+    os.mkdir(modules1_loc)
+    with open(path.join(modules1_loc, 'modules.txt'), 'w') as f:
+        for module, otus in modules.items():
+            f.write('%s\t%s\n' % (module, '\t'.join(otus)))
+    modules2_loc = path.join(loc, 'minr_0.35_gamma_0.10')
+    os.mkdir(modules2_loc)
+    with open(path.join(modules2_loc, 'modules.txt'), 'w') as f:
+        for module, otus in modules1.items():
+            f.write('%s\t%s\n' % (module, '\t'.join(otus)))
+    return path.join(loc, '*', 'modules.txt')
+
+
+@pytest.fixture()
+def modules_loc(tmpdir, data_loc, modules):
+    loc = path.join(data_loc, 'minr_0.35')
+    os.mkdir(loc)
     with open(path.join(loc, 'modules.txt'), 'w') as f:
         for module, otus in modules.items():
             f.write('%s\t%s\n' % (module, '\t'.join(otus)))
-    return str(loc)
+    return path.join(data_loc, '*', 'modules.txt')
+
+
+@pytest.fixture()
+def data_loc(tmpdir):
+    return tmpdir.mkdir('data')
 
 
 @pytest.fixture()
@@ -29,12 +57,14 @@ def modules_across_rs(modules):
     return {'minr_0.35': modules}
 
 
-def test_get_modules_across_rs(modules_across_rs, modules_loc):
-    test_modules_across_res = get_modules_across_rs(modules_loc)
-    assert len(test_modules_across_res) == 1
-    assert len(test_modules_across_res['minr_0.35'])
+def test_get_modules_across_rs(modules_loc1):
+    test_modules_across_res = get_modules_across_rs(modules_loc1)
+    assert len(test_modules_across_res) == 2
+    assert 'minr_0.35' in test_modules_across_res
     assert len(test_modules_across_res['minr_0.35']['module_0']) == 3
     assert len(test_modules_across_res['minr_0.35']['module_1']) == 2
+    assert 'minr_0.35_gamma_0.10' in test_modules_across_res
+    assert len(test_modules_across_res['minr_0.35_gamma_0.10']['module_0']) == 3
 
 
 @pytest.fixture()
@@ -240,23 +270,23 @@ def test_get_residuals_across_rs(correlation_data, pd_ko_data, modules_across_rs
 
 
 @pytest.fixture()
-def correls_loc(modules_loc, correls):
-    correls.to_csv(path.join(modules_loc, 'correls.txt'), sep='\t')
-    return str(path.join(modules_loc, 'correls.txt'))
+def correls_loc(data_loc, correls):
+    correls.to_csv(path.join(data_loc, 'correls.txt'), sep='\t')
+    return str(path.join(data_loc, 'correls.txt'))
 
 
 @pytest.fixture()
-def tree_loc(modules_loc):
+def tree_loc(data_loc):
     tree = '(otu2:6.0,(otu1:5.0,otu3:3.0,otu4:4.0):5.0,otu5:11.0);'
-    with open(path.join(modules_loc, 'tree.nwk'), 'w') as f:
+    with open(path.join(data_loc, 'tree.nwk'), 'w') as f:
         f.write(tree)
-    return str(path.join(modules_loc, 'tree.nwk'))
+    return str(path.join(data_loc, 'tree.nwk'))
 
 
 @pytest.fixture()
-def genome_loc(genome_frame, modules_loc):
-    genome_frame.to_csv(path.join(modules_loc, 'genome_table.tsv'), sep='\t')
-    return str(path.join(modules_loc, 'genome_table.tsv'))
+def genome_loc(genome_frame, data_loc):
+    genome_frame.to_csv(path.join(data_loc, 'genome_table.tsv'), sep='\t')
+    return str(path.join(data_loc, 'genome_table.tsv'))
 
 
 @pytest.fixture()
@@ -265,14 +295,15 @@ def annotated_correls(correls, pd_ko_data, residual_data, correlation_data):
 
 
 @pytest.fixture()
-def correls_anno_loc(annotated_correls, modules_loc):
+def correls_anno_loc(annotated_correls, data_loc):
     annotated_correls.to_csv(path.join(modules_loc, 'correls_anno.txt'), sep='\t')
-    return path.join(modules_loc, 'correls_anno.txt')
+    return path.join(data_loc, 'correls_anno.txt')
 
 
-def test_do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc):
-    do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, path.join(modules_loc, 'test_correls_anno.txt'),
-                        simple_func)
-    assert path.isfile(path.join(modules_loc, 'test_correls_anno.txt'))
-    test_annotated_correls = pd.read_table(path.join(modules_loc, 'test_correls_anno.txt'), index_col=(0,1))
+def test_do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, tmpdir):
+    output_dir = tmpdir.mkdir('output')
+    output_loc = path.join(output_dir, 'test_correls_anno.txt')
+    do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, output_loc, simple_func)
+    assert path.isfile(output_loc)
+    test_annotated_correls = pd.read_table(output_loc, index_col=(0,1))
     assert test_annotated_correls.shape == (10, 7)

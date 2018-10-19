@@ -34,7 +34,8 @@ def calculate_correlation(data, corr_method=spearmanr):
     return (id_i, id_j), (r, p)
 
 
-def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_method: str = 'fdr_bh', nprocs=1) -> pd.DataFrame:
+def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_method: str = 'fdr_bh', nprocs=1) -> \
+        pd.DataFrame:
     if nprocs > multiprocessing.cpu_count():
         warnings.warn("nprocs greater than CPU count, using all avaliable CPUs")
         nprocs = multiprocessing.cpu_count()
@@ -47,7 +48,8 @@ def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_met
     pool.close()
     pool.join()
     correls = pd.DataFrame(data, index=index, columns=['r', 'p'])
-    correls.index = pd.MultiIndex.from_tuples(correls.index)  # Turn tuple index into actual multiindex
+    # Turn tuple index into actual multiindex, now guaranteeing that correls index is sorted
+    correls.index = pd.MultiIndex.from_tuples([sorted(i) for i in correls.index])
     if p_adjustment_method is not None:
         correls['p_adjusted'] = p_adjust(correls.p, method=p_adjustment_method)
     return correls
@@ -66,9 +68,7 @@ def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, 
                         path.join(temp, 'covar_table.tsv'), '-t', str(nprocs)],  stdout=stdout)
         cor = pd.read_table(path.join(temp, 'correl_table.tsv'), index_col=0)
         correls = df_to_correls(cor)
-        if not calc_pvalues:
-            return correls
-        else:
+        if calc_pvalues:
             subprocess.run(['fastspar_bootstrap', '-c', path.join(temp, 'otu_table.tsv'), '-n',
                             str(bootstraps), '-p', path.join(temp, 'boot'),
                             '-t', str(nprocs)], stdout=stdout)
@@ -84,7 +84,9 @@ def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, 
                             path.join(temp, 'pvalues.tsv')], stdout=stdout)
             pvals = pd.read_table(path.join(temp, 'pvalues.tsv'), index_col=0)
             pvals = df_to_correls(pvals, col_label='p')
-            return pd.concat([correls, pvals], axis=1, join='inner')
+            correls = pd.concat([correls, pvals], axis=1, join='inner')
+        correls.index = pd.MultiIndex.from_tuples([sorted(i) for i in correls.index])
+        return correls
 
 
 def between_correls_from_tables(table1, table2, correl_method=spearmanr, nprocs=1):

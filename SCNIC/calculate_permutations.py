@@ -47,11 +47,10 @@ def perm(random_module_otus, correls, min_r):
 
 
 def run_perms(correls, perms, procs, module_sizes, output_loc):
-    min_rs = sorted(['_'.join(i.split('_')[1:]) for i in correls.columns if 'module_' in i])
     current_milli_time = uuid.uuid4()
     all_otus = tuple(set([otu for pair in correls.index for otu in pair]))
     os.makedirs(output_loc, exist_ok=True)
-    for min_r in tqdm(min_rs):
+    for min_r in tqdm(module_sizes.keys()):
         # perms
         pd_stats_dict = dict()
         pd_ko_stats_dict = dict()

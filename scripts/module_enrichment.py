@@ -33,6 +33,7 @@ def main():
     run_perms.add_argument('--procs', type=int, default=4)
     run_perms.add_argument('--modules')
     run_perms.add_argument('--output')
+    run_perms.add_argument('--to_keep')
 
     # calculate statistics
     calc_stats.add_argument('--correls')
@@ -45,7 +46,7 @@ def main():
     if args.subparser_name == 'annotate':
         do_annotate_correls(args.correls, args.tree, args.genome, args.modules, args.output)
     elif args.subparser_name == 'perms':
-        do_multiprocessed_perms(args.correls, args.perms, args.procs, args.modules, args.output)
+        do_multiprocessed_perms(args.correls, args.perms, args.procs, args.modules, args.output, args.to_keep)
     elif args.subparser_name == 'stats':
         do_stats(args.correls, args.modules, args.perms, args.output)
     else:

@@ -102,6 +102,6 @@ def correls_anno_loc(annotated_correls, data_loc):
 
 def test_do_multiprocessed_perms(correls_anno_loc, modules_loc, tmpdir):
     loc = tmpdir.mkdir('test_multi')
-    do_multiprocessed_perms(correls_anno_loc, 3, 1, modules_loc, str(loc))
+    do_multiprocessed_perms(correls_anno_loc, 3, 1, modules_loc, str(loc), None)
     assert len(glob(path.join(loc, 'pd_stats_dict_*.txt'))) == 1
     assert len(glob(path.join(loc, 'pd_ko_stats_dict_*.txt'))) == 1

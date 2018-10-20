@@ -4,7 +4,6 @@ from skbio import TreeNode
 from biom.table import Table
 from collections import defaultdict, OrderedDict
 from glob import glob
-from os import path
 from tqdm import tqdm
 from scipy.optimize import curve_fit
 

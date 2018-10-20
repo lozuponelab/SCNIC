@@ -22,6 +22,14 @@ def get_module_sizes_across_rs(modules_across_rs):
     return module_sizes_across_rs
 
 
+def get_modules_to_keep(folders_to_keep_loc):
+    with open(folders_to_keep_loc) as f:
+        folders_to_keep = list()
+        for line in f:
+            folders_to_keep.append(line.strip())
+        return folders_to_keep
+
+
 def perm(random_module_otus, correls, min_r):
     pairs = list()
     for otu_i, otu_j in combinations(random_module_otus, 2):
@@ -68,8 +76,13 @@ def run_perms(correls, perms, procs, module_sizes, output_loc):
     print('\n')
 
 
-def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, output_loc):
+def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, output_loc, folders_to_keep_loc):
     modules_across_rs = get_modules_across_rs(modules_directory_loc)
+    print("%s modules found" % len(modules_across_rs))
+    if folders_to_keep_loc is not None:
+        modules_to_keep = get_modules_to_keep(folders_to_keep_loc)
+        modules_across_rs = {key: value for key, value in modules_across_rs.items() if key in modules_to_keep}
+        print("%s modules kept" % len(modules_across_rs))
     module_sizes_across_rs = get_module_sizes_across_rs(modules_across_rs)
     print("got module sizes")
     correls = pd.read_table(correls_loc, index_col=(0, 1))

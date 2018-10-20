@@ -32,11 +32,8 @@ def get_modules_to_keep(folders_to_keep_loc):
 
 def perm(random_module_otus, correls, min_r):
     pairs = list()
-    for otu_i, otu_j in combinations(random_module_otus, 2):
-        if (otu_i, otu_j) in correls.index:
-            pairs.append((otu_i, otu_j))
-        else:
-            pairs.append((otu_j, otu_i))
+    for pair in combinations(random_module_otus, 2):
+        pairs.append(tuple(sorted(pair)))
     random_module_correls = correls.loc[pairs]
     non_cor_correls = correls.loc[~correls['correlated_%s' % min_r]]
     # pd stuff
@@ -46,20 +43,33 @@ def perm(random_module_otus, correls, min_r):
     return pd_res, pd_ko_res
 
 
+def filter_correls(correls, to_keep):
+    cols_to_keep = list(correls.columns[:3])
+    for column in correls.columns[3:]:
+        if 'gamma' in column:
+            params = '_'.join(column.split('_')[-4:])
+        else:
+            params = '_'.join(column.split('_')[-2:])
+        if params in to_keep:
+            cols_to_keep.append(column)
+    return correls[cols_to_keep]
+
+
 def run_perms(correls, perms, procs, module_sizes, output_loc):
     current_milli_time = uuid.uuid4()
     all_otus = tuple(set([otu for pair in correls.index for otu in pair]))
     os.makedirs(output_loc, exist_ok=True)
     for min_r in tqdm(module_sizes.keys()):
         # perms
+        correls_perm = filter_correls(correls, min_r)
         pd_stats_dict = dict()
         pd_ko_stats_dict = dict()
         for size in tqdm(module_sizes[min_r]):
             if size < 3:
                 continue
             pool = Pool(processes=procs)
-            partial_func = partial(perm, correls=correls, min_r=min_r)
-            results = pool.map(partial_func, (np.random.choice(all_otus, size, replace=False) for i in range(perms)))
+            partial_func = partial(perm, correls=correls_perm, min_r=min_r)
+            results = pool.map(partial_func, (np.random.choice(all_otus, size, replace=False) for _ in range(perms)))
             pool.close()
             pool.join()
             pd_stats_dict[size] = np.array([i[0] for i in results])
@@ -85,6 +95,6 @@ def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, ou
     module_sizes_across_rs = get_module_sizes_across_rs(modules_across_rs)
     print("got module sizes")
     correls = pd.read_table(correls_loc, index_col=(0, 1))
-    correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
+    correls.index = pd.MultiIndex.from_tuples([tuple(sorted((str(i), str(j)))) for i, j in correls.index])
     print("read correls")
     run_perms(correls, perms, procs, module_sizes_across_rs, output_loc)

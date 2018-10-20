@@ -61,7 +61,7 @@ def run_perms(correls, perms, procs, module_sizes, output_loc):
     os.makedirs(output_loc, exist_ok=True)
     for min_r in tqdm(module_sizes.keys()):
         # perms
-        correls_perm = filter_correls(correls, min_r)
+        correls_perm = filter_correls(correls, (min_r,))
         pd_stats_dict = dict()
         pd_ko_stats_dict = dict()
         for size in tqdm(module_sizes[min_r]):
@@ -96,5 +96,7 @@ def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, ou
     print("got module sizes")
     correls = pd.read_table(correls_loc, index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([tuple(sorted((str(i), str(j)))) for i, j in correls.index])
+    if folders_to_keep_loc is not None:
+        correls = filter_correls(correls, modules_to_keep)
     print("read correls")
     run_perms(correls, perms, procs, module_sizes_across_rs, output_loc)

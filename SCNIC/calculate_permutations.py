@@ -85,7 +85,7 @@ def run_perms(correls, perms, procs, module_sizes, output_loc):
     print('\n')
 
 
-def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, output_loc, folders_to_keep_loc):
+def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, output_loc, folders_to_keep_loc=None):
     modules_across_rs = get_modules_across_rs(modules_directory_loc)
     print("%s modules found" % len(modules_across_rs))
     if folders_to_keep_loc is not None:

@@ -10,6 +10,7 @@ from os.path import join
 from collections import defaultdict
 
 from SCNIC.annotate_correls import get_modules_across_rs
+from SCNIC.calculate_permutations import get_modules_to_keep, filter_correls
 
 
 def p_adjust(pvalues, method='fdr_bh'):
@@ -47,9 +48,8 @@ def perm_ttest_ind(x, y, dist, alternative='two_sided'):
 
 def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms):
     stats_dfs = list()
-    min_rs = sorted(['_'.join(i.split('_')[1:]) for i in correls.columns if 'module_' in i])
 
-    for min_r in tqdm(min_rs):
+    for min_r in tqdm(modules_across_rs.keys()):
         # going through the modules
         stats_df_index = list()
         stats_df_data = list()
@@ -144,11 +144,17 @@ def make_plots(stats, tab_stats, output_loc, alphas=(.01, .05, .1, .15, .2)):
     plt.clf()
 
 
-def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, alphas=(.01, .05, .1, .15, .2)):
+def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, to_keep_loc=None, alphas=(.01, .05, .1, .15, .2)):
     correls = pd.read_table(correls_loc, index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
+    if to_keep_loc is not None:
+        modules_to_keep = get_modules_to_keep(to_keep_loc)
+        correls = filter_correls(correls, modules_to_keep)
     print('correls read')
     modules_across_rs = get_modules_across_rs(modules_directory_loc)
+    if to_keep_loc is not None:
+        modules_across_rs = {key: value for key, value in modules_across_rs.items() if key in modules_to_keep}
+    print("%s modules kept" % len(modules_across_rs))
     print('modules read')
     pd_perms = get_perms(join(perms_loc, 'pd_stats_dict_*.txt'))
     pd_ko_perms = get_perms(join(perms_loc, 'pd_ko_stats_dict_*.txt'))

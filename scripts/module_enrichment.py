@@ -26,6 +26,7 @@ def main():
     annotate_correls.add_argument('--genome')
     annotate_correls.add_argument('--modules')
     annotate_correls.add_argument('--output')
+    annotate_correls.add_argument('--to_keep')
 
     # run permutations multiprocessed
     run_perms.add_argument('--correls')

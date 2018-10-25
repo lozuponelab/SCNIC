@@ -9,8 +9,8 @@ from tqdm import tqdm
 from os.path import join
 from collections import defaultdict
 
-from SCNIC.annotate_correls import get_modules_across_rs
-from SCNIC.calculate_permutations import get_modules_to_keep, filter_correls
+from SCNIC.annotate_correls import get_modules_across_rs, get_modules_to_keep
+from SCNIC.calculate_permutations import filter_correls
 
 
 def p_adjust(pvalues, method='fdr_bh'):
@@ -64,7 +64,7 @@ def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms):
                                                     alternative='less')
                 # pd ko stats
                 pd_ko_stat, pd_ko_pvalue = perm_ttest_ind(frame['residual_%s' % min_r], non_cor['residual_%s' % min_r],
-                                           pd_ko_perms.loc[min_r, len(otus)], alternative='greater')
+                                                          pd_ko_perms.loc[min_r, len(otus)], alternative='greater')
                 # add to lists
                 stats_df_index.append('%s_%s' % (min_r, module))
                 stats_df_data.append((pd_stat, pd_pvalue, pd_ko_stat, pd_ko_pvalue, min_r))
@@ -124,7 +124,8 @@ def tabulate_stats(stats, modules_across_rs, alphas=(.01, .05, .1, .15, .2)):
 def make_plots(stats, tab_stats, output_loc, alphas=(.01, .05, .1, .15, .2)):
     for alpha in alphas:
         # pd_plot
-        _ = sns.regplot(x='minr', y='pd_percent_sig_%s' % alpha, data=tab_stats, fit_reg=False, scatter_kws={'s': tab_stats.module_count})
+        _ = sns.regplot(x='minr', y='pd_percent_sig_%s' % alpha, data=tab_stats, fit_reg=False,
+                        scatter_kws={'s': tab_stats.module_count})
         plt.savefig(join(output_loc, 'pd_sig_plot_%s.png' % alpha))
         plt.clf()
         # pd_ko_plot
@@ -137,23 +138,24 @@ def make_plots(stats, tab_stats, output_loc, alphas=(.01, .05, .1, .15, .2)):
     _ = sns.boxplot(x='r_level', y='pd_ko_adj_pvalue', data=stats, ax=ax)
     plt.savefig(join(output_loc, 'pd_ko_pvalue_boxplots.png'))
     plt.clf()
-    #pvalue boxplot pd
+    # pvalue boxplot pd
     fig, ax = plt.subplots(figsize=[13, 3])
     _ = sns.boxplot(x='r_level', y='pd_adj_pvalue', data=stats, ax=ax)
     plt.savefig(join(output_loc, 'pd_pvalue_boxplots.png'))
     plt.clf()
 
 
-def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, to_keep_loc=None, alphas=(.01, .05, .1, .15, .2)):
+def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, to_keep_loc=None,
+             alphas=(.01, .05, .1, .15, .2)):
     correls = pd.read_table(correls_loc, index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
     if to_keep_loc is not None:
         modules_to_keep = get_modules_to_keep(to_keep_loc)
         correls = filter_correls(correls, modules_to_keep)
+    else:
+        modules_to_keep = None
     print('correls read')
-    modules_across_rs = get_modules_across_rs(modules_directory_loc)
-    if to_keep_loc is not None:
-        modules_across_rs = {key: value for key, value in modules_across_rs.items() if key in modules_to_keep}
+    modules_across_rs = get_modules_across_rs(modules_directory_loc, modules_to_keep)
     print("%s modules kept" % len(modules_across_rs))
     print('modules read')
     pd_perms = get_perms(join(perms_loc, 'pd_stats_dict_*.txt'))

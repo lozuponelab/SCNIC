@@ -303,7 +303,7 @@ def correls_anno_loc(annotated_correls, data_loc):
 def test_do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, tmpdir):
     output_dir = tmpdir.mkdir('output')
     output_loc = path.join(output_dir, 'test_correls_anno.txt')
-    do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, output_loc, simple_func)
+    do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, output_loc, None, simple_func)
     assert path.isfile(output_loc)
     test_annotated_correls = pd.read_table(output_loc, index_col=(0,1))
     assert test_annotated_correls.shape == (10, 7)

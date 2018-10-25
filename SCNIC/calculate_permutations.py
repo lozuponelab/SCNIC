@@ -86,13 +86,13 @@ def run_perms(correls, perms, procs, module_sizes, output_loc):
 
 
 def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, output_loc, folders_to_keep_loc=None):
-    modules_across_rs = get_modules_across_rs(modules_directory_loc)
-    print("%s modules found" % len(modules_across_rs))
     if folders_to_keep_loc is not None:
         modules_to_keep = get_modules_to_keep(folders_to_keep_loc)
-        modules_across_rs = {key: value for key, value in modules_across_rs.items() if key in modules_to_keep}
-        print("%s modules kept" % len(modules_across_rs))
-    module_sizes_across_rs = get_module_sizes_across_rs(modules_across_rs)
+    else:
+        modules_to_keep = None
+    modules_across_rs = get_modules_across_rs(modules_directory_loc)
+    print("%s modules found" % len(modules_across_rs))
+    module_sizes_across_rs = get_module_sizes_across_rs(modules_across_rs,)
     print("got module sizes")
     correls = pd.read_table(correls_loc, index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([tuple(sorted((str(i), str(j)))) for i, j in correls.index])

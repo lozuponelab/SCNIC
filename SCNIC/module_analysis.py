@@ -53,7 +53,7 @@ def make_modules_naive(correls, min_r=None, min_p=None, prefix="module"):
     # make tree from linkage matrix with names from dist
     tree = TreeNode.from_linkage_matrix(z, labels)
     # get all tips so in the end we can check if we are done
-    all_tips = len([i for i in tree.postorder() if i.is_tip()])
+    all_tips = tree.count(tips=True)
     modules = set()
     seen = set()
     dist = pd.DataFrame(squareform(dist), index=labels, columns=labels)
@@ -61,7 +61,7 @@ def make_modules_naive(correls, min_r=None, min_p=None, prefix="module"):
         if node.is_tip():
             seen.add(node.name)
         else:
-            tip_names = frozenset((i.name for i in node.postorder() if i.is_tip()))
+            tip_names = frozenset((i.name for i in node.tips()))
             if tip_names.issubset(seen):
                 continue
             dists = (dist.loc[tip1, tip2] > min_dist for tip1, tip2 in combinations(tip_names, 2))

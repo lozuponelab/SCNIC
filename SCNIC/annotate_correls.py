@@ -22,14 +22,25 @@ def genome_frame_to_table(genome_frame, otus_to_keep):
 
 
 def get_modules(premodules):
+    """premodules is a list of strings for file like object where each line is a module, first value is module name
+    and subsequent values are observations in that module. All are separated by tabs.
+    """
     modules = OrderedDict()
     for line in premodules:
-        line = line.split()
+        line = line.strip().split('\t')
         modules[line[0]] = line[1:]
     return modules
 
 
-def get_modules_across_rs(modules_loc, verbose=False):
+def get_modules_to_keep(folders_to_keep_loc):
+    with open(folders_to_keep_loc) as f:
+        folders_to_keep = list()
+        for line in f:
+            folders_to_keep.append(line.strip())
+        return folders_to_keep
+
+
+def get_modules_across_rs(modules_loc, modules_to_keep=None, verbose=False):
     modules_across_rs = OrderedDict()
     for module_loc in sorted(glob(modules_loc)):
         with open(module_loc) as f:
@@ -39,6 +50,8 @@ def get_modules_across_rs(modules_loc, verbose=False):
             print("There are %s modules with %s features with min R %s" %
                   (len(modules_across_rs[key]),
                    sum([len(i) for i in list(modules_across_rs[key])]), key))
+    if modules_to_keep is not None:
+        modules_across_rs = {key: value for key, value in modules_across_rs.items() if key in modules_to_keep}
     return modules_across_rs
 
 
@@ -129,7 +142,8 @@ def get_residuals_across_rs(correlation_data, pd_ko_df, modules_across_rs, func)
     return new_df
 
 
-def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc, func=log_linear_func):
+def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc, modules_to_keep_loc=None,
+                        func=log_linear_func):
     correls = pd.read_table(correls_loc, index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
     print("read correls")
@@ -139,7 +153,11 @@ def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc
     genome_frame = pd.read_table(genome_loc, index_col=0)
     genome_table = genome_frame_to_table(genome_frame, set([otu for otu_pair in correls.index for otu in otu_pair]))
     print("read table")
-    modules_across_rs = get_modules_across_rs(module_loc)
+    if modules_to_keep_loc is not None:
+        modules_to_keep = get_modules_to_keep(modules_to_keep_loc)
+    else:
+        modules_to_keep = None
+    modules_across_rs = get_modules_across_rs(module_loc, modules_to_keep=modules_to_keep)
     print("read modules")
     correlated_items, module_membership, module_three_plus = get_correlation_dicts(correls, modules_across_rs)
     correlation_df = add_correlation_dicts(correls, correlated_items, module_membership,

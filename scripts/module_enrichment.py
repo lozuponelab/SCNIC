@@ -45,7 +45,7 @@ def main():
     args = parser.parse_args()
 
     if args.subparser_name == 'annotate':
-        do_annotate_correls(args.correls, args.tree, args.genome, args.modules, args.output)
+        do_annotate_correls(args.correls, args.tree, args.genome, args.modules, args.output, args.to_keep)
     elif args.subparser_name == 'perms':
         do_multiprocessed_perms(args.correls, args.perms, args.procs, args.modules, args.output, args.to_keep)
     elif args.subparser_name == 'stats':

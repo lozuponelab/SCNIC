@@ -128,10 +128,13 @@ def calc_residuals(actual_x, actual_y, popt, func):
 
 def get_residuals_across_rs(correlation_data, pd_ko_df, modules_across_rs, func):
     popt_across_rs = dict()
-    for min_r in modules_across_rs.keys():
+    for i, min_r in enumerate(modules_across_rs.keys()):
         noncor_correls = pd_ko_df[~correlation_data['correlated_%s' % min_r]]
-        popt = calc_popt(noncor_correls.PD, noncor_correls.percent_shared, func)
-        popt_across_rs[min_r] = popt
+        try:
+            popt = calc_popt(noncor_correls.PD, noncor_correls.percent_shared, func)
+            popt_across_rs[min_r] = popt
+        except RuntimeError:
+            raise RuntimeError('curve fit broke: %s, iter %s' % (min_r, i))
     new_df_columns = ['residual_%s' % min_r for min_r in modules_across_rs.keys()]
     new_df_data = list()
     for otu_pair, row in pd_ko_df.iterrows():

@@ -26,6 +26,7 @@ def main():
     annotate_correls.add_argument('--genome')
     annotate_correls.add_argument('--modules')
     annotate_correls.add_argument('--output')
+    annotate_correls.add_argument('--skip_kos')
     annotate_correls.add_argument('--to_keep')
 
     # run permutations multiprocessed
@@ -34,6 +35,7 @@ def main():
     run_perms.add_argument('--procs', type=int, default=4)
     run_perms.add_argument('--modules')
     run_perms.add_argument('--output')
+    run_perms.add_argument('--skip_kos')
     run_perms.add_argument('--to_keep')
 
     # calculate statistics
@@ -41,16 +43,19 @@ def main():
     calc_stats.add_argument('--modules')
     calc_stats.add_argument('--perms')
     calc_stats.add_argument('--output')
+    calc_stats.add_argument('--skip_kos')
     calc_stats.add_argument('--to_keep')
 
     args = parser.parse_args()
 
     if args.subparser_name == 'annotate':
-        do_annotate_correls(args.correls, args.tree, args.genome, args.modules, args.output, args.to_keep)
+        do_annotate_correls(args.correls, args.tree, args.genome, args.modules, args.output, args.skip_kos,
+                            args.to_keep)
     elif args.subparser_name == 'perms':
-        do_multiprocessed_perms(args.correls, args.perms, args.procs, args.modules, args.output, args.to_keep)
+        do_multiprocessed_perms(args.correls, args.perms, args.procs, args.modules, args.output, args.skip_kos,
+                                args.to_keep)
     elif args.subparser_name == 'stats':
-        do_stats(args.correls, args.modules, args.perms, args.output, args.to_keep)
+        do_stats(args.correls, args.modules, args.perms, args.output, args.skip_kos, args.to_keep)
     else:
         print('What the hell happened here?')
 

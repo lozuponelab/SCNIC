@@ -145,7 +145,7 @@ def get_residuals_across_rs(correlation_data, pd_ko_df, modules_across_rs, func)
     return new_df
 
 
-def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc, modules_to_keep_loc=None,
+def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc, skip_kos=False, modules_to_keep_loc=None,
                         func=log_linear_func):
     correls = pd.read_table(correls_loc, index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
@@ -168,7 +168,10 @@ def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc
     print("added correlation data")
     pd_ko_df = add_pd_ko_data(correls, correls_tip_tips, genome_table)
     print("added pd ko data")
-    residual_df = get_residuals_across_rs(correlation_df, pd_ko_df, modules_across_rs, func)
-    print("added residuals")
-    correls = pd.concat([correls, pd_ko_df, residual_df, correlation_df], axis=1)
+    if not skip_kos:
+        residual_df = get_residuals_across_rs(correlation_df, pd_ko_df, modules_across_rs, func)
+        print("added residuals")
+        correls = pd.concat([correls, pd_ko_df, residual_df, correlation_df], axis=1)
+    else:
+        correls = pd.concat([correls, pd_ko_df, correlation_df], axis=1)
     correls.to_csv(output_loc, sep='\t')

@@ -30,7 +30,7 @@ def get_modules_to_keep(folders_to_keep_loc):
         return folders_to_keep
 
 
-def perm(random_module_otus, correls, min_r):
+def perm(random_module_otus, correls, min_r, skip_ko=False):
     pairs = list()
     for pair in combinations(random_module_otus, 2):
         pairs.append(tuple(sorted(pair)))
@@ -38,9 +38,12 @@ def perm(random_module_otus, correls, min_r):
     non_cor_correls = correls.loc[~correls['correlated_%s' % min_r]]
     # pd stuff
     pd_res, _ = ttest_ind(random_module_correls.PD, non_cor_correls.PD)
-    # pd ko stuff
-    pd_ko_res, _ = ttest_ind(random_module_correls['residual_%s' % min_r], non_cor_correls['residual_%s' % min_r])
-    return pd_res, pd_ko_res
+    if skip_ko:
+        return pd_res
+    else:
+        # pd ko stuff
+        pd_ko_res, _ = ttest_ind(random_module_correls['residual_%s' % min_r], non_cor_correls['residual_%s' % min_r])
+        return pd_res, pd_ko_res
 
 
 def filter_correls(correls, to_keep):
@@ -55,7 +58,7 @@ def filter_correls(correls, to_keep):
     return correls[cols_to_keep]
 
 
-def run_perms(correls, perms, procs, module_sizes, output_loc):
+def run_perms(correls, perms, procs, module_sizes, output_loc, skip_ko=False):
     current_milli_time = uuid.uuid4()
     all_otus = tuple(set([otu for pair in correls.index for otu in pair]))
     os.makedirs(output_loc, exist_ok=True)
@@ -68,24 +71,28 @@ def run_perms(correls, perms, procs, module_sizes, output_loc):
             if size < 3:
                 continue
             pool = Pool(processes=procs)
-            partial_func = partial(perm, correls=correls_perm, min_r=min_r)
+            partial_func = partial(perm, correls=correls_perm, min_r=min_r, skip_ko=skip_ko)
             results = pool.map(partial_func, (np.random.choice(all_otus, size, replace=False) for _ in range(perms)))
             pool.close()
             pool.join()
-            pd_stats_dict[size] = np.array([i[0] for i in results])
-            pd_ko_stats_dict[size] = np.array([i[1] for i in results])
+            if skip_ko:
+                pd_stats_dict[size] = np.array(results)
+            else:
+                pd_stats_dict[size] = np.array([i[0] for i in results])
+                pd_ko_stats_dict[size] = np.array([i[1] for i in results])
 
         # print dict to file
         with open(join(output_loc, 'pd_stats_dict_%s.txt' % current_milli_time), 'a') as f:
             for key, values in pd_stats_dict.items():
                 f.write('%s\t%s\t%s\n' % (min_r, key, '\t'.join([str(i) for i in values])))
-        with open(join(output_loc, 'pd_ko_stats_dict_%s.txt' % current_milli_time), 'a') as f:
-            for key, values in pd_ko_stats_dict.items():
-                f.write('%s\t%s\t%s\n' % (min_r, key, '\t'.join([str(i) for i in values])))
+        if not skip_ko:
+            with open(join(output_loc, 'pd_ko_stats_dict_%s.txt' % current_milli_time), 'a') as f:
+                for key, values in pd_ko_stats_dict.items():
+                    f.write('%s\t%s\t%s\n' % (min_r, key, '\t'.join([str(i) for i in values])))
     print('\n')
 
 
-def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, output_loc, folders_to_keep_loc=None):
+def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, output_loc, skip_kos, folders_to_keep_loc=None):
     if folders_to_keep_loc is not None:
         modules_to_keep = get_modules_to_keep(folders_to_keep_loc)
     else:
@@ -99,4 +106,4 @@ def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, ou
     if folders_to_keep_loc is not None:
         correls = filter_correls(correls, modules_to_keep)
     print("read correls")
-    run_perms(correls, perms, procs, module_sizes_across_rs, output_loc)
+    run_perms(correls, perms, procs, module_sizes_across_rs, output_loc, skip_ko=skip_kos)

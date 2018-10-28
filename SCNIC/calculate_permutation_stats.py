@@ -46,7 +46,7 @@ def perm_ttest_ind(x, y, dist, alternative='two_sided'):
     return stat, pvalue
 
 
-def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms):
+def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms=None):
     stats_dfs = list()
 
     for min_r in tqdm(modules_across_rs.keys()):
@@ -62,9 +62,14 @@ def get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms):
                 # pd stats
                 pd_stat, pd_pvalue = perm_ttest_ind(frame.PD, non_cor.PD, pd_perms.loc[min_r, len(otus)],
                                                     alternative='less')
-                # pd ko stats
-                pd_ko_stat, pd_ko_pvalue = perm_ttest_ind(frame['residual_%s' % min_r], non_cor['residual_%s' % min_r],
-                                                          pd_ko_perms.loc[min_r, len(otus)], alternative='greater')
+                if pd_ko_perms is not None:
+                    # pd ko stats
+                    pd_ko_stat, pd_ko_pvalue = perm_ttest_ind(frame['residual_%s' % min_r],
+                                                              non_cor['residual_%s' % min_r],
+                                                              pd_ko_perms.loc[min_r, len(otus)], alternative='greater')
+                else:
+                    pd_ko_stat = None
+                    pd_ko_pvalue = None
                 # add to lists
                 stats_df_index.append('%s_%s' % (min_r, module))
                 stats_df_data.append((pd_stat, pd_pvalue, pd_ko_stat, pd_ko_pvalue, min_r))
@@ -145,7 +150,7 @@ def make_plots(stats, tab_stats, output_loc, alphas=(.01, .05, .1, .15, .2)):
     plt.clf()
 
 
-def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, to_keep_loc=None,
+def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, skip_kos=False, to_keep_loc=None,
              alphas=(.01, .05, .1, .15, .2)):
     correls = pd.read_table(correls_loc, index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
@@ -159,7 +164,10 @@ def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, to_keep_
     print("%s modules kept" % len(modules_across_rs))
     print('modules read')
     pd_perms = get_perms(join(perms_loc, 'pd_stats_dict_*.txt'))
-    pd_ko_perms = get_perms(join(perms_loc, 'pd_ko_stats_dict_*.txt'))
+    if skip_kos:
+        pd_ko_perms = None
+    else:
+        pd_ko_perms = get_perms(join(perms_loc, 'pd_ko_stats_dict_*.txt'))
     print('perms read')
     stats = get_stats(correls, modules_across_rs, pd_perms, pd_ko_perms)
     stats.to_csv(join(output_loc, 'stats.txt'), sep='\t')

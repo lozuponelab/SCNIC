@@ -92,7 +92,8 @@ def run_perms(correls, perms, procs, module_sizes, output_loc, skip_ko=False):
     print('\n')
 
 
-def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, output_loc, skip_kos, folders_to_keep_loc=None):
+def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, output_loc, skip_kos,
+                            folders_to_keep_loc=None):
     if folders_to_keep_loc is not None:
         modules_to_keep = get_modules_to_keep(folders_to_keep_loc)
     else:

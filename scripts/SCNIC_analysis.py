@@ -29,8 +29,6 @@ def main():
     within_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
     within_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
     within_corr.add_argument("--procs", help="number of processors to use", default=1, type=int)
-    within_corr.add_argument("-f", "--force", help="force overwrite output folder if it already exists", default=False,
-                             action="store_true")
     within_corr.add_argument("--sparcc_filter", help="filter as described in SparCC paper", default=False,
                              action="store_true")
     within_corr.add_argument("--sparcc_p", help="Calculate p-value for sparCC R value, give number of bootstraps",

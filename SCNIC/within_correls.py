@@ -13,7 +13,7 @@ from SCNIC import correlation_analysis as ca
 
 
 def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=False, min_sample=None, procs=1,
-                   sparcc_p=1000, verbose=False):
+                   sparcc_p=1000, p_adjust='fdr_bh', verbose=False):
     logger = general.Logger(path.join(output_loc, "SCNIC_within_log.txt"))
     logger["SCNIC analysis type"] = "within"
 
@@ -68,7 +68,7 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
             correls = ca.fastspar_correlation(table_filt, verbose=verbose, nprocs=procs)
         else:
             correls = ca.fastspar_correlation(table_filt, calc_pvalues=True, bootstraps=sparcc_p,
-                                              verbose=verbose, nprocs=procs)
+                                              verbose=verbose, nprocs=procs, p_adjust_method=p_adjust)
     else:
         raise ValueError("How did this even happen?")
     logger["distance metric used"] = correl_method

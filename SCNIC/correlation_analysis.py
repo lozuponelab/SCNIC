@@ -55,8 +55,8 @@ def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_met
     return correls
 
 
-def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, bootstraps=1000, nprocs=1) \
-                         -> pd.DataFrame:
+def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, bootstraps=1000, nprocs=1,
+                         p_adjust_method='fdr_bh') -> pd.DataFrame:
     with tempfile.TemporaryDirectory(prefix='fastspar') as temp:
         table.to_dataframe().to_dense().to_csv(path.join(temp, 'otu_table.tsv'), sep='\t', index_label='#OTU ID')
         if verbose:
@@ -85,6 +85,7 @@ def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, 
             pvals = pd.read_table(path.join(temp, 'pvalues.tsv'), index_col=0)
             pvals = df_to_correls(pvals, col_label='p')
             correls = pd.concat([correls, pvals], axis=1, join='inner')
+            correls['p_adjusted'] = p_adjust(correls.p, p_adjust_method)
         correls.index = pd.MultiIndex.from_tuples([sorted(i) for i in correls.index])
         return correls
 

@@ -77,7 +77,7 @@ def test_fastspar_correlation(fastspar_table, correls_spar):
     assert len(correls.columns) == 1
     assert_allclose(correls.values, correls_spar.values, atol=.1)
     correls_p = fastspar_correlation(fastspar_table, calc_pvalues=True, bootstraps=2)
-    assert len(correls_p.columns) == 2
+    assert len(correls_p.columns) == 3
 
 
 def test_between_correls_from_tables_single(biom_table1, biom_table2):

@@ -16,6 +16,12 @@ from SCNIC.general import p_adjust
 _spearmanr = spearmanr
 
 
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
 def spearmanr(x, y):
     return _spearmanr(x, y)
 
@@ -69,14 +75,14 @@ def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, 
         cor = pd.read_table(path.join(temp, 'correl_table.tsv'), index_col=0)
         correls = df_to_correls(cor)
         if calc_pvalues:
-            subprocess.run(['fastspar_bootstrap', '-c', path.join(temp, 'otu_table.tsv'), '-n',
-                            str(bootstraps), '-p', path.join(temp, 'boot'),
-                            '-t', str(nprocs)], stdout=stdout)
+            subprocess.run(['fastspar_bootstrap', '-c', path.join(temp, 'otu_table.tsv'), '-n', str(bootstraps),
+                            '-p', path.join(temp, 'boot'), '-t', str(nprocs)], stdout=stdout)
             # infer correlations for each bootstrap count using all available processes
-            # TODO specify number of dedicated processes
-            subprocess.run(['parallel', '-j', str(nprocs), 'fastspar', '-c', '{}', '-r',
-                            path.join(temp, 'cor_{/}'), '-a', path.join(temp, 'cov_{/}'), '-i', str(5),
-                            ':::'] + glob(path.join(temp, 'boot*')), stdout=stdout)
+            # run in chunks to not overload argmax
+            for chunk in chunks(glob(path.join(temp, 'boot*')), 5000):
+                subprocess.run(['parallel', '-j', str(nprocs), 'fastspar', '--otu_table', '{}', '-r',
+                                path.join(temp, 'cor_{/}'), '-a', path.join(temp, 'cov_{/}'), ':::'] +
+                               chunk, stdout=stdout)
             # caluculate p_values for correlation table
             subprocess.run(['fastspar_exactpvalues', '-c', path.join(temp, 'otu_table.tsv'), '-r',
                             path.join(temp, 'correl_table.tsv'), '-p', path.join(temp, 'cor_boot'),

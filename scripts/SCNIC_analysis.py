@@ -26,7 +26,7 @@ def main():
     within_corr.add_argument("-i", "--input_loc", help="location of input biom file", required=True)
     within_corr.add_argument("-o", "--output_loc", help="output directory")
     within_corr.add_argument("-m", "--correl_method", help="correlation method", default="sparcc")
-    within_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
+    within_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="fdr_bh")
     within_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
     within_corr.add_argument("--procs", help="number of processors to use", default=1, type=int)
     within_corr.add_argument("--sparcc_filter", help="filter as described in SparCC paper", default=False,

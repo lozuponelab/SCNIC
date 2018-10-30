@@ -7,8 +7,9 @@ import subprocess
 from itertools import combinations
 import tempfile
 from os import path
-from glob import glob
 import multiprocessing
+from concurrent.futures import ThreadPoolExecutor
+from glob import glob
 
 from SCNIC.general import p_adjust
 
@@ -61,6 +62,11 @@ def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_met
     return correls
 
 
+def run_fastspar(otu_table_loc, correl_table_loc, covar_table_loc, stdout=None, nprocs=1):
+    subprocess.run(['fastspar', '-c', otu_table_loc, '-r',correl_table_loc, '-a',
+                    covar_table_loc, '-t', str(nprocs)], stdout=stdout)
+
+
 def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, bootstraps=1000, nprocs=1,
                          p_adjust_method='fdr_bh') -> pd.DataFrame:
     with tempfile.TemporaryDirectory(prefix='fastspar') as temp:
@@ -69,25 +75,22 @@ def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, 
             stdout = None
         else:
             stdout = subprocess.DEVNULL
-        subprocess.run(['fastspar', '-c',  path.join(temp, 'otu_table.tsv'), '-r',
-                        path.join(temp, path.join(temp, 'correl_table.tsv')), '-a',
-                        path.join(temp, 'covar_table.tsv'), '-t', str(nprocs)],  stdout=stdout)
+        run_fastspar(path.join(temp, 'otu_table.tsv'), path.join(temp, path.join(temp, 'correl_table.tsv')),
+                     path.join(temp, 'covar_table.tsv'), stdout, nprocs)
         cor = pd.read_table(path.join(temp, 'correl_table.tsv'), index_col=0)
         correls = df_to_correls(cor)
         if calc_pvalues:
             subprocess.run(['fastspar_bootstrap', '-c', path.join(temp, 'otu_table.tsv'), '-n', str(bootstraps),
                             '-p', path.join(temp, 'boot'), '-t', str(nprocs)], stdout=stdout)
             # infer correlations for each bootstrap count using all available processes
-            # run in chunks to not overload argmax
-            for chunk in chunks(glob(path.join(temp, 'boot*')), 5000):
-                subprocess.run(['parallel', '-j', str(nprocs), 'fastspar', '--otu_table', '{}', '-r',
-                                path.join(temp, 'cor_{/}'), '-a', path.join(temp, 'cov_{/}'), ':::'] +
-                               chunk, stdout=stdout)
-            # caluculate p_values for correlation table
+            with ThreadPoolExecutor(max_workers=nprocs) as executor:
+                for i in glob((path.join(temp, 'boot*'))):
+                    executor.submit(run_fastspar, i, i.replace('boot', 'cor_boot'), i.replace('boot', 'cov_boot'))
+            # calculate p_values for correlation table
             subprocess.run(['fastspar_exactpvalues', '-c', path.join(temp, 'otu_table.tsv'), '-r',
                             path.join(temp, 'correl_table.tsv'), '-p', path.join(temp, 'cor_boot'),
-                            '-t', str(nprocs), '-n', str(bootstraps), '-o',
-                            path.join(temp, 'pvalues.tsv')], stdout=stdout)
+                            '-t', str(nprocs), '-n', str(bootstraps), '-o', path.join(temp, 'pvalues.tsv')],
+                           stdout=stdout)
             pvals = pd.read_table(path.join(temp, 'pvalues.tsv'), index_col=0)
             pvals = df_to_correls(pvals, col_label='p')
             correls = pd.concat([correls, pvals], axis=1, join='inner')

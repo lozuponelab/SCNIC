@@ -68,7 +68,7 @@ def calculate_correlations(table: Table, corr_method=spearmanr, p_adjust_method:
 
 def run_fastspar(otu_table_loc, correl_table_loc, covar_table_loc, stdout=None, nprocs=1):
     subprocess.run(['fastspar', '-c', otu_table_loc, '-r',correl_table_loc, '-a',
-                    covar_table_loc, '-t', str(nprocs)], stdout=stdout)
+                    covar_table_loc, '-t', str(nprocs)], stdout=stdout, check=True)
 
 
 def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, bootstraps=1000, nprocs=1,

@@ -62,7 +62,7 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
         if verbose:
             print("Correlating with %s" % correl_method)
         # correlate feature
-        correls = ca.calculate_correlations(table_filt, correl_method, nprocs=procs)
+        correls = ca.calculate_correlations(table_filt, correl_method, nprocs=procs, p_adjust_method=p_adjust)
     elif correl_method == 'sparcc':
         if sparcc_p is None:
             correls = ca.fastspar_correlation(table_filt, verbose=verbose, nprocs=procs)
@@ -76,8 +76,6 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
         print("Features Correlated")
         print("")
 
-    if 'p' in correls.columns:
-        correls['p_adj'] = general.p_adjust(correls['p'])
     correls.to_csv(path.join(output_loc, 'correls.txt'), sep='\t', index_label=('feature1', 'feature2'))
     if verbose:
         print("Correls.txt written")

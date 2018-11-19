@@ -35,13 +35,17 @@ def df_to_correls(cor, col_label='r'):
     return correls
 
 
+def pairwise_iter_wo_metadata(pairwise_iter):
+    for (val_i, id_i, _), (val_j, id_j, _) in pairwise_iter:
+        yield ((val_i, id_i), (val_j, id_j))
+
 def calculate_correlation(data, corr_method=spearmanr):
-    (val_i, id_i, _), (val_j, id_j, _) = data
+    (val_i, id_i), (val_j, id_j) = data
     r, p = corr_method(val_i, val_j)
     return (id_i, id_j), (r, p)
 
 
-def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_method: str = 'fdr_bh', nprocs=1) -> \
+def calculate_correlations(table: Table, corr_method=spearmanr, p_adjust_method: str = 'fdr_bh', nprocs=1) -> \
         pd.DataFrame:
     if nprocs > multiprocessing.cpu_count():
         warnings.warn("nprocs greater than CPU count, using all avaliable CPUs")
@@ -49,7 +53,7 @@ def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_met
 
     pool = multiprocessing.Pool(nprocs)
     cor = partial(calculate_correlation, corr_method=corr_method)
-    results = pool.map(cor, table.iter_pairwise(axis='observation'))
+    results = pool.map(cor, pairwise_iter_wo_metadata(table.iter_pairwise(axis='observation')))
     index = [i[0] for i in results]
     data = [i[1] for i in results]
     pool.close()
@@ -57,8 +61,8 @@ def calculate_correlations(table: Table, corr_method=spearmanr, p_adjustment_met
     correls = pd.DataFrame(data, index=index, columns=['r', 'p'])
     # Turn tuple index into actual multiindex, now guaranteeing that correls index is sorted
     correls.index = pd.MultiIndex.from_tuples([sorted(i) for i in correls.index])
-    if p_adjustment_method is not None:
-        correls['p_adjusted'] = p_adjust(correls.p, method=p_adjustment_method)
+    if p_adjust_method is not None:
+        correls['p_adjusted'] = p_adjust(correls.p, method=p_adjust_method)
     return correls
 
 

@@ -60,9 +60,9 @@ def main():
     between_corr.add_argument("-2", "--table2", help="second table to be correlated", required=True)
     between_corr.add_argument("-o", "--output_loc", help="output file location")
     between_corr.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
-    between_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="bh")
+    between_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="fdr_bh")
     between_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
-    between_corr.add_argument("--min_p", help="minimum p-value to determine edges", type=float)
+    between_corr.add_argument("--max_p", help="minimum p-value to determine edges", type=float)
     between_corr.add_argument("--min_r", help="minimum R to determine edges", type=float)
     between_corr.add_argument("--sparcc_filter", help="filter using parameters from SparCC publication", default=False,
                               action="store_true")

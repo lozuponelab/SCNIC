@@ -37,13 +37,13 @@ def cor_to_dist(cor):
     return 1 - ((cor + 1) / 2)
 
 
-def make_modules_naive(correls, min_r=None, min_p=None, prefix="module"):
+def make_modules_naive(correls, min_r=None, max_p=None, prefix="module"):
     # read in correlations file and make distance matrix
     if min_r is not None:
         min_dist = cor_to_dist(min_r)
         cor, labels = correls_to_cor(correls)
         dist = cor_to_dist(cor)
-    elif min_p is not None:
+    elif max_p is not None:
         # TODO: This
         raise NotImplementedError('Making modules based on a p-value is not currently supported')
     else:

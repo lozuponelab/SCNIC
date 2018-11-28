@@ -16,7 +16,7 @@ before_install:
 - conda config --add channels conda-forge
 - conda info -a
 install:
-- conda create -n test-env pytest pytest-cov coveralls networkx>=2 fastspar pandas numpy scipy biom-format pandas scikit-bio statsmodels h5py pytest-runner tqdm matplotlib seaborn
+- conda create -n test-env pytest pytest-cov coveralls networkx>=2 fastspar 'armadillo<9' pandas numpy scipy biom-format pandas scikit-bio statsmodels h5py pytest-runner tqdm matplotlib seaborn
 - source activate test-env
 - pip install --no-cache-dir --editable .
 script:

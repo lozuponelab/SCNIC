@@ -2,7 +2,6 @@ language: python
 python:
 - '3.5'
 - '3.6'
-#- '3.7'
 cache: pip
 before_install:
 - wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O
@@ -16,8 +15,9 @@ before_install:
 - conda config --add channels conda-forge
 - conda info -a
 install:
-#- conda create -n test-env pytest pytest-cov coveralls networkx>=2 fastspar>=0.0.7 pandas numpy scipy biom-format pandas scikit-bio statsmodels h5py pytest-runner tqdm matplotlib seaborn
-- conda create -n test-env pytest pytest-cov coveralls networkx>=2 'fastspar<=0.0.6' 'armadillo<9' pandas numpy scipy biom-format pandas scikit-bio statsmodels h5py pytest-runner tqdm matplotlib seaborn
+- conda create -n test-env pytest pytest-cov coveralls networkx>=2 'fastspar<=0.0.6'
+  'armadillo<9' pandas numpy scipy biom-format pandas scikit-bio statsmodels h5py
+  pytest-runner tqdm matplotlib seaborn
 - source activate test-env
 - pip install --no-cache-dir --editable .
 script:
@@ -29,9 +29,9 @@ deploy:
   provider: pypi
   skip_existing: true
   user: michael.shaffer
-  password:
-    secure: c3VJZlfhn3XVwEyMrU8i4lYkhrGNLXQHekLX4iV81Waodq3P+JSgzzWqedMcXeTlZx9eP5NIDsRiMLulLOAfvatuwkvsaGKw2Z7ZZgsI9YLFpmFF8pT4H/5bFn8a8FqVka5ohBnTi/43XeLURa6uujz9v9C0H4uRyQD4dx2hG+PYtHtLLlm4OLqoMV26kcy9yeA445MYziXDm+U1Q5eN+s9l4OwYrv7bIcmHA0l5UbWHH9L9WOrIOWViX7JpTl1LKWJbkcaJwar7C5VLjwzBzoIZvQlfCzs/KpdQUbZL0j/w2IWAL1xIutskqqn6dQoXaRL8Z+GKsj6LQ7RrC8dc5g0Hm6VBkYt7pXMYSt7S9GOsSqyoMT4lzkSFrnfd/zFvXCKymZKHgCS9J31yDOmwAP/nHyrP9w0GTn47OH/nmOo7uxDGY6LhMP+u1NFD9Z++PQNsgA1epDLYHLAi36SFdSzAeGJo5Fep3dWWpc2IydRHR5wNX+pu7IQKkGBqUMYwJ8fi6994snbIMW8f01Zrtuy2AzpexL/Pz0JGgrjxZ7EcDaYPwZO4/rZ2pGSOCYV0QSP8JF+02svkKQP/UelewjKNpyZnrcEbi2y46oRqd/KlAnhQrLLgUjaJuIDSYHs9A25F7gQ64mfNs9bBmnw62Jo3AnmxvkBkk+epXm1sXR8=
   on:
     tags: true
     distributions: sdist bdist_wheel
     repo: shafferm/SCNIC
+  password:
+    secure: QEK8nsJtOJo2lvpVSxCX54gscFks5OCHGARbrY1KGGihvTMAyOr9wTqcnKnz6B2Zdvrz2XMKss4FaBlfo9izKCkCtALz/6QrlpgL2H2twYwDtUSVJ8rDw5j0k2JOiX6qyuklMmGTkbTXH3lEl5SNDmUtU1DUA1YUJfr/urC7BMmR6k8QZdb6/mPWEIOUG2bzcZsSxtk3Cj5o30b3OFR4Fmpt5K0L/SxYa0VBSzKfjhS/BId7X2fQtdFtVAAfqpAdE3NSGcMPgRNT3JAv4Nqei1ePzObrsEn7diOtTPusVJlDt/DEE7oTsJUi5ZedpeHCeahBLeDjaLS8unkORlU9QAjHVbN4ibMGonDaivgwDE1xHn4pRV3QVLup3Qsru/U6C+KInT3QjrEeSgLsz+HL4SmZN0wx+x6ZnkjxufzEJKxq5p/z1Ai/fci+OiVUOFdXYIqxhlsaeAPI5ky2W74zFvVC89w2bpVvFR+wqhX6z0HfeDfK6qp8hYWOmWoogyBSBqxDo9mkejgnBRKQLgtteT9kHiU5CnXlOnvvBOqCbUfQXQ2R7gKU8lTliWV9vExD+Ni6mVpWdTrfk5bcqicdMC9mdSDmdpb+p4YxHsrOHcLlYgn1ElT8Ok/vqmINP6vyD+lsGWAwxJVRokFC902rhPCzp0Fr4rIzXKl6hGQCVOE=

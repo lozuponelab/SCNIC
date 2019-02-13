@@ -8,7 +8,7 @@ setup(
       version=__version__,
       setup_requires=['pytest-runner'],
       test_require=['pytest'],
-      install_requires=["numpy", "scipy", "networkx>2", "biom-format", "pandas", "scikit-bio", "statsmodels", "h5py"],
+      install_requires=["numpy", "scipy", "networkx>=2", "biom-format", "pandas", "scikit-bio", "statsmodels", "h5py"],
       scripts=['scripts/SCNIC_analysis.py', 'scripts/module_enrichment.py'],
       packages=find_packages(),
       description="A tool for finding and summarizing modules of highly correlated observations in compositional data",

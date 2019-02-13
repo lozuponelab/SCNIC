@@ -20,7 +20,8 @@ def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', 
     logger["SCNIC analysis type"] = "module"
 
     # read in correlations file
-    correls = pd.read_table(input_loc, index_col=(0, 1), sep='\t', dtype={'feature1': str, 'feature2': str})
+    correls = pd.read_csv(input_loc, index_col=(0, 1), sep='\t')
+    correls.index = pd.MultiIndex.from_tuples([(str(id1), str(id2)) for id1, id2 in correls.index])
     logger["input correls"] = input_loc
     if verbose:
         print("correls.txt read")

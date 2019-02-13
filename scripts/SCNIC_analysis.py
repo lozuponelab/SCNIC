@@ -51,8 +51,9 @@ def main():
                                                     "0 and 1 where 0 makes small modules and 1 large modules",
                               type=float, default=0.1)
     make_modules.add_argument("--table_loc", help="biom table used to make network to be collapsed")
-    make_modules.add_argument("--prefix", help="prefix for module names in collapsed file", default="module_")
-    make_modules.add_argument("-v", "--verbose", help="give verbose messages to STDOUT")
+    make_modules.add_argument("--prefix", help="prefix for module names in collapsed file", default="module")
+    make_modules.add_argument("-v", "--verbose", help="give verbose messages to STDOUT", default=False,
+                              action="store_true")
     make_modules.set_defaults(func=module_maker)
 
     # parser for building a bipartite correlation network between two data types

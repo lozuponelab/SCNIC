@@ -91,7 +91,7 @@ def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, 
                 for i in glob((path.join(temp, 'boot*'))):
                     executor.submit(run_fastspar, i, i.replace('boot', 'cor_boot'), i.replace('boot', 'cov_boot'))
             # calculate p_values for correlation table
-            subprocess.run(['fastspar_exactpvalues', '-c', path.join(temp, 'otu_table.tsv'), '-r',
+            subprocess.run(['fastspar_pvalues', '-c', path.join(temp, 'otu_table.tsv'), '-r',
                             path.join(temp, 'correl_table.tsv'), '-p', path.join(temp, 'cor_boot'),
                             '-t', str(nprocs), '-n', str(bootstraps), '-o', path.join(temp, 'pvalues.tsv')],
                            stdout=stdout)

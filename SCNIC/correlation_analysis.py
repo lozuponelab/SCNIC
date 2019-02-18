@@ -81,7 +81,7 @@ def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, 
             stdout = subprocess.DEVNULL
         run_fastspar(path.join(temp, 'otu_table.tsv'), path.join(temp, path.join(temp, 'correl_table.tsv')),
                      path.join(temp, 'covar_table.tsv'), stdout, nprocs)
-        cor = pd.read_table(path.join(temp, 'correl_table.tsv'), index_col=0)
+        cor = pd.read_csv(path.join(temp, 'correl_table.tsv'), sep='\t', index_col=0)
         correls = df_to_correls(cor)
         if calc_pvalues:
             subprocess.run(['fastspar_bootstrap', '-c', path.join(temp, 'otu_table.tsv'), '-n', str(bootstraps),
@@ -95,7 +95,7 @@ def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, 
                             path.join(temp, 'correl_table.tsv'), '-p', path.join(temp, 'cor_boot'),
                             '-t', str(nprocs), '-n', str(bootstraps), '-o', path.join(temp, 'pvalues.tsv')],
                            stdout=stdout)
-            pvals = pd.read_table(path.join(temp, 'pvalues.tsv'), index_col=0)
+            pvals = pd.read_csv(path.join(temp, 'pvalues.tsv'), sep='\t', index_col=0)
             pvals = df_to_correls(pvals, col_label='p')
             correls = pd.concat([correls, pvals], axis=1, join='inner')
             correls['p_adjusted'] = p_adjust(correls.p, p_adjust_method)

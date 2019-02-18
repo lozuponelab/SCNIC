@@ -21,7 +21,7 @@ def p_adjust(pvalues, method='fdr_bh'):
 def get_perms(perms_loc):
     frame_list = list()
     for path in glob(perms_loc):
-        frame = pd.read_table(path, index_col=(0, 1), header=None)
+        frame = pd.read_csv(path, sep='\t', index_col=(0, 1), header=None)
         frame_list.append(frame)
     combined_frames = pd.concat(frame_list, axis=1)
     return combined_frames
@@ -154,7 +154,7 @@ def make_plots(stats, tab_stats, output_loc, alphas=(.01, .05, .1, .15, .2)):
 
 def do_stats(correls_loc, modules_directory_loc, perms_loc, output_loc, skip_kos=False, to_keep_loc=None,
              alphas=(.01, .05, .1, .15, .2)):
-    correls = pd.read_table(correls_loc, index_col=(0, 1))
+    correls = pd.read_csv(correls_loc, sep='\t', index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
     if to_keep_loc is not None:
         modules_to_keep = get_modules_to_keep(to_keep_loc)

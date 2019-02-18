@@ -102,7 +102,7 @@ def do_multiprocessed_perms(correls_loc, perms, procs, modules_directory_loc, ou
     print("%s modules found" % len(modules_across_rs))
     module_sizes_across_rs = get_module_sizes_across_rs(modules_across_rs)
     print("got module sizes")
-    correls = pd.read_table(correls_loc, index_col=(0, 1))
+    correls = pd.read_csv(correls_loc, sep='\t', index_col=(0, 1))
     correls.index = pd.MultiIndex.from_tuples([tuple(sorted((str(i), str(j)))) for i, j in correls.index])
     if folders_to_keep_loc is not None:
         correls = filter_correls(correls, modules_to_keep)

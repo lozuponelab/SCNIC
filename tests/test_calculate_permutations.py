@@ -88,9 +88,10 @@ def perms_loc(annotated_correls, module_sizes, data_loc):
 def test_run_perms(perms_loc):
     assert len(glob(path.join(perms_loc, 'pd_stats_dict_*'))) == 2
     assert len(glob(path.join(perms_loc, 'pd_ko_stats_dict_*'))) == 2
-    pd_stats = pd.read_table(glob(path.join(perms_loc, 'pd_stats_dict_*'))[0], index_col=(0, 1), header=None)
+    pd_stats = pd.read_csv(glob(path.join(perms_loc, 'pd_stats_dict_*'))[0], sep='\t', index_col=(0, 1), header=None)
     assert pd_stats.shape == (1, 3)
-    pd_ko_stats = pd.read_table(glob(path.join(perms_loc, 'pd_ko_stats_dict_*'))[0], index_col=(0, 1), header=None)
+    pd_ko_stats = pd.read_csv(glob(path.join(perms_loc, 'pd_ko_stats_dict_*'))[0], sep='\t', index_col=(0, 1),
+                              header=None)
     assert pd_ko_stats.shape == (1, 3)
 
 

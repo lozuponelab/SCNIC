@@ -28,7 +28,7 @@ def fastspar_table(data_path):
 
 @pytest.fixture()
 def correls_spar(data_path):
-    correls = pd.read_table(path.join(data_path, 'fake_correls_spar.txt'), index_col=(0, 1), sep='\t',
+    correls = pd.read_csv(path.join(data_path, 'fake_correls_spar.txt'), index_col=(0, 1), sep='\t',
                             dtype={'feature1': str, 'feature2': str})
     new_index = pd.MultiIndex.from_tuples([(str(i), str(j)) for i, j in correls.index])
     correls.index = new_index

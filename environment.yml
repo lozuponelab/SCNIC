@@ -12,4 +12,5 @@ dependencies:
 - statsmodels
 - h5py
 - python=3
-- fastspar >=0.0.7
+- fastspar>=0.0.7
+- armadillo=8

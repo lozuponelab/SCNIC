@@ -14,3 +14,4 @@ dependencies:
 - python=3
 - fastspar>=0.0.7
 - armadillo=8
+- python-louvain

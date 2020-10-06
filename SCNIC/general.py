@@ -94,7 +94,7 @@ def correls_to_net(correls, metadata=None):
     graph = nx.Graph()
     for otu_pair, correl in correls.iterrows():
         for otu in otu_pair:
-            if otu not in graph.node:
+            if otu not in graph.nodes:
                 graph.add_node(otu)
                 if otu in metadata:
                     for key in metadata[otu]:

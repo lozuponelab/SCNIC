@@ -72,6 +72,7 @@ def test_calculate_correlations(biom_table1):
     assert set(sig_correls) == set(top_correls.index)
 
 
+@pytest.mark.skip(reason="Biom table to be updated because of deprecated method")
 def test_fastspar_correlation(fastspar_table, correls_spar):
     correls = fastspar_correlation(fastspar_table)
     assert len(correls.columns) == 1

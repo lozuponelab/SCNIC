@@ -74,7 +74,8 @@ def run_fastspar(otu_table_loc, correl_table_loc, covar_table_loc, stdout=None, 
 def fastspar_correlation(table: Table, verbose: bool=False, calc_pvalues=False, bootstraps=1000, nprocs=1,
                          p_adjust_method='fdr_bh') -> pd.DataFrame:
     with tempfile.TemporaryDirectory(prefix='fastspar') as temp:
-        table.to_dataframe().to_dense().to_csv(path.join(temp, 'otu_table.tsv'), sep='\t', index_label='#OTU ID')
+        # To fix AttributeError: 'DataFrame' object has no attribute 'to_dense'. See: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sparse.to_dense.html
+        table.to_dataframe().sparse.to_dense().to_csv(path.join(temp, 'otu_table.tsv'), sep='\t', index_label='#OTU ID')
         if verbose:
             stdout = None
         else:

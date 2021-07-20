@@ -15,7 +15,7 @@ microbiome data. SCNIC is designed with compositional data in mind and so provid
 including SparCC.
 
 Running SCNIC is possible via two different methods. SCNIC is packaged with scripts to allow running it on the command
-line but also is avaliable as a Qiime2 plugin (https://www.github.com/shafferm/q2-SCNIC). Either method is valid but
+line but also is avaliable as a Qiime2 plugin (https://www.github.com/lozuponelab/q2-SCNIC). Either method is valid but
 usage of the Qiime2 plugin provides easier access when working within the Qiime2 ecosystem.
 
 ## Overview
@@ -60,7 +60,7 @@ pip install SCNIC
 ### Install the latest version from github
 To download the lastest changes to the repository use the following commands:
 ```
-git clone https://github.com/shafferm/SCNIC.git
+git clone https://github.com/lozuponelab/SCNIC.git
 cd SCNIC/
 python setup.py install
 ```

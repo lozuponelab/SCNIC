@@ -5,7 +5,7 @@ channels:
 dependencies:
 - numpy
 - scipy
-- networkx=2
+- networkx>=2
 - biom-format
 - pandas>=1
 - scikit-bio

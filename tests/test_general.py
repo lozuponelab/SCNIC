@@ -152,5 +152,5 @@ def test_filter_correls(correls):
 
 def test_correls_to_net(correls, metadata):
     test_net = correls_to_net(correls, metadata)
-    assert len(test_net.node) == 3
+    assert len(test_net.nodes) == 3
     assert len(test_net.edges) == 3

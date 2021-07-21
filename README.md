@@ -15,7 +15,7 @@ microbiome data. SCNIC is designed with compositional data in mind and so provid
 including SparCC.
 
 Running SCNIC is possible via two different methods. SCNIC is packaged with scripts to allow running it on the command
-line but also is avaliable as a Qiime2 plugin (https://www.github.com/shafferm/q2-SCNIC). Either method is valid but
+line but also is avaliable as a Qiime2 plugin (https://www.github.com/lozuponelab/q2-SCNIC). Either method is valid but
 usage of the Qiime2 plugin provides easier access when working within the Qiime2 ecosystem.
 
 ## Overview
@@ -38,15 +38,20 @@ selection of correlation metrics. A gml correlation network is output as well as
 p-values of all correlations.
 
 ## Installation
-SCNIC depends on a variety of software all of which can be install via conda and most of which can be installed by pip. The recommended installation method is to use conda but if you do not want to use conda and instead would like to install via pip then you must first install [`fastspar`](https://github.com/scwatts/fastspar) and `parallel` and have them in your path.
+SCNIC depends on a variety of software all of which can be install via conda and most of which can be installed by pip. The recommended installation method is to install via pip but first you must first install [`fastspar`](https://github.com/scwatts/fastspar) and `parallel` and have them in your path.
 
-### conda installation
-It is recommended to install all of SCNIC's dependencies via conda in a new conda environment. To do this you only need to create a new environment with SCNIC installed:
+To do so you can create a conda environment below, then install both fastspar and parallel. 
+
+ex: 
+```$conda install -c bioconda -c conda-forge fastspar```
+
+### conda installation (step 1)
+It is recommended to install all of SCNIC's dependencies via conda in a new conda environment. To do this you only need to create a new environment with SCNIC installed. However, since conda has not accepted the latest version of scnic please manually install SCNIC into your conda environment via PIP (step 2):
 ```
 conda create -n SCNIC python=3 scnic
 ```
 
-### Pip installation
+### Pip installation (step 2)
 To download the latest release from PyPI install using this command:
 ```
 pip install SCNIC
@@ -55,7 +60,7 @@ pip install SCNIC
 ### Install the latest version from github
 To download the lastest changes to the repository use the following commands:
 ```
-git clone https://github.com/shafferm/SCNIC.git
+git clone https://github.com/lozuponelab/SCNIC.git
 cd SCNIC/
 python setup.py install
 ```

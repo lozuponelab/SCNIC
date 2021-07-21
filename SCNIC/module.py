@@ -14,7 +14,7 @@ from SCNIC import general
 from SCNIC import module_analysis as ma
 
 
-def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', k_size=3, gamma=.4, table_loc=None,
+def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', k_size=3, gamma=.4, table_loc=None,
                  prefix='module', verbose=False):
     logger = general.Logger(path.join(output_loc, "SCNIC_module_log.txt"))
     logger["SCNIC analysis type"] = "module"
@@ -27,10 +27,10 @@ def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', 
         print("correls.txt read")
 
     # sanity check args
-    if min_r is not None and min_p is not None:
-        raise ValueError("arguments min_p and min_r may not be used concurrently")
-    if min_r is None and min_p is None:
-        raise ValueError("argument min_p or min_r must be used")
+    if min_r is not None and max_p is not None:
+        raise ValueError("arguments max_p and min_r may not be used concurrently")
+    if min_r is None and max_p is None:
+        raise ValueError("argument max_p or min_r must be used")
 
     # make new output directory and change to it
     if output_loc is not None:
@@ -40,11 +40,11 @@ def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', 
 
     # make modules
     if method == 'naive':
-        modules = ma.make_modules_naive(correls, min_r, min_p, prefix=prefix)
+        modules = ma.make_modules_naive(correls, min_r, max_p, prefix=prefix)
     elif method == 'k_cliques':
-        modules = ma.make_modules_k_cliques(correls, min_r, min_p, k_size, prefix=prefix)
+        modules = ma.make_modules_k_cliques(correls, min_r, max_p, k_size, prefix=prefix)
     elif method == 'louvain':
-        modules = ma.make_modules_louvain(correls, min_r, min_p, gamma, prefix=prefix)
+        modules = ma.make_modules_louvain(correls, min_r, max_p, gamma, prefix=prefix)
     else:
         raise ValueError('%s is not a valid module picking method' % method)
     logger["number of modules created"] = len(modules)
@@ -76,7 +76,7 @@ def module_maker(input_loc, output_loc, min_p=None, min_r=None, method='naive', 
 
     # make network
     metadata = ma.add_modules_to_metadata(modules, metadata)
-    correls_filter = general.filter_correls(correls, conet=True, min_p=min_p, min_r=min_r)
+    correls_filter = general.filter_correls(correls, max_p=max_p, min_r=min_r, conet=True)
     net = general.correls_to_net(correls_filter, metadata=metadata)
 
     nx.write_gml(net, path.join(output_loc, 'correlation_network.gml'))

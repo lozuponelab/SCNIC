@@ -146,7 +146,7 @@ def test_filter_correls(correls):
     assert len(correls_filt) == 2
     correls_filt = filter_correls(correls, min_r=.3, conet=True)
     assert len(correls_filt) == 1
-    correls_filt = filter_correls(correls, min_p=.05)
+    correls_filt = filter_correls(correls, max_p=.05)
     assert len(correls_filt) == 2
 
 

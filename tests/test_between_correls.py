@@ -13,7 +13,7 @@ def test_between_correls(tmpdir):
     with biom_open(str(loc.join("table2.biom")), 'w') as f:
         table2.to_hdf5(f, 'madebyme')
     os.chdir(str(loc))
-    between_correls('table1.biom', 'table2.biom', 'out_dir', correl_method='pearson', min_p=.1)
+    between_correls('table1.biom', 'table2.biom', 'out_dir', correl_method='pearson', max_p=.1)
     files = os.listdir(str(loc)+'/out_dir')
     assert "correls.txt" in files
     assert "crossnet.gml" in files

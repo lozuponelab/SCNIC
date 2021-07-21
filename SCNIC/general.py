@@ -65,7 +65,7 @@ def underscore_to_camelcase(str_):
     return ''.join(str_)
 
 
-def filter_correls(correls, min_p=None, min_r=None, conet=False):
+def filter_correls(correls, max_p=None, min_r=None, conet=False):
     """correls is a pandas dataframe with a multiindex containing the correlated pair of features,
     r and optionally p and p_adj and any others"""
     # TODO: allow non r column names
@@ -73,12 +73,12 @@ def filter_correls(correls, min_p=None, min_r=None, conet=False):
     if conet:
         correls = correls[correls.r > 0]
 
-    if min_p is not None:
+    if max_p is not None:
         # filter to only include significant correlations
         if 'p_adj' in correls.columns:
-            correls = correls[correls.p_adj < min_p]
+            correls = correls[correls.p_adj < max_p]
         elif 'p' in correls.columns:
-            correls = correls[correls.p < min_p]
+            correls = correls[correls.p < max_p]
         else:
             raise ValueError("No p or p_adj in correls")
 

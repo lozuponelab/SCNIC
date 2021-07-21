@@ -76,8 +76,8 @@ def make_modules_naive(correls, min_r=None, max_p=None, prefix="module"):
     raise ValueError("Well, how did I get here?")
 
 
-def make_modules_k_cliques(correls, min_r=None, min_p=None, k=3, prefix="module"):
-    correls_filt = general.filter_correls(correls, conet=True, min_p=min_p, min_r=min_r)
+def make_modules_k_cliques(correls, min_r=None, max_p=None, k=3, prefix="module"):
+    correls_filt = general.filter_correls(correls, max_p=max_p, min_r=min_r, conet=True)
     net = general.correls_to_net(correls_filt)
     premodules = list(nx.algorithms.community.k_clique_communities(net, k))
     # reverse modules so observations will be added to smallest modules
@@ -95,9 +95,9 @@ def make_modules_k_cliques(correls, min_r=None, min_p=None, k=3, prefix="module"
     return modules
 
 
-def make_modules_louvain(correls, min_r=None, min_p=None, gamma=.01, prefix="module"):
+def make_modules_louvain(correls, min_r=None, max_p=None, gamma=.01, prefix="module"):
     import community as louvain
-    correls_filt = general.filter_correls(correls, conet=True, min_p=min_p, min_r=min_r)
+    correls_filt = general.filter_correls(correls, max_p=max_p, min_r=min_r, conet=True)
     net = general.correls_to_net(correls_filt)
     partition = louvain.best_partition(net, resolution=gamma)
 

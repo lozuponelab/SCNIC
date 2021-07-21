@@ -24,7 +24,7 @@ def spearmanr(x, y):
     return _spearmanr(x, y)
 
 
-def between_correls(table1, table2, output_loc, min_p=None, min_r=None, correl_method='spearman', sparcc_filter=False,
+def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_method='spearman', sparcc_filter=False,
                     min_sample=None, p_adjust='fdr_bh', procs=1, force=False):
     """TABLES MUST SORT SO THAT SAMPLES ARE IN THE SAME ORDER """
     logger = general.Logger(path.join(output_loc, "SCNIC_log.txt"))
@@ -78,7 +78,7 @@ def between_correls(table1, table2, output_loc, min_p=None, min_r=None, correl_m
     correls.to_csv(open(path.join(output_loc, 'correls.txt'), 'w'), sep='\t', index=True)
 
     # make network
-    correls_filt = general.filter_correls(correls, min_p=min_p, min_r=min_r)
+    correls_filt = general.filter_correls(correls, min_r=min_r)
     net = general.correls_to_net(correls_filt, metadata=metadata)
     logger["number of nodes"] = net.number_of_nodes()
     logger["number of edges"] = net.number_of_edges()

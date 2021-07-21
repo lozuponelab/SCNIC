@@ -7,7 +7,7 @@ dependencies:
 - scipy
 - networkx=2
 - biom-format
-- pandas
+- pandas>=1
 - scikit-bio
 - statsmodels
 - h5py

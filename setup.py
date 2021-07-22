@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
-__author__ = 'shafferm'
-__version__ = '0.6.2'
+__author__ = 'lozuponelab'
+__version__ = '0.6.3'
 
 setup(
       name="SCNIC",
@@ -13,8 +13,8 @@ setup(
       scripts=['scripts/SCNIC_analysis.py', 'scripts/module_enrichment.py'],
       packages=find_packages(),
       description="A tool for finding and summarizing modules of highly correlated observations in compositional data",
-      author="Michael Shaffer",
-      author_email='michael.shaffer@ucdenver.edu',
-      url="https://github.com/shafferm/SCNIC/",
-      download_url="https://github.com/shafferm/SCNIC/tarball/%s" % __version__
+      author="Lozupone Lab",
+      author_email='lozuponelab.dev@olucdenver.onmicrosoft.com',
+      url="https://github.com/lozuponelab/SCNIC/",
+      download_url="https://github.com/lozuponelab/SCNIC/tarball/%s" % __version__
 )

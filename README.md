@@ -19,7 +19,7 @@ usage of the Qiime2 plugin provides easier access when working within the Qiime2
 
 ## Overview
 ### Within
-The 'within' method takes as input BIOM formatted files (http://biom-format.org/) and forms cooccurrence networks using a
+The 'within' method takes as input [BIOM](http://biom-format.org/) formatted files and forms cooccurrence networks using a
  user specified correlation metric.
 
 ### Modules
@@ -27,7 +27,7 @@ From the correlation network generated as part of the within step, SCNIC  finds 
 by finding groups of observations which all have a minimum pairwise correlation value. Modules are summarized and a new
 biom table with observations contained in modules collapsed into single observations are returned. This biom table along
 with a list of modules and their contents are output.  A gml file of the network that can be opened using network
-visualization tools such as cytoscape (http://www.cytoscape.org/) is created which contains all observation metadata
+visualization tools such as [cytoscape](http://www.cytoscape.org/) is created which contains all observation metadata
 provided in the input biom file as well as module information. Please be aware that the networks output by this analysis
 will only include positive correlations as only positive correlations are used in module finding and summarization.
 
@@ -37,24 +37,55 @@ selection of correlation metrics. A gml correlation network is output as well as
 p-values of all correlations.
 
 ## Installation
-SCNIC depends on a variety of software all of which can be install via conda and most of which can be installed by pip. The recommended installation method is to install via pip but first you must first install [`fastspar`](https://github.com/scwatts/fastspar) and `parallel` and have them in your path.
+
+### Installing using environment.yaml
+We recommend using mamba (or conda) and our `environment.yaml` file to install the full environment in one step. See the [mamba documentation](https://mamba.readthedocs.io/en/latest/mamba-installation.html#mamba-install) for mamba installation steps.
+
+```
+wget https://raw.githubusercontent.com/lozuponelab/SCNIC/master/environment.yml
+mamba env create -n SCNIC2 --file environment.yml
+
+# Optional cleanup
+rm environment.yml
+```
+
+If not using mamba, you can install using `conda env create` in place of `mamba env create`. However, conda will be slower and may struggle to solve the dependencies.
+
+#### ARM architecture
+**Users with Apple M1/M2 chips** or other ARM architecture should pass `CONDA_SUBDIR=osx-64` at the beginning of the env create command, as can be seen in the following:
+```
+CONDA_SUBDIR=osx-64 mamba env create -n SCNIC3 --file environment.yml
+```
+
+### Multi-step installation directly from Conda + pip
+#### Step 1
+
+It is recommended to install all of SCNIC's dependencies via conda in a new conda environment. To do this you only need to create a new environment with SCNIC installed. However, since conda has not always accepted the latest version of SCNIC please manually install SCNIC into your conda environment via PIP. On some computers, there are SciPy conflicts when installing via conda, so we recommend installing SciPy via pip.
+```
+conda create -n SCNIC python=3 SCNIC
+conda activate SCNIC
+```
+
+### Step 2 (Pip)
+To download the latest release from PyPI install using this command:
+```
+pip install "scipy>=1.9.0,<=1.10.1"
+pip install SCNIC
+```
+
+
+
+### Dependencies
+SCNIC depends on a variety of software all of which can be install via conda and most of which can be installed by pip. The recommended installation method is to install via pip but you must also install [`fastspar`](https://github.com/scwatts/fastspar) and `parallel` and have them in your path. If using the environment.yaml installation, this should be unnecessary.
 
 To do so you can create a conda environment below, then install both fastspar and parallel. 
 
 ex: 
-```$conda install -c bioconda -c conda-forge fastspar```
-
-### conda installation (step 1)
-It is recommended to install all of SCNIC's dependencies via conda in a new conda environment. To do this you only need to create a new environment with SCNIC installed. However, since conda has not accepted the latest version of scnic please manually install SCNIC into your conda environment via PIP (step 2):
 ```
-conda create -n SCNIC python=3 scnic
+$conda install -c bioconda -c conda-forge fastspar
 ```
 
-### Pip installation (step 2)
-To download the latest release from PyPI install using this command:
-```
-pip install SCNIC
-```
+
 
 ### Install the latest version from github
 To download the lastest changes to the repository use the following commands:

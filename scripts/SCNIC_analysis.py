@@ -40,7 +40,7 @@ def main():
     make_modules.add_argument("-i", "--input_loc", help="location of output from SCNIC_analysis.py within",
                               required=True)
     make_modules.add_argument("-o", "--output_loc", help="output directory")
-    make_modules.add_argument("--max_p", help="minimum p-value to determine edges, p must have been calculated",
+    make_modules.add_argument("--max_p", help="maximum p-value to determine edges, p must have been calculated",
                               type=float)
     make_modules.add_argument("--min_r", help="minimum correlation value to determine edges", type=float)
     make_modules.add_argument("--method", help="method to be used for determining modules, pick from: naive, k_cliques "
@@ -63,7 +63,7 @@ def main():
     between_corr.add_argument("-m", "--correl_method", help="correlation method", default="spearman")
     between_corr.add_argument("-a", "--p_adjust", help="p-value adjustment", default="fdr_bh")
     between_corr.add_argument("-s", "--min_sample", help="minimum number of samples present in", type=int)
-    between_corr.add_argument("--min_p", help="minimum p-value to determine edges", type=float)
+    between_corr.add_argument("--max_p", help="max p-value to determine edges", type=float)
     between_corr.add_argument("--min_r", help="minimum R to determine edges", type=float)
     between_corr.add_argument("--sparcc_filter", help="filter using parameters from SparCC publication", default=False,
                               action="store_true")

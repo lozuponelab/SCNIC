@@ -49,6 +49,9 @@ def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_m
     if output_loc is not None:
         os.makedirs(output_loc)
         logger["output directory"] = output_loc
+    
+    if max_p is not None:
+        raise ValueError("SCNIC does not currently support module making based on p-values.")
 
     # filter tables
     if sparcc_filter is True:

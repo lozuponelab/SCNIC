@@ -1,7 +1,11 @@
 from setuptools import setup, find_packages
+from pathlib import Path
 
 __author__ = 'lozuponelab'
 __version__ = '0.6.4'
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
 
 setup(
       name="SCNIC",
@@ -13,6 +17,8 @@ setup(
       scripts=['scripts/SCNIC_analysis.py', 'scripts/module_enrichment.py'],
       packages=find_packages(),
       description="A tool for finding and summarizing modules of highly correlated observations in compositional data",
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       author="Lozupone Lab",
       author_email='lozuponelab.dev@olucdenver.onmicrosoft.com',
       url="https://github.com/lozuponelab/SCNIC/",

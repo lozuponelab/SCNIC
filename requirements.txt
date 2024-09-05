@@ -5,5 +5,4 @@ pandas>=1
 scikit-bio
 statsmodels
 h5py
-# fastspar>=0.0.7
-# armadillo==8
+tqdm

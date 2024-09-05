@@ -1,0 +1,8 @@
+numpy
+networkx>=2
+biom-format
+pandas>=1
+scikit-bio
+statsmodels
+h5py
+tqdm

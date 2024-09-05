@@ -154,7 +154,7 @@ def do_annotate_correls(correls_loc, tre_loc, genome_loc, module_loc, output_loc
     correls_tip_tips = tre.tip_tip_distances(set([otu for otu_pair in correls.index for otu in otu_pair]))
     print("read tree")
     genome_frame = pd.read_csv(genome_loc, sep='\t', index_col=0)
-    genome_table = genome_frame_to_table(genome_frame, set([otu for otu_pair in correls.index for otu in otu_pair]))
+    genome_table = genome_frame_to_table(genome_frame, list(set([otu for otu_pair in correls.index for otu in otu_pair])))
     print("read table")
     if modules_to_keep_loc is not None:
         modules_to_keep = get_modules_to_keep(modules_to_keep_loc)

@@ -35,7 +35,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          conda install "fastspar>=0.0.7" armadillo=8 "scipy<=1.10.1,>=1.8.0"
+          conda install -c bioconda -c conda-forge "fastspar>=0.0.7" armadillo=8 "scipy<=1.10.1,>=1.8.0"
           python setup.py install
 
       - name: Test with pytest

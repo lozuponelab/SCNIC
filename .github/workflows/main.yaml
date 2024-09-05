@@ -32,11 +32,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y conda
-          conda create -n test-env python=${{ matrix.python-version }} -y
-          conda activate test-env
-          conda install -c bioconda -c conda-forge pip pytest fastspar>=0.0.7 armadillo=8 "scipy<=1.10.1,>=1.8.0" numpy networkx biom-format pandas scikit-bio statsmodels h5py
+          python -m pip install --upgrade pip
+          conda install -c bioconda -c conda-forge "fastspar>=0.0.7" armadillo=8 "scipy<=1.10.1,>=1.8.0"
+          pip install pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           python setup.py install
 

@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10"]
 
     steps:
       - uses: actions/checkout@v3
@@ -35,7 +35,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          conda install fastspar>=0.0.7 armadillo=8 scipy<=1.10.1,>=1.8.0
+          mamba install "fastspar>=0.0.7" armadillo=8 "scipy<=1.10.1,>=1.8.0"
           python setup.py install
 
       - name: Test with pytest

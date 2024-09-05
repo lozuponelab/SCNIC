@@ -35,6 +35,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          conda install fastspar>=0.0.7 armadillo=8
           python setup.py install
 
       - name: Test with pytest

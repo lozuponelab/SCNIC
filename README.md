@@ -1,4 +1,4 @@
-[![PyPI](https://img.shields.io/pypi/v/SCNIC.svg?style=flat)] [![Build Status](https://github.com/lozuponelab/SCNIC/actions/workflows/main.yaml/badge.svg)]
+![PyPI](https://img.shields.io/pypi/v/SCNIC.svg?style=flat) ![Build Status](https://github.com/lozuponelab/SCNIC/actions/workflows/main.yaml/badge.svg)
 
 # SCNIC
 Sparse Cooccurrence Network Investigation for Compositional data

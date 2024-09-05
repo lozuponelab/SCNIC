@@ -1,0 +1,10 @@
+numpy
+networkx>=2
+biom-format
+pandas>=1
+scikit-bio
+statsmodels
+h5py
+# fastspar>=0.0.7
+# armadillo==8
+scipy<=1.10.1,>=1.8.0

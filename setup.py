@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from pathlib import Path
 
 __author__ = 'lozuponelab'
-__version__ = '0.6.4'
+__version__ = '0.6.6'
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()

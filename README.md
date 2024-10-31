@@ -43,7 +43,7 @@ We recommend using mamba (or conda) and our `environment.yaml` file to install t
 
 ```
 wget https://raw.githubusercontent.com/lozuponelab/SCNIC/master/environment.yml
-mamba env create -n SCNIC2 --file environment.yml
+mamba env create -n SCNIC --file environment.yml
 
 # Optional cleanup
 rm environment.yml
@@ -54,7 +54,7 @@ If not using mamba, you can install using `conda env create` in place of `mamba 
 #### ARM architecture
 **Users with Apple M1/M2 chips** or other ARM architecture should pass `CONDA_SUBDIR=osx-64` at the beginning of the env create command, as can be seen in the following:
 ```
-CONDA_SUBDIR=osx-64 mamba env create -n SCNIC3 --file environment.yml
+CONDA_SUBDIR=osx-64 mamba env create -n SCNIC --file environment.yml
 ```
 
 ### Multi-step installation directly from Conda + pip

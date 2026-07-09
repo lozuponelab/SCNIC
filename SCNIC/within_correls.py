@@ -1,3 +1,9 @@
+"""
+Within-table correlation workflow.
+
+Compute correlations for a single BIOM table and build a correlation network.
+"""
+
 from __future__ import division
 
 import os
@@ -14,6 +20,21 @@ from SCNIC import correlation_analysis as ca
 
 def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=False, min_sample=None, procs=1,
                    sparcc_p=1000, p_adjust='fdr_bh', verbose=False):
+    """
+    Run a within-table SCNIC correlation analysis and write outputs.
+
+    Parameters
+    ----------
+    input_loc : str
+    output_loc : str
+    correl_method : str, default 'sparcc'
+    sparcc_filter : bool, default False
+    min_sample : int or None
+    procs : int, default 1
+    sparcc_p : int, default 1000
+    p_adjust : str, default 'fdr_bh'
+    verbose : bool, default False
+    """
     logger = general.Logger(path.join(output_loc, "SCNIC_within_log.txt"))
     logger["SCNIC analysis type"] = "within"
 

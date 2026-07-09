@@ -1,7 +1,10 @@
 """
-Workflow script for finding correlations between pairs of biom tables, making networks, finding modules and collapsing
-modules.
+Between-table correlation workflow.
+
+Compute correlations between two BIOM tables, build a network, and output
+results for downstream SCNIC analysis.
 """
+
 import os
 from os import path
 from biom import load_table
@@ -21,12 +24,39 @@ _spearmanr = spearmanr
 
 
 def spearmanr(x, y):
+    """
+    Pass-through wrapper around scipy.stats.spearmanr.
+
+    Parameters
+    ----------
+    x, y : array-like
+
+    Returns
+    -------
+    tuple
+    """
     return _spearmanr(x, y)
 
 
 def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_method='spearman', sparcc_filter=False,
                     min_sample=None, p_adjust='fdr_bh', procs=1, force=False):
-    """TABLES MUST SORT SO THAT SAMPLES ARE IN THE SAME ORDER """
+    """
+    Compute correlations between two BIOM tables and write network output.
+
+    Parameters
+    ----------
+    table1 : str
+    table2 : str
+    output_loc : str
+    max_p : float or None
+    min_r : float or None
+    correl_method : str, default 'spearman'
+    sparcc_filter : bool, default False
+    min_sample : int or None
+    p_adjust : str, default 'fdr_bh'
+    procs : int, default 1
+    force : bool, default False
+    """
     logger = general.Logger(path.join(output_loc, "SCNIC_log.txt"))
     logger["SCNIC analysis type"] = "between"
 

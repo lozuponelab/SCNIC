@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.10", "3.11", "3.12"] ## madi edit: add testing for newer python versions (will need to add 3.13 soon)
     # Set it to default use bash in interactive mode (required for miniconda setup)
     defaults:
       run:
@@ -38,7 +38,7 @@ jobs:
         with:
           mamba-version: "*"
           python-version:  ${{ matrix.python-version }}
-          channels: conda-forge,bioconda,defaults
+          channels: conda-forge,bioconda,nodefaults
           auto-activate-base: false
           environment-file: environment.yml
       - name: Install dependencies

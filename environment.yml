@@ -1,21 +1,24 @@
+name: scnic-v1.0.0
 channels:
-- conda-forge
-- bioconda
-- defaults
+  - conda-forge
+  - bioconda
+  - nodefaults
 dependencies:
-- pip
-- numpy
-- networkx>=2
-- biom-format
-- pandas>=1
-- scikit-bio
-- statsmodels
-- h5py
-- python=3
-- fastspar>=0.0.7
-- armadillo=8
-- seaborn
-- tqdm
-- pip:
-  - scipy<=1.10.1,>=1.8.0
-  - SCNIC
+  - pip
+  - numpy
+  - networkx>=2
+  - biom-format
+  - pandas>=1
+  - scikit-bio
+  - statsmodels
+  - h5py
+  - python>=3.10 ## should probs be 3.10+ for future versions of scnic
+  - fastspar==1.0.0 ## change fastspar install to newest version
+  - armadillo>=8 ## fastspar requires at least armadillo 7.800.1 so can leave i think 
+  - scipy>=1.11.0
+  - scnic>=1.0.0 ## newest scnic release will have to be bumped to 1.0.0 since it wont be backwards compatible!
+  - seaborn
+  - tqdm
+  #- pip: - avoid using pip since it doesn't take into account other package version conflicts which can cause issues 
+  #  - scipy<=1.10.1,>=1.8.0
+  #  - SCNIC

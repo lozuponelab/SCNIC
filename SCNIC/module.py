@@ -1,4 +1,10 @@
-"""Make modules of observations based on cooccurence networks and collapse table"""
+"""
+Module creation and collapse workflow.
+
+This module builds modules from correlation networks and optionally collapses
+a BIOM table by module membership.
+"""
+
 from collections import defaultdict
 
 import numpy as np
@@ -16,6 +22,22 @@ from SCNIC import module_analysis as ma
 
 def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', k_size=3, gamma=.4, table_loc=None,
                  prefix='module', verbose=False):
+    """
+    Create modules from correlation data and optionally collapse a BIOM table.
+
+    Parameters
+    ----------
+    input_loc : str
+    output_loc : str
+    max_p : float or None
+    min_r : float or None
+    method : str, default 'naive'
+    k_size : int, default 3
+    gamma : float, default .4
+    table_loc : str or None
+    prefix : str, default 'module'
+    verbose : bool, default False
+    """
     logger = general.Logger(path.join(output_loc, "SCNIC_module_log.txt"))
     logger["SCNIC analysis type"] = "module"
 

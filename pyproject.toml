@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SCNIC"
+version = "1.0.0"
+description = "A tool for finding and summarizing modules of highly correlated observations in compositional data"
+readme = "README.md"
+license = "BSD-3-Clause"
+authors = [
+    { name = "Lozupone Lab", email = "lozuponelab.dev@olucdenver.onmicrosoft.com" }
+]
+urls = { Homepage = "https://github.com/lozuponelab/SCNIC/", Download = "https://github.com/lozuponelab/SCNIC/tarball/0.6.6" }
+requires-python = ">=3.10, <3.13"
+dependencies = [
+    "numpy",
+    "networkx>=2",
+    "biom-format",
+    "pandas>=1",
+    "scikit-bio",
+    "statsmodels",
+    "tqdm",
+    "matplotlib-base>=3.11",
+    "h5py",
+    "scipy>=1.11.0"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering"
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+scnic-analysis = "SCNIC.SCNIC_analysis:main"
+module-enrichment = "SCNIC.module_enrichment:main"
+
+[tool.setuptools.packages.find]
+include = ["SCNIC*"]

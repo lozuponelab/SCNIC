@@ -1,3 +1,10 @@
+"""
+Algorithms for making modules from correlation networks.
+
+This module supports naive tree-based modules, k-clique communities,
+Louvain community detection, table collapsing, and metadata assignment.
+"""
+
 from scipy.cluster.hierarchy import complete
 from scipy.spatial.distance import squareform
 from skbio.tree import TreeNode
@@ -14,6 +21,19 @@ from SCNIC import general
 
 
 def correls_to_cor(correls, metric='r'):
+    """
+    Convert a correlation edge list to a condensed correlation matrix.
+
+    Parameters
+    ----------
+    correls : pandas.DataFrame
+    metric : str, default 'r'
+
+    Returns
+    -------
+    tuple
+        (condensed distance array, label list)
+    """
     ids = sorted(set([j for i in correls.index for j in i]))
     data = np.zeros((len(ids), len(ids)))
     for i in range(len(ids)):
@@ -33,11 +53,35 @@ def correls_to_cor(correls, metric='r'):
 
 
 def cor_to_dist(cor):
-    # convert from correlation to distance
+    """
+    Convert correlation coefficient to distance.
+
+    Parameters
+    ----------
+    cor : float or ndarray
+
+    Returns
+    -------
+    float or ndarray
+    """
     return 1 - ((cor + 1) / 2)
 
 
 def make_modules_naive(correls, min_r=None, max_p=None, prefix="module"):
+    """
+    Build modules using hierarchical clustering and a correlation threshold.
+
+    Parameters
+    ----------
+    correls : pandas.DataFrame
+    min_r : float or None
+    max_p : float or None
+    prefix : str, default 'module'
+
+    Returns
+    -------
+    dict
+    """
     # read in correlations file and make distance matrix
     if min_r is not None:
         min_dist = cor_to_dist(min_r)
@@ -77,6 +121,21 @@ def make_modules_naive(correls, min_r=None, max_p=None, prefix="module"):
 
 
 def make_modules_k_cliques(correls, min_r=None, max_p=None, k=3, prefix="module"):
+    """
+    Build modules from a correlation network using k-clique communities.
+
+    Parameters
+    ----------
+    correls : pandas.DataFrame
+    min_r : float or None
+    max_p : float or None
+    k : int, default 3
+    prefix : str, default 'module'
+
+    Returns
+    -------
+    dict
+    """
     correls_filt = general.filter_correls(correls, max_p=max_p, min_r=min_r, conet=True)
     net = general.correls_to_net(correls_filt)
     premodules = list(nx.algorithms.community.k_clique_communities(net, k))
@@ -96,7 +155,21 @@ def make_modules_k_cliques(correls, min_r=None, max_p=None, k=3, prefix="module"
 
 
 def make_modules_louvain(correls, min_r=None, max_p=None, gamma=.01, prefix="module"):
-    import community as louvain
+    """
+    Build modules using the Louvain community detection algorithm.
+
+    Parameters
+    ----------
+    correls : pandas.DataFrame
+    min_r : float or None
+    max_p : float or None
+    gamma : float, default .01
+    prefix : str, default 'module'
+
+    Returns
+    -------
+    dict
+    """
     correls_filt = general.filter_correls(correls, max_p=max_p, min_r=min_r, conet=True)
     net = general.correls_to_net(correls_filt)
     partition = louvain.best_partition(net, resolution=gamma)
@@ -115,7 +188,18 @@ def make_modules_louvain(correls, min_r=None, max_p=None, gamma=.01, prefix="mod
 
 
 def collapse_modules(table, modules):
-    """collapse created modules in a biom table, members of multiple modules will be added to the smallest module"""
+    """
+    Collapse BIOM table observations into module sums.
+
+    Parameters
+    ----------
+    table : biom.table.Table
+    modules : dict
+
+    Returns
+    -------
+    biom.table.Table
+    """
     table = table.copy()
     module_array = np.zeros((len(modules), table.shape[1]))
 
@@ -135,7 +219,14 @@ def collapse_modules(table, modules):
 
 
 def write_modules_to_dir(table, modules):
-    # for each module merge values and print modules to file
+    """
+    Write one BIOM file per module in a modules directory.
+
+    Parameters
+    ----------
+    table : biom.table.Table
+    modules : dict
+    """
     os.makedirs("modules")
     for module_, otus in modules.items():
         # make biom tables for each module and write to file
@@ -145,6 +236,14 @@ def write_modules_to_dir(table, modules):
 
 
 def write_modules_to_file(modules, path_str='modules.txt'):
+    """
+    Write module definitions to a tab-delimited file.
+
+    Parameters
+    ----------
+    modules : dict
+    path_str : str, default 'modules.txt'
+    """
     # write all modules to file
     with open(path_str, 'w') as f:
         for module_, otus in modules.items():
@@ -153,8 +252,16 @@ def write_modules_to_file(modules, path_str='modules.txt'):
 
 def add_modules_to_metadata(modules, metadata):
     """
-    modules is dict of otus, metadata is a dictionary of dictionaries where outer dict keys
-    are features, inner dict keys are metadata names and values are metadata values
+    Annotate metadata dictionary with module membership.
+
+    Parameters
+    ----------
+    modules : dict
+    metadata : dict
+
+    Returns
+    -------
+    dict
     """
     for module_, otus in modules.items():
         for otu in otus:

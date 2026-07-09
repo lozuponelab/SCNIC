@@ -1,0 +1,22 @@
+name: dev-scnic
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - pip
+  - numpy
+  - networkx>=2
+  - biom-format
+  - pandas>=1
+  - scikit-bio
+  - statsmodels
+  - h5py
+  - python<3.13,>=3.10 ## should probs be 3.10+ for future versions of scnic
+  - fastspar==1.0.0 ## change fastspar install to newest version
+  - gsl==2.7 ## cannot got higher than this version for fastspar install to work!! (also need conda-forge channel and not main)
+  - armadillo>=8 ## fastspar requires at least armadillo 7.800.1 so can leave i think 
+  - scipy>=1.11.0
+  - matplotlib-base>=3.11 ## seaborn is not compatible w matplotlib 3.11+
+  #- seaborn==0.13.2 ## needs to be compatible w matplotlib<3.11 - take out?
+  - tqdm

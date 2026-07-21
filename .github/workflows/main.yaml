@@ -42,7 +42,7 @@ jobs:
           python-version:  ${{ matrix.python-version }}
           channels: conda-forge,bioconda,nodefaults
           auto-activate-base: false
-          environment-file: dev_env.yml ## temp use dev conda env instead of environment.yml 
+          environment-file: gh_actions_env.yml ## temp use dev conda env instead of environment.yml 
         
       - name: give python version
         run: python -c "import sys; print(sys.version)"

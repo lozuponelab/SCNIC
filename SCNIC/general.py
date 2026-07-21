@@ -15,7 +15,7 @@ from biom.table import Table
 from datetime import datetime
 from collections import OrderedDict
 from numpy.random import multivariate_normal
-from statsmodels.sandbox.stats.multicomp import multipletests
+from statsmodels.stats.multitest import multipletests ## madi update: location of statsmodels multipletests function (adjust p-value)
 
 
 __author__ = 'shafferm'

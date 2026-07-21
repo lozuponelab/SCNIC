@@ -235,7 +235,8 @@ def popt(pd_ko_data):
 
 def test_calc_popt(popt):
     assert len(popt) == 1
-    assert popt[0] == -0.3402000000029235
+    ## madi update: use assert_almost_equal to avoid floating point precision issues and failing tests
+    np.testing.assert_almost_equal(popt[0], -0.3402000000029235)
 
 
 @pytest.fixture()
@@ -260,7 +261,7 @@ def residual_data(residuals):
              ('otu3', 'otu4'),
              ('otu3', 'otu5'),
              ('otu4', 'otu5')]
-    columns = ['residuals_minr_0.35']
+    columns = ['residual_minr_0.35']
     return pd.DataFrame(np.transpose(residuals), index=index, columns=columns)
 
 
@@ -289,21 +290,32 @@ def genome_loc(genome_frame, data_loc):
     return str(path.join(data_loc, 'genome_table.tsv'))
 
 
-@pytest.fixture()
-def annotated_correls(correls, pd_ko_data, residual_data, correlation_data):
-    return pd.concat([correls, pd_ko_data, residual_data, correlation_data])
-
-
-@pytest.fixture()
-def correls_anno_loc(annotated_correls, data_loc):
-    annotated_correls.to_csv(path.join(modules_loc, 'correls_anno.txt'), sep='\t')
-    return path.join(data_loc, 'correls_anno.txt')
-
-
 def test_do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, tmpdir):
     output_dir = tmpdir.mkdir('output')
     output_loc = path.join(output_dir, 'test_correls_anno.txt')
     do_annotate_correls(correls_loc, tree_loc, genome_loc, modules_loc, output_loc, False, None, simple_func)
     assert path.isfile(output_loc)
+
+    ## test output structure 
     test_annotated_correls = pd.read_csv(output_loc, sep='\t', index_col=(0,1))
+    ## overall size of output should be 10 rows and 7 columns
     assert test_annotated_correls.shape == (10, 7)
+    ## check that all expected columns are present in the output
+    assert set(['r', 'PD', 'percent_shared', 'residual_minr_0.35',
+                'correlated_minr_0.35', 'module_minr_0.35', 'three_plus_minr_0.35']).issubset(
+        test_annotated_correls.columns
+    )
+    ## check that the index is a MultiIndex with the expected tuples
+    assert test_annotated_correls.index.equals(pd.MultiIndex.from_tuples(
+        [('otu1', 'otu2'),
+         ('otu1', 'otu3'),
+         ('otu1', 'otu4'),
+         ('otu1', 'otu5'),
+         ('otu2', 'otu3'),
+         ('otu2', 'otu4'),
+         ('otu2', 'otu5'),
+         ('otu3', 'otu4'),
+         ('otu3', 'otu5'),
+         ('otu4', 'otu5')]
+    ))
+

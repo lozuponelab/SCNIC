@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0", "wheel", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "SCNIC"
-version = "1.0.0"
+dynamic = ["version"]
 description = "A tool for finding and summarizing modules of highly correlated observations in compositional data"
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -21,7 +21,6 @@ dependencies = [
     "scikit-bio",
     "statsmodels",
     "tqdm",
-    "matplotlib-base>=3.11",
     "h5py",
     "scipy>=1.11.0"
 ]
@@ -40,8 +39,15 @@ classifiers = [
 test = ["pytest"]
 
 [project.scripts]
-scnic-analysis = "SCNIC.SCNIC_analysis:main"
-module-enrichment = "SCNIC.module_enrichment:main"
+scnic = "SCNIC.cli.SCNIC_analysis:main"
+scnic-analysis = "SCNIC.cli.SCNIC_analysis:main"
+scnic-module-enrichment = "SCNIC.cli.module_enrichment:main"
 
 [tool.setuptools.packages.find]
 include = ["SCNIC*"]
+
+[tool.setuptools_scm]
+write_to = "SCNIC/_version.py"
+fallback_version = "0.0.0"
+local_scheme = "no-local-version" ## excludes local distance hash for uncomitted changes 
+version_scheme = "no-guess-dev" ## default: "guess-next-dev", other options: "post-release", "no-guess-dev"

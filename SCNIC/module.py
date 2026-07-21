@@ -101,7 +101,7 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
     correls_filter = general.filter_correls(correls, max_p=max_p, min_r=min_r, conet=True)
     net = general.correls_to_net(correls_filter, metadata=metadata)
 
-    nx.write_gml(net, path.join(output_loc, 'correlation_network.gml'))
+    nx.write_gml(net, path.join(output_loc, 'module_correlation_network.gml'))
     if verbose:
         print("Network Generated")
         print("number of nodes: %s" % str(net.number_of_nodes()))

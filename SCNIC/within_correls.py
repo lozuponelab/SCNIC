@@ -97,14 +97,14 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
         print("Features Correlated")
         print("")
 
-    correls.to_csv(path.join(output_loc, 'correls.txt'), sep='\t', index_label=('feature1', 'feature2'))
+    correls.to_csv(path.join(output_loc, 'within_correls.txt'), sep='\t', index_label=('feature1', 'feature2'))
     if verbose:
-        print("Correls.txt written")
+        print("within_correls.txt written")
 
     # make correlation network
     metadata = general.get_metadata_from_table(table_filt)
     net = general.correls_to_net(correls, metadata=metadata)
-    nx.write_gml(net, path.join(output_loc, 'correlation_network.gml'))
+    nx.write_gml(net, path.join(output_loc, 'within_correlation_network.gml'))
     if verbose:
         print("Network made")
         print("")

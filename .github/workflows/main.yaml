@@ -1,10 +1,12 @@
-name: Tests
+name: unit tests for scnic
+run-name: attempt-one-testing-after-major-changes
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - dev_MA_2026
+      #- main
   pull_request:
 
 permissions:
@@ -40,14 +42,21 @@ jobs:
           python-version:  ${{ matrix.python-version }}
           channels: conda-forge,bioconda,nodefaults
           auto-activate-base: false
-          environment-file: environment.yml
-      - name: Install dependencies
+          environment-file: dev_env.yml ## temp use dev conda env instead of environment.yml 
+        
+      - name: give python version
+        run: python -c "import sys; print(sys.version)"
+      
+      - name: install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          python setup.py install
+          pip install -e .
+      
+      - name: run smoke tests
+        run: bash tests/smoke_test.sh
 
-      - name: Test with pytest
+      - name: test with pytest
         run: |
-          python -m pytest tests/
+          python -m pytest tests/*.py

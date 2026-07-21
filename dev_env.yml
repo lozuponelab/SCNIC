@@ -18,5 +18,4 @@ dependencies:
   - armadillo>=8 ## fastspar requires at least armadillo 7.800.1 so can leave i think 
   - scipy>=1.11.0
   - matplotlib-base>=3.11 ## seaborn is not compatible w matplotlib 3.11+
-  #- seaborn==0.13.2 ## needs to be compatible w matplotlib<3.11 - take out?
   - tqdm

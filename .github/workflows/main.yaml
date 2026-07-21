@@ -1,12 +1,11 @@
 name: unit tests for scnic
-run-name: attempt-one-testing-after-major-changes
+run-name: attempt-three-testing-after-major-changes
 
 on:
   workflow_dispatch:
   push:
     branches:
       - dev_MA_2026
-      #- main
   pull_request:
 
 permissions:
@@ -30,19 +29,18 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v4
+
       - name: create environment with mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          mamba-version: "*"
           python-version:  ${{ matrix.python-version }}
           channels: conda-forge,bioconda,nodefaults
           auto-activate-base: false
+          activate-environment: test
           environment-file: gh_actions_env.yml ## temp use dev conda env instead of environment.yml 
+          mamba-version: "*"
+          use-mamba: true
         
       - name: give python version
         run: python -c "import sys; print(sys.version)"

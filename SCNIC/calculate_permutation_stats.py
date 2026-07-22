@@ -6,7 +6,6 @@ text and plot outputs for SCNIC module analyses.
 """
 
 from statsmodels.sandbox.stats.multicomp import multipletests
-import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

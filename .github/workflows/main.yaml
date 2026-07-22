@@ -1,5 +1,5 @@
 name: unit tests for scnic
-run-name: attempt-three-testing-after-major-changes
+run-name: testing-after-major-changes-fix-conda
 
 on:
   workflow_dispatch:

@@ -24,14 +24,14 @@ from SCNIC.general import p_adjust
 _spearmanr = spearmanr
 
 
-def chunks(l, n):
+def chunks(in_seq, n):
     """
     Yield successive n-sized chunks from a list.
 
     Parameters
     ----------
-    l : sequence
-        Input sequence.
+    in_seq : sequence
+             Input sequence.
     n : int
         Chunk size.
 
@@ -40,8 +40,8 @@ def chunks(l, n):
     list
         Subsequences of length up to n.
     """
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
+    for i in range(0, len(in_seq), n):
+        yield in_seq[i:i + n]
 
 
 def spearmanr(x, y):

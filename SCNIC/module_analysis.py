@@ -15,6 +15,7 @@ from biom.table import Table
 from biom.util import biom_open
 import os
 import networkx as nx
+from community import community_louvain
 from collections import defaultdict
 
 from SCNIC import general
@@ -150,7 +151,7 @@ def make_modules_k_cliques(correls, min_r=None, max_p=None, k=3, prefix="module"
         seen = seen | module
         modules[prefix+"_"+str(i)] = module
         for node in module:
-            net.node[node][prefix] = i
+            net.nodes[node][prefix] = i ## networkx deprecated net.node - is now net.nodes
     return modules
 
 
@@ -172,7 +173,7 @@ def make_modules_louvain(correls, min_r=None, max_p=None, gamma=.01, prefix="mod
     """
     correls_filt = general.filter_correls(correls, max_p=max_p, min_r=min_r, conet=True)
     net = general.correls_to_net(correls_filt)
-    partition = louvain.best_partition(net, resolution=gamma)
+    partition = community_louvain.best_partition(net, resolution=gamma) ## was just louvain.best_partition() had to be changed since i dont think that will work
 
     premodules = defaultdict(list)
     for otu, module in partition.items():

@@ -221,7 +221,7 @@ def correls_to_net(correls, metadata=None):
                         graph_key = underscore_to_camelcase(str(key))
                         if metadata[otu][key] is None:
                             continue
-                        elif type(metadata[otu][key]) == str:
+                        elif type(metadata[otu][key]) is str: ## ruff suggested edit instead of '==' - can also use isinstance()
                             graph.nodes[otu][graph_key] = metadata[otu][key]
                         elif hasattr(metadata[otu][key], '__iter__'):
                             graph.nodes[otu][graph_key] = ';'.join(metadata[otu][key])

@@ -99,7 +99,7 @@ def test_cor_to_dist(cor, dist):
 
 
 def test_make_modules(modules2):
-    assert type(modules2) == dict
+    assert type(modules2) is dict ## can also use isinstance() instead 
     assert len(modules2) == 2
     assert np.sum([len(otus) for module_, otus in modules2.items()]) == 5
 

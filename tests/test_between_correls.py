@@ -23,5 +23,5 @@ def test_between_correls(tmpdir):
     # Run with min r threshold and check that files exist
     between_correls('table1.biom', 'table2.biom', 'out_dir_2', correl_method='pearson', min_r=.2)
     files = os.listdir(str(loc)+'/out_dir_2')
-    assert "correls.txt" in files
-    assert "crossnet.gml" in files
+    assert "between_correls.txt" in files
+    assert "between_crossnet.gml" in files

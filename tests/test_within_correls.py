@@ -13,7 +13,7 @@ def test_within_correls_classic_correlation_min_r_min_sample(tmpdir):
     os.chdir(str(loc))
     within_correls('table1.biom', 'out_dir', correl_method='pearson')
     files = os.listdir(str(loc)+'/out_dir')
-    assert "correls.txt" in files
+    assert "within_correls.txt" in files
 
 
 # integration test
@@ -25,4 +25,4 @@ def test_within_correls_classic_correlation_min_r_sparcc_filter(tmpdir):
     os.chdir(str(loc))
     within_correls('table1.biom', 'out_dir', correl_method='pearson')
     files = os.listdir(str(loc)+'/out_dir')
-    assert "correls.txt" in files
+    assert "within_correls.txt" in files

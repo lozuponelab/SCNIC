@@ -12,13 +12,13 @@ dependencies:
   - scikit-bio
   - statsmodels
   - h5py
-  - python>=3.10 ## should probs be 3.10+ for future versions of scnic
+  - python<3.13,>=3.10 ## should probs be 3.10+ for future versions of scnic
   - fastspar==1.0.0 ## change fastspar install to newest version
+  - gsl==2.7 ## cannot got higher than this version for fastspar install to work!! (also need conda-forge channel and not main)
   - armadillo>=8 ## fastspar requires at least armadillo 7.800.1 so can leave i think 
   - scipy>=1.11.0
   - scnic>=1.0.0 ## newest scnic release will have to be bumped to 1.0.0 since it wont be backwards compatible!
-  - seaborn
+  - matplotlib-base>=3.10 
   - tqdm
-  #- pip: - avoid using pip since it doesn't take into account other package version conflicts which can cause issues 
-  #  - scipy<=1.10.1,>=1.8.0
-  #  - SCNIC
+  - ruff ## linter for development only!! checks package prior to publishing
+  - python-louvain ## needed for louvain module analysis

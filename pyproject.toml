@@ -12,7 +12,7 @@ authors = [
     { name = "Lozupone Lab", email = "lozuponelab.dev@olucdenver.onmicrosoft.com" }
 ]
 urls = { Homepage = "https://github.com/lozuponelab/SCNIC/", Download = "https://github.com/lozuponelab/SCNIC/tarball/0.6.6" }
-requires-python = ">=3.10, <3.13"
+requires-python = ">=3.10" ##<3.13"
 dependencies = [
     "numpy",
     "networkx>=2",

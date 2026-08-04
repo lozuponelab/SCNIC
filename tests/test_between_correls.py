@@ -55,8 +55,8 @@ def strong_signal_table(tmp_paths):
                 noncors_std=20,    # lower noise than default so it doesn't swamp the signal
             )
             with biom_open(out_paths[loc_name], "w") as f:
-                table.to_hdf5(f, f"test_{loc_name.split("_")[0]}")
-            new_out_paths[f"{loc_name.split("_")[0]}_table"] = table
+                table.to_hdf5(f, f"test_{loc_name.split('_')[0]}")
+            new_out_paths[f"{loc_name.split('_')[0]}_table"] = table
         else:
             pass
     return new_out_paths

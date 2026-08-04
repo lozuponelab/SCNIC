@@ -109,13 +109,13 @@ def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_m
     correls = ca.between_correls_from_tables(table1, table2, correl_method, nprocs=procs)
     correls.sort_values(correls.columns[-1], inplace=True)
     correls['p_adj'] = general.p_adjust(correls['p'], method=p_adjust)
-    correls.to_csv(open(path.join(output_loc, f'between_{pretty_correl_method}_correls.txt'), 'w'), sep='\t', index=True)
+    correls.to_csv(open(path.join(output_loc, f"between_{pretty_correl_method}_correls.txt"), 'w'), sep='\t', index=True)
 
     # make network
     correls_filt = general.filter_correls(correls, min_r=min_r)
     net = general.correls_to_net(correls_filt, metadata=metadata)
     logger["number of nodes"] = net.number_of_nodes()
     logger["number of edges"] = net.number_of_edges()
-    nx.write_gml(net, path.join(output_loc, f'between_{pretty_correl_method}_crossnet.gml'))
+    nx.write_gml(net, path.join(output_loc, f"between_{pretty_correl_method}_crossnet.gml"))
 
     logger.output_log()

@@ -57,7 +57,8 @@ def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_m
     procs : int, default 1
     force : bool, default False
     """
-    logger = general.Logger(path.join(output_loc, "SCNIC_between_log.txt"))
+    pretty_correl_method = correl_method ## save name of actual correlation method used for naming output files 
+    logger = general.Logger(path.join(output_loc, f"SCNIC_between_{pretty_correl_method}_log.txt"))
     logger["SCNIC analysis type"] = "between"
 
     # correlation and p-value adjustment methods
@@ -103,18 +104,18 @@ def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_m
     metadata.update(general.get_metadata_from_table(table2))
 
     # make correlations
-    logger["correlation metric"] = correl_method
+    logger["correlation metric"] = pretty_correl_method
     logger["p adjustment method"] = p_adjust
     correls = ca.between_correls_from_tables(table1, table2, correl_method, nprocs=procs)
     correls.sort_values(correls.columns[-1], inplace=True)
     correls['p_adj'] = general.p_adjust(correls['p'], method=p_adjust)
-    correls.to_csv(open(path.join(output_loc, 'between_correls.txt'), 'w'), sep='\t', index=True)
+    correls.to_csv(open(path.join(output_loc, f'between_{pretty_correl_method}_correls.txt'), 'w'), sep='\t', index=True)
 
     # make network
     correls_filt = general.filter_correls(correls, min_r=min_r)
     net = general.correls_to_net(correls_filt, metadata=metadata)
     logger["number of nodes"] = net.number_of_nodes()
     logger["number of edges"] = net.number_of_edges()
-    nx.write_gml(net, path.join(output_loc, 'between_crossnet.gml'))
+    nx.write_gml(net, path.join(output_loc, f'between_{pretty_correl_method}_crossnet.gml'))
 
     logger.output_log()

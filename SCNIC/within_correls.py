@@ -35,12 +35,14 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
     p_adjust : str, default 'fdr_bh'
     verbose : bool, default False
     """
-    logger = general.Logger(path.join(output_loc, "SCNIC_within_log.txt"))
+    pretty_correl_method = correl_method ## save name of actual correlation method used for naming output files 
+    logger = general.Logger(path.join(output_loc, f"SCNIC_within_{pretty_correl_method}_log.txt"))
     logger["SCNIC analysis type"] = "within"
 
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau, 'sparcc': 'sparcc'}
     correl_method = correl_methods[correl_method.lower()]
+
 
     # get features to be correlated
     table = load_table(input_loc)
@@ -81,7 +83,7 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
     if correl_method in [spearmanr, pearsonr, kendalltau]:
         # calculate correlations
         if verbose:
-            print("Correlating with %s" % correl_method)
+            print("Correlating with %s" % pretty_correl_method)
         # correlate feature
         correls = ca.calculate_correlations(table_filt, correl_method, nprocs=procs, p_adjust_method=p_adjust)
     elif correl_method == 'sparcc':
@@ -92,21 +94,23 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
                                               verbose=verbose, nprocs=procs, p_adjust_method=p_adjust)
     else:
         raise ValueError("How did this even happen?")
-    logger["distance metric used"] = correl_method
+    
+    logger["distance metric used"] = pretty_correl_method
+
+    correls.to_csv(path.join(output_loc, f'within_{pretty_correl_method}_correls.txt'), sep='\t', index_label=('feature1', 'feature2'))
     if verbose:
         print("Features Correlated")
+        print(f"{pretty_correl_method} correlations: within_{pretty_correl_method}_correls.txt written to {path.abspath(output_loc)}")
         print("")
-
-    correls.to_csv(path.join(output_loc, 'within_correls.txt'), sep='\t', index_label=('feature1', 'feature2'))
-    if verbose:
-        print("within_correls.txt written")
+        
 
     # make correlation network
     metadata = general.get_metadata_from_table(table_filt)
     net = general.correls_to_net(correls, metadata=metadata)
-    nx.write_gml(net, path.join(output_loc, 'within_correlation_network.gml'))
+    nx.write_gml(net, path.join(output_loc, f'within_{pretty_correl_method}_correlation_network.gml'))
     if verbose:
         print("Network made")
+        print(f"{pretty_correl_method} correlation network: within_{pretty_correl_method}_correlation_network.gml written to {path.abspath(output_loc)}")
         print("")
 
     logger.output_log()

@@ -192,6 +192,20 @@ def filter_correls(correls, max_p=None, min_r=None, conet=False):
 
     return correls
 
+## attempting to add a helper function that fixes np.float64 edge values in the correlation_network.gml
+## these values prevent the gml file from being read back in by nx.read_gml() which causes problems for the 
+## unit tests
+def _to_gml_compatible(value):
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, dict):
+        return {str(k): _to_gml_compatible(v) for k, v in value.items()}
+    if isinstance(value, np.ndarray):
+        return [_to_gml_compatible(item) for item in value.tolist()]
+    if isinstance(value, (list, tuple)):
+        return [_to_gml_compatible(item) for item in value]
+    return value
+
 
 def correls_to_net(correls, metadata=None):
     """
@@ -219,18 +233,19 @@ def correls_to_net(correls, metadata=None):
                 if otu in metadata:
                     for key in metadata[otu]:
                         graph_key = underscore_to_camelcase(str(key))
-                        if metadata[otu][key] is None:
+                        value = _to_gml_compatible(metadata[otu][key])
+                        if value is None:
                             continue
-                        elif type(metadata[otu][key]) is str: ## ruff suggested edit instead of '==' - can also use isinstance()
-                            graph.nodes[otu][graph_key] = metadata[otu][key]
-                        elif hasattr(metadata[otu][key], '__iter__'):
-                            graph.nodes[otu][graph_key] = ';'.join(metadata[otu][key])
+                        elif type(value) is str: ## ruff suggested edit instead of '==' - can also use isinstance()
+                            graph.nodes[otu][graph_key] = value
+                        elif hasattr(value, '__iter__'):
+                            graph.nodes[otu][graph_key] = ';'.join(value)
                         else:
-                            graph.nodes[otu][graph_key] = metadata[otu][key]
+                            graph.nodes[otu][graph_key] = value
         graph.add_edge(*otu_pair)
         for i in correl.index:
             graph_key = underscore_to_camelcase(str(i))
-            graph.edges[otu_pair][graph_key] = correl[i]
+            graph.edges[otu_pair][graph_key] = _to_gml_compatible(correl[i])
     return graph
 
 

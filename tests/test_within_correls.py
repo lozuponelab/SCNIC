@@ -159,7 +159,6 @@ class TestCorrelationRecovery:
                     assert net[a][b].get('pAdjusted') > 0.05
                     if AssertionError:
                         f"unexpected triangle-pair connection at edge {a}-{b}"
-
                 else:
                     continue
 
@@ -225,7 +224,7 @@ class TestFiltering:
 
 class TestPAdjust:
 
-    @pytest.mark.parametrize("p_adjust", ["fdr_bh", "bonferroni", "holm", None])
+    @pytest.mark.parametrize("p_adjust", ["fdr_bh", "fdr_by", "fdr_tsbh", "fdr_tsbky", "bonferroni", "holm", None])
     def test_p_adjust_methods_run(self, strong_signal_table, p_adjust):
         input_loc, output_loc, _ = strong_signal_table
         within_correls(input_loc, output_loc, correl_method="pearson", p_adjust=p_adjust)

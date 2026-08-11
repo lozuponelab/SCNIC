@@ -180,12 +180,12 @@ def filter_correls(correls, max_p=None, min_r=None, conet=False):
 
     if max_p is not None:
         # filter to only include significant correlations
-        if 'p_adj' in correls.columns:
-            correls = correls[correls.p_adj < max_p]
+        if 'pAdjusted' in correls.columns:
+            correls = correls[correls.pAdjusted < max_p]
         elif 'p' in correls.columns:
             correls = correls[correls.p < max_p]
         else:
-            raise ValueError("No p or p_adj in correls")
+            raise ValueError("No p or pAdjusted in correls")
 
     if min_r is not None:
         correls = correls[np.abs(correls.r) > min_r]

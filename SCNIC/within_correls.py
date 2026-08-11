@@ -38,6 +38,7 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
     pretty_correl_method = correl_method ## save name of actual correlation method used for naming output files 
     logger = general.Logger(path.join(output_loc, f"SCNIC_within_{pretty_correl_method}_log.txt"))
     logger["SCNIC analysis type"] = "within"
+    logger["number of processors used"] = procs
 
     # correlation and p-value adjustment methods
     correl_methods = {'spearman': spearmanr, 'pearson': pearsonr, 'kendall': kendalltau, 'sparcc': 'sparcc'}
@@ -66,18 +67,16 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
             print("Table filtered: %s observations" % str(table_filt.shape[0]))
             print("")
         logger["sparcc paper filter"] = True
-        logger["number of observations present after filter"] = table_filt.shape[0]
+        logger["number of observations present after sparcc filter"] = table_filt.shape[0]
     elif min_sample is not None:
         table_filt = general.filter_table(table, min_sample)
         if verbose:
             print("Table filtered: %s observations" % str(table_filt.shape[0]))
             print("")
         logger["min samples present"] = min_sample
-        logger["number of observations present after filter"] = table_filt.shape[0]
+        logger["number of observations present after min sample filter"] = table_filt.shape[0]
     else:
         table_filt = table
-
-    logger["number of processors used"] = procs
 
     # correlate features
     if correl_method in [spearmanr, pearsonr, kendalltau]:
@@ -93,9 +92,9 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
             correls = ca.fastspar_correlation(table_filt, calc_pvalues=True, bootstraps=sparcc_p,
                                               verbose=verbose, nprocs=procs, p_adjust_method=p_adjust)
     else:
-        raise ValueError("How did this even happen?")
+        raise ValueError(f"{pretty_correl_method} correlation calculations are NOT supported by SCNIC within analysis!\n please choose one of the following: {correl_methods.keys()}")
     
-    logger["distance metric used"] = pretty_correl_method
+    logger["correlation metric"] = pretty_correl_method
 
     correls.to_csv(path.join(output_loc, f'within_{pretty_correl_method}_correls.txt'), sep='\t', index_label=('feature1', 'feature2'))
     if verbose:
@@ -110,6 +109,8 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
     nx.write_gml(net, path.join(output_loc, f'within_{pretty_correl_method}_correlation_network.gml'))
     if verbose:
         print("Network made")
+        print(f"Number of nodes: {net.number_of_nodes()}")
+        print(f"Number of edges: {net.number_of_edges()}")
         print(f"{pretty_correl_method} correlation network: within_{pretty_correl_method}_correlation_network.gml written to {path.abspath(output_loc)}")
         print("")
 

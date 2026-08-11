@@ -46,13 +46,7 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
     correls.index = pd.MultiIndex.from_tuples([(str(id1), str(id2)) for id1, id2 in correls.index])
     logger["input correls"] = input_loc
     if verbose:
-        print("correls.txt read")
-
-    # sanity check args
-    if min_r is not None and max_p is not None:
-        raise ValueError("arguments max_p and min_r may not be used concurrently")
-    if min_r is None and max_p is None:
-        raise ValueError("argument max_p or min_r must be used")
+        print(f"{input_loc} read")
 
     # make new output directory and change to it
     if output_loc is not None:
@@ -60,13 +54,30 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
             os.makedirs(output_loc)
     logger["output directory"] = path.abspath(output_loc)
 
+    ## save which module creation method was used to the log file 
+    logger["module creation method"] = method
+
+    # sanity check args
+    if min_r is not None and max_p is not None:
+        raise ValueError("arguments max_p and min_r may not be used concurrently")
+    if min_r is None and max_p is None:
+        raise ValueError("argument max_p or min_r must be used")
+
+    ## save either min_r or max_p threshold values to the log file
+    if min_r is not None:
+        logger["minimum r-value threshold"] = min_r
+    elif max_p is not None:
+        logger["maximum p-value threshold"] = max_p
+
     # make modules
     if method == 'naive':
         modules = ma.make_modules_naive(correls, min_r, max_p, prefix=prefix)
     elif method == 'k_cliques':
         modules = ma.make_modules_k_cliques(correls, min_r, max_p, k_size, prefix=prefix)
+        logger["k size"] = k_size
     elif method == 'louvain':
         modules = ma.make_modules_louvain(correls, min_r, max_p, gamma, prefix=prefix)
+        logger["gamma value"] = gamma
     else:
         raise ValueError('%s is not a valid module picking method' % method)
     logger["number of modules created"] = len(modules)
@@ -88,7 +99,7 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
         logger["number of observations in output table"] = coll_table.shape[0]
         if verbose:
             print("Table Collapsed")
-            print("collapsed Table Observations: " + str(coll_table.shape[0]))
+            print("collapsed table observations: " + str(coll_table.shape[0]))
             print("")
         with biom_open(path.join(output_loc, 'collapsed.biom'), 'w') as f:
             coll_table.to_hdf5(f, 'make_modules.py')
@@ -103,7 +114,7 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
 
     nx.write_gml(net, path.join(output_loc, 'module_correlation_network.gml'))
     if verbose:
-        print("Network Generated")
+        print("Network generated")
         print("number of nodes: %s" % str(net.number_of_nodes()))
         print("number of edges: %s" % str(net.number_of_edges()))
     logger["number of nodes"] = net.number_of_nodes()

@@ -79,6 +79,7 @@ def build_parser():
 
     subparsers = parser.add_subparsers(dest="command")
     subparsers.required = True
+    subparsers.metavar = "{within, modules, between}" ## give helpful error message when no positional argument is given after "scnic"
 
     within_corr = subparsers.add_parser("within", 
                                         help="find pairwise correlations within a table",
@@ -104,7 +105,7 @@ def build_parser():
     within_corr.add_argument("-a", "--p_adjust", 
                              help="p-value adjustment, default is Benjamini-Hochberg FDR", 
                              default="fdr_bh",
-                             choices=["fdr_bh", "fdr_by", "fdr_tsbh", "fdr_tsbky"]) ## include the fwer (family-wise error rate) options - bonferroni, sidak, holm, holm-sidak, simes-hochberg, hommel?
+                             choices=["fdr_bh", "fdr_by", "fdr_tsbh", "fdr_tsbky", "bonferroni", "holm"]) ## include the fwer (family-wise error rate) options - bonferroni, sidak, holm, holm-sidak, simes-hochberg, hommel?
     within_corr.add_argument("-s", "--min_sample", 
                              help="minimum number of samples present in", 
                              type=int)
@@ -179,7 +180,7 @@ def build_parser():
     between_corr.add_argument("-a", "--p_adjust", 
                               help="p-value adjustment, default is Benjamini-Hochberg FDR", 
                               default="fdr_bh",
-                              choices=["fdr_bh", "fdr_by", "fdr_tsbh", "fdr_tsbky"]) ## include the fwer (family-wise error rate) options - bonferroni, sidak, holm, holm-sidak, simes-hochberg, hommel?
+                              choices=["fdr_bh", "fdr_by", "fdr_tsbh", "fdr_tsbky", "bonferroni", "holm"]) ## include the fwer (family-wise error rate) options - bonferroni, sidak, holm, holm-sidak, simes-hochberg, hommel?
     between_corr.add_argument("-s", "--min_sample", 
                               help="minimum number of samples present in", 
                               type=int)
@@ -201,6 +202,10 @@ def build_parser():
                               help="force overwrite output folder if it already exists", 
                               default=False,
                               action="store_true")
+    between_corr.add_argument("-v", "--verbose", 
+                             help="give verbose messages to STDOUT", 
+                             default=False, 
+                             action="store_true")
     between_corr.set_defaults(func=between_correls)
 
     return parser

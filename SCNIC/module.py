@@ -59,9 +59,9 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
 
     # sanity check args
     if min_r is not None and max_p is not None:
-        raise ValueError("arguments max_p and min_r may not be used concurrently")
+        raise TypeError("arguments max_p and min_r may not be used concurrently")
     if min_r is None and max_p is None:
-        raise ValueError("argument max_p or min_r must be used")
+        raise TypeError("argument max_p or min_r must be used")
 
     ## save either min_r or max_p threshold values to the log file
     if min_r is not None:
@@ -79,10 +79,10 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
         modules = ma.make_modules_louvain(correls, min_r, max_p, gamma, prefix=prefix)
         logger["gamma value"] = gamma
     else:
-        raise ValueError('%s is not a valid module picking method' % method)
+        raise KeyError('%s is not a valid module creation method' % method)
     logger["number of modules created"] = len(modules)
     if verbose:
-        print("Modules Formed")
+        print(f"Modules formed using {method}!")
         print("number of modules: %s" % len(modules))
         print("number of observations in modules: %s" % np.sum([len(i) for i in modules]))
         print("")
@@ -98,7 +98,7 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
         # ma.write_modules_to_dir(table, modules)
         logger["number of observations in output table"] = coll_table.shape[0]
         if verbose:
-            print("Table Collapsed")
+            print("Table collapsed!")
             print("collapsed table observations: " + str(coll_table.shape[0]))
             print("")
         with biom_open(path.join(output_loc, 'collapsed.biom'), 'w') as f:
@@ -114,7 +114,7 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
 
     nx.write_gml(net, path.join(output_loc, 'module_correlation_network.gml'))
     if verbose:
-        print("Network generated")
+        print("Network made!")
         print("number of nodes: %s" % str(net.number_of_nodes()))
         print("number of edges: %s" % str(net.number_of_edges()))
     logger["number of nodes"] = net.number_of_nodes()

@@ -89,10 +89,9 @@ def make_modules_naive(correls, min_r=None, max_p=None, prefix="module"):
         cor, labels = correls_to_cor(correls)
         dist = cor_to_dist(cor)
     elif max_p is not None:
-        # TODO: This
-        raise NotImplementedError('Making modules based on a p-value is not currently supported')
+        raise NotImplementedError('Making modules based on a p-value is not currently supported for method=naive - please specify an r-value instead!')
     else:
-        raise ValueError("this is prevented above")
+        raise TypeError("please specify a minimum r-value for naive module creation!")
     # create linkage matrix using complete linkage
     z = complete(dist)
     # make tree from linkage matrix with names from dist

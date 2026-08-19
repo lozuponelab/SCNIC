@@ -79,16 +79,16 @@ def build_parser():
 
     subparsers = parser.add_subparsers(dest="command")
     subparsers.required = True
-    subparsers.metavar = "{within, modules, between}" ## give helpful error message when no positional argument is given after "scnic"
+    subparsers.metavar = "{within,modules,between}" ## give helpful error message when no positional argument is given after "scnic"
 
     within_corr = subparsers.add_parser("within", 
-                                        help="find pairwise correlations within a table",
+                                        help="find pairwise correlations within features in a table",
                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     make_modules = subparsers.add_parser("modules", 
-                                         help="make modules on a network",
+                                         help="make modules based on a correlation network",
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     between_corr = subparsers.add_parser("between", 
-                                         help="find correlations between two tables",
+                                         help="find all pairwise correlations between features in two separate tables",
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # parser for making correlation network with a single biom table
@@ -118,7 +118,7 @@ def build_parser():
                              default=False,
                              action="store_true")
     within_corr.add_argument("--sparcc_p", 
-                             help="calculate p-value for sparCC R value, give number of bootstraps",
+                             help="calculate p-value for SparCC R value, give number of bootstraps",
                              type=int)
     within_corr.add_argument("-v", "--verbose", 
                              help="give verbose messages to STDOUT", 
@@ -128,7 +128,7 @@ def build_parser():
 
     # parser for finding modules in a correlation network
     make_modules.add_argument("-i", "--input_loc", 
-                              help="location of output from 'scnic within' or 'scnic-analysis within'. will be scnic_within_out/ if default was used.",
+                              help="location of correlation output from 'scnic within' or 'scnic between'. will be scnic_{within/between}_out if default was used.",
                               required=True)
     make_modules.add_argument("-o", "--output_loc", 
                               help="location and desired name of the output directory",
@@ -199,7 +199,7 @@ def build_parser():
                               default=1, 
                               type=int)
     between_corr.add_argument("-f", "--force", 
-                              help="force overwrite output folder if it already exists", 
+                              help="force overwrite output directory if it already exists", 
                               default=False,
                               action="store_true")
     between_corr.add_argument("-v", "--verbose", 

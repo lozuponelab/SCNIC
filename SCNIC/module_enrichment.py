@@ -19,18 +19,6 @@ from SCNIC.annotate_correls import do_annotate_correls
 from SCNIC.calculate_permutations import do_multiprocessed_perms
 from SCNIC.calculate_permutation_stats import do_stats
 
-## pull version from git tag and setuptools_scm 
-## if this doesn't work, set the version to "0.0.0"
-try:
-    from SCNIC._version import version as __version__
-except ModuleNotFoundError:
-    try:
-        from setuptools_scm import get_version
-        __version__ = get_version(root="..", relative_to=__file__)
-    except Exception:
-        __version__ = "0.0.0"
-
-
 def main():
     """
     Parse command-line arguments and execute module-enrichment workflows.
@@ -64,12 +52,6 @@ def main():
         --to_keep : optional module filter file
     """
     parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"{__version__}",
-    )
 
     subparsers = parser.add_subparsers(dest='subparser_name')
     annotate_correls = subparsers.add_parser("annotate", 

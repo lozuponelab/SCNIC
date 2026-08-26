@@ -3,9 +3,9 @@
 # SCNIC
 **S**parse **C**ooccurrence **N**etwork **I**nvestigation for **C**ompositional data (_pronounced 'scenic'_)
 
-A bioinformatics tool for the generation and analysis of cooccurrence networks using compositional data. SCNIC was written with complex microbiome data in mind, but can be easily applied to other forms of compositional data.
+A bioinformatics tool for the generation and analysis of cooccurrence networks using compositional data. 
 
-_Additional information on the theory behind SCNIC can be found in the [paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC9744196/)._
+SCNIC was written with complex microbiome data in mind, but can be easily applied to other forms of compositional data. Additional information on the theory behind SCNIC can be found in the [paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC9744196/).
 
 ## Docs
 
@@ -18,6 +18,7 @@ _Additional information on the theory behind SCNIC can be found in the [paper](h
 - [Tutorial](https://github.com/lozuponelab/SCNIC/wiki/Tutorial)
 - [FAQs and Troubleshooting](https://github.com/lozuponelab/SCNIC/wiki/FAQs-and-Troubleshooting)
 - [Docs for SCNIC v0.6.6 and Below](https://github.com/lozuponelab/SCNIC/wiki/Old-Docs)
+- [q2-SCNIC](https://github.com/lozuponelab/q2-SCNIC)
 
 
 ## Contact information

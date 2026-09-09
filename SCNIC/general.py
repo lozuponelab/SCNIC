@@ -10,6 +10,7 @@ from __future__ import division
 import re
 
 import numpy as np
+import warnings
 import networkx as nx
 from biom.table import Table
 from datetime import datetime
@@ -65,8 +66,13 @@ def p_adjust(pvalues, method='fdr_bh'):
     numpy.ndarray
         Adjusted p-values.
     """
-    res = multipletests(pvalues, method=method)
-    return np.array(res[1], dtype=float)
+    if np.isnan(pvalues).any(): 
+        warnings.warn("p-values contain NaN or missing values! adjusted p-values will be returned as NaNs\nto fix, recalculate correlations excluding constant inputs (--min_sample filtering)",
+                      UserWarning,
+                      stacklevel=2)
+    
+    _, res, _, _ = multipletests(pvalues, method=method)
+    return np.array(res, dtype=float)
 
 
 def sparcc_paper_filter(table):

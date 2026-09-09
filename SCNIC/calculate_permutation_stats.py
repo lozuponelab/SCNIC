@@ -5,7 +5,7 @@ This module supports permutation-based p-value statistics and writes
 text and plot outputs for SCNIC module analyses.
 """
 
-from statsmodels.sandbox.stats.multicomp import multipletests
+from statsmodels.stats.multitest import multipletests ## madi update: location of statsmodels multipletests function (adjust p-value)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

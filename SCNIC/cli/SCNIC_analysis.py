@@ -185,7 +185,7 @@ def build_parser():
     between_corr.add_argument("-z", "--max_percent_zero", 
                               help="maximum percent of zeros allowed per observation (greater than 50 is NOT recommended)", 
                               type=int,
-                              default=50)
+                              default=None)
     between_corr.add_argument("--max_p", 
                               help="max p-value to determine edges", 
                               type=float)

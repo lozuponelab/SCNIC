@@ -67,7 +67,7 @@ def p_adjust(pvalues, method='fdr_bh'):
         Adjusted p-values.
     """
     if np.isnan(pvalues).any(): 
-        warnings.warn("p-values contain NaN or missing values! adjusted p-values will be returned as NaNs\nto fix, recalculate correlations excluding constant inputs (--min_sample filtering)",
+        warnings.warn("p-values contain NaN or missing values! adjusted p-values will be returned as NaNs\nto fix, recalculate correlations excluding constant inputs (--max_percent_zero filtering)",
                       UserWarning,
                       stacklevel=2)
     
@@ -255,16 +255,17 @@ def correls_to_net(correls, metadata=None):
     return graph
 
 
-def filter_table(table, min_samples):
+def filter_table(table, max_percent_zero):
     """
-    Remove observations with fewer than the specified number of non-zero samples.
+    Remove observations with greater than the specified percentage of zero values across all samples.
+    By default, only keep observations that are 50% zero or less (you want less).
 
     Parameters
     ----------
     table : biom.table.Table
         Input BIOM table.
-    min_samples : int
-        Minimum number of samples in which an observation must be present.
+    max_percent_zero : int
+        Maximum percent of zeros allowed in observations (greater than 50% is NOT recommended). 
 
     Returns
     -------
@@ -272,9 +273,9 @@ def filter_table(table, min_samples):
         Filtered BIOM table.
     """
     table = table.copy()
-    # first sample filter
+    # only keep observations that have a percentage of zeros less than or equal to max_percent_zero
     to_keep = [i for i in table.ids(axis='observation')
-               if sum(table.data(i, axis='observation') != 0) >= min_samples]
+               if ((sum(table.data(i, axis='observation') == 0)/len(table.ids(axis='sample')))*100) <= max_percent_zero]
     table.filter(to_keep, axis='observation')
     return table
 

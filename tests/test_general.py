@@ -91,14 +91,14 @@ def test_get_metadata_from_table(biom_table2):
     metadata = get_metadata_from_table(biom_table2)
     assert isinstance(metadata, dict)
 
-
+## MADI EDITED
 def test_filter_table(biom_table1):
-    table_filt = filter_table(biom_table1, min_samples=10)
+    table_filt = filter_table(biom_table1, max_percent_zero=50)
     assert isinstance(table_filt, Table)
 
-
+## MADI EDITED
 def test_filter_better(biom_table2):
-    table_filt = filter_table(biom_table2, min_samples=4)
+    table_filt = filter_table(biom_table2, max_percent_zero=30)
     assert len(table_filt.ids(axis="observation")) == 4
     assert len(table_filt.ids(axis="sample")) == 5
 

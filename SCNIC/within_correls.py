@@ -18,7 +18,7 @@ from SCNIC import general
 from SCNIC import correlation_analysis as ca
 
 
-def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=False, min_sample=None, procs=1,
+def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=False, max_percent_zero=None, procs=1,
                    sparcc_p=1000, p_adjust='fdr_bh', verbose=False):
     """
     Run a within-table SCNIC correlation analysis and write outputs.
@@ -29,7 +29,7 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
     output_loc : str
     correl_method : str, default 'sparcc'
     sparcc_filter : bool, default False
-    min_sample : int or None
+    max_percent_zero : int or None
     procs : int, default 1
     sparcc_p : int, default 1000
     p_adjust : str, default 'fdr_bh'
@@ -64,17 +64,17 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
     if sparcc_filter is True:
         table_filt = general.sparcc_paper_filter(table)
         if verbose:
-            print("Table filtered: %s observations" % str(table_filt.shape[0]))
+            print("Observations present in table after SPARCC filtering: %s " % str(table_filt.shape[0]))
             print("")
         logger["sparcc paper filter"] = True
         logger["number of observations present after sparcc filter"] = table_filt.shape[0]
-    elif min_sample is not None:
-        table_filt = general.filter_table(table, min_sample)
+    elif max_percent_zero is not None:
+        table_filt = general.filter_table(table, max_percent_zero)
         if verbose:
-            print("Table filtered: %s observations" % str(table_filt.shape[0]))
+            print("Observations present in table after max_percent_zero filtering: %s " % str(table_filt.shape[0]))
             print("")
-        logger["min samples present"] = min_sample
-        logger["number of observations present after min sample filter"] = table_filt.shape[0]
+        logger["max percentage of zeros allowed per observation"] = max_percent_zero
+        logger["number of observations present after max percent zero filter"] = table_filt.shape[0]
     else:
         table_filt = table
 

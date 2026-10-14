@@ -37,7 +37,7 @@ def spearmanr(x, y):
 
 ## added verbose argument to be consistent with within and modules 
 def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_method='spearman', sparcc_filter=False,
-                    min_sample=None, p_adjust='fdr_bh', procs=1, force=False, verbose=False):
+                    max_percent_zero=None, p_adjust='fdr_bh', procs=1, force=False, verbose=False):
     """
     Compute correlations between two BIOM tables and write network output.
 
@@ -50,7 +50,7 @@ def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_m
     min_r : float or None
     correl_method : str, default 'spearman'
     sparcc_filter : bool, default False
-    min_sample : int or None
+    max_percent_zero : int or None
     p_adjust : str, default 'fdr_bh'
     procs : int, default 1
     force : bool, default False
@@ -98,21 +98,20 @@ def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_m
         table1_filt = general.sparcc_paper_filter(table1)
         table2_filt = general.sparcc_paper_filter(table2)
         if verbose:
-            print("Table 1 SPARCC filtered: %s observations\n" % str(table1_filt.shape[0]))
-            print("Table 2 SPARCC filtered: %s observations\n" % str(table2_filt.shape[0]))
+            print("Table 1 - observations present after SPARCC filtering: %s\n" % str(table1_filt.shape[0]))
+            print("Table 2 - observations present after SPARCC filtering: %s\n" % str(table2_filt.shape[0]))
         logger["sparcc paper filter"] = True
         logger["number of observations present in table 1 after sparcc filter"] = table1_filt.shape[0]
         logger["number of observations present in table 2 after sparcc filter"] = table2_filt.shape[0]
-    elif min_sample is not None:
-        table1_filt = general.filter_table(table1, min_sample)
-        table2_filt = general.filter_table(table2, min_sample)
-        logger["min samples present"] = min_sample
-        logger["number of observations present in table 1 after min sample filter"] = table1_filt.shape[0]
-        logger["number of observations present in table 2 after min sample filter"] = table2_filt.shape[0]
-
+    elif max_percent_zero is not None:
+        table1_filt = general.filter_table(table1, max_percent_zero)
+        table2_filt = general.filter_table(table2, max_percent_zero)
+        logger["max percentage of zeros allowed per observation"] = max_percent_zero
+        logger["number of observations present in table 1 after max percent zero filter"] = table1_filt.shape[0]
+        logger["number of observations present in table 2 after max percent zero filter"] = table2_filt.shape[0]
         if verbose:
-            print(f"Table 1 minimum sample (n={min_sample}) filtered: {str(table1_filt.shape[0])} observations\n")
-            print(f"Table 2 minimum sample (n={min_sample}) filtered: {str(table2_filt.shape[0])} observations\n")
+            print(f"Table 1 - observations present after maximum percent zero ({max_percent_zero}%) filtering: {str(table1_filt.shape[0])}\n")
+            print(f"Table 2 - observations present after maximum percent zero ({max_percent_zero}%) filtering: {str(table2_filt.shape[0])}\n")
     else:
         table1_filt = table1
         table2_filt = table2

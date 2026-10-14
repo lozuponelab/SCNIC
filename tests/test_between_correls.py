@@ -241,7 +241,7 @@ class TestFiltering:
         assert len(involved) <= out_paths["input1_table"].shape[0]
         assert len(involved) <= out_paths["input2_table"].shape[0]
 
-    def test_min_sample_filter_drops_sparse_features(self, tmp_paths):
+    def test_max_percent_zero_filter_drops_sparse_features(self, tmp_paths):
         out_paths = tmp_paths
 
         for loc_name,fp in out_paths.items():
@@ -255,17 +255,17 @@ class TestFiltering:
                     sparse_table.to_hdf5(f, "test")
         
         between_correls(out_paths["input1_loc"], out_paths["input2_loc"], out_paths["output_loc"], 
-                        correl_method="pearson", min_sample=10)
+                        correl_method="pearson", max_percent_zero=40)
         df = pd.read_csv(os.path.join(out_paths["output_loc"], "between_pearson_correls.txt"), sep="\t")
         involved = set(df["feature1"]) | set(df["feature2"])
         assert "Observ_0" not in involved
 
-    def test_min_sample_and_sparcc_filter_both_set_prefers_sparcc(self, strong_signal_table):
+    def test_max_percent_zero_and_sparcc_filter_both_set_prefers_sparcc(self, strong_signal_table):
         """When both filters are given, sparcc_filter branch should win
         (per current if/elif ordering) -- document/lock in that behavior."""
         out_paths = strong_signal_table
         between_correls(out_paths["input1_loc"], out_paths["input2_loc"], out_paths["output_loc"], 
-                        correl_method="pearson", sparcc_filter=True, min_sample=5)
+                        correl_method="pearson", sparcc_filter=True, max_percent_zero=50)
 
 
 # ---------------------------------------------------------------------------

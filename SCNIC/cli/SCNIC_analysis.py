@@ -40,7 +40,7 @@ def build_parser():
         -o/--output_loc : output directory for the analysis results
         -m/--correl_method : correlation method to use
         -a/--p_adjust : p-value adjustment method
-        -s/--min_sample : minimum number of samples required for inclusion
+        -z/--max_percent_zero : maximum percent of zeros allowed per observation for inclusion
         --procs : number of processors to use
         --sparcc_filter : apply the SparCC filter described in the SparCC paper
         --sparcc_p : number of bootstraps for SparCC p-value estimation
@@ -64,7 +64,7 @@ def build_parser():
         -o/--output_loc : output file or directory location
         -m/--correl_method : correlation method to use
         -a/--p_adjust : p-value adjustment method
-        -s/--min_sample : minimum number of samples required for inclusion
+        -z/--max_percent_zero : maximum percent of zeros allowed per observation for inclusion
         --max_p : maximum p-value allowed for retaining edges
         --min_r : minimum correlation coefficient required for retaining edges
         --sparcc_filter : apply the SparCC filter described in the SparCC paper
@@ -106,9 +106,10 @@ def build_parser():
                              help="p-value adjustment, default is Benjamini-Hochberg FDR", 
                              default="fdr_bh",
                              choices=["fdr_bh", "fdr_by", "fdr_tsbh", "fdr_tsbky", "bonferroni", "holm"]) ## include the fwer (family-wise error rate) options - bonferroni, sidak, holm, holm-sidak, simes-hochberg, hommel?
-    within_corr.add_argument("-s", "--min_sample", 
-                             help="minimum number of samples present in", 
-                             type=int)
+    within_corr.add_argument("-z", "--max_percent_zero", 
+                             help="maximum percent of zeros allowed per observation (greater than 50 is NOT recommended)", 
+                             type=int,
+                             default=50)
     within_corr.add_argument("--procs", 
                              help="number of processors to use", 
                              default=1, 
@@ -181,9 +182,10 @@ def build_parser():
                               help="p-value adjustment, default is Benjamini-Hochberg FDR", 
                               default="fdr_bh",
                               choices=["fdr_bh", "fdr_by", "fdr_tsbh", "fdr_tsbky", "bonferroni", "holm"]) ## include the fwer (family-wise error rate) options - bonferroni, sidak, holm, holm-sidak, simes-hochberg, hommel?
-    between_corr.add_argument("-s", "--min_sample", 
-                              help="minimum number of samples present in", 
-                              type=int)
+    between_corr.add_argument("-z", "--max_percent_zero", 
+                              help="maximum percent of zeros allowed per observation (greater than 50 is NOT recommended)", 
+                              type=int,
+                              default=50)
     between_corr.add_argument("--max_p", 
                               help="max p-value to determine edges", 
                               type=float)

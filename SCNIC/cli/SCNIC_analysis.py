@@ -202,6 +202,9 @@ def build_parser():
 
 def main(argv=None):
     """Parse CLI arguments and run the selected SCNIC workflow"""
+    ## print a statement about large changes to scnic and direct users to the docs 
+    print("ATTENTION: scnic v1.0.0 is VASTLY different from v0.6.6 and below! please see the new documentation for further usage instructions: https://github.com/lozuponelab/SCNIC/wiki")
+
     parser = build_parser()
     args = parser.parse_args(argv)
 

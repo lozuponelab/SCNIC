@@ -49,10 +49,8 @@ def build_parser():
     modules
         -i/--input_loc : location of the correlation output from the within step
         -o/--output_loc : output directory for module results
-        --max_p : maximum p-value allowed for retaining edges
         --min_r : minimum correlation coefficient required for retaining edges
         --method : module detection method to use
-        -k/--k_size : size of the k-clique used when k_cliques is selected
         -g/--gamma : gamma parameter for louvain modularity optimization
         --table_loc : BIOM table used to collapse the network into modules
         --prefix : prefix for module names in the collapsed output
@@ -65,7 +63,6 @@ def build_parser():
         -m/--correl_method : correlation method to use
         -a/--p_adjust : p-value adjustment method
         -z/--max_percent_zero : maximum percent of zeros allowed per observation for inclusion
-        --max_p : maximum p-value allowed for retaining edges
         --min_r : minimum correlation coefficient required for retaining edges
         --sparcc_filter : apply the SparCC filter described in the SparCC paper
         --procs : number of processors to use
@@ -134,20 +131,13 @@ def build_parser():
     make_modules.add_argument("-o", "--output_loc", 
                               help="location and desired name of the output directory",
                               default="scnic_make_modules_out")
-    make_modules.add_argument("--max_p", 
-                              help="maximum p-value to determine edges, p must have been calculated",
-                              type=float)
     make_modules.add_argument("--min_r", 
                               help="minimum correlation value to determine edges", 
                               type=float)
     make_modules.add_argument("--method", 
                               help="method to be used for determining modules", 
                               default='naive',
-                              choices=["naive", "k_cliques", "louvain"])
-    make_modules.add_argument("-k", "--k_size", 
-                              help="k value for use with the k-clique communities algorithm",
-                              type=int, 
-                              default=3)
+                              choices=["naive", "louvain"])
     make_modules.add_argument("-g", "--gamma", 
                               help="gamma value for use with louvain modularity maximization, between "
                                    "0 and 1 where 0 makes small modules and 1 large modules",
@@ -186,9 +176,6 @@ def build_parser():
                               help="maximum percent of zeros allowed per observation (greater than 50 is NOT recommended)", 
                               type=int,
                               default=None)
-    between_corr.add_argument("--max_p", 
-                              help="max p-value to determine edges", 
-                              type=float)
     between_corr.add_argument("--min_r", 
                               help="minimum R to determine edges", 
                               type=float)

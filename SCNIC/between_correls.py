@@ -36,7 +36,7 @@ def spearmanr(x, y):
     return _spearmanr(x, y)
 
 ## added verbose argument to be consistent with within and modules 
-def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_method='spearman', sparcc_filter=False,
+def between_correls(table1, table2, output_loc, min_r=None, correl_method='spearman', sparcc_filter=False,
                     max_percent_zero=None, p_adjust='fdr_bh', procs=1, force=False, verbose=False):
     """
     Compute correlations between two BIOM tables and write network output.
@@ -46,7 +46,6 @@ def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_m
     table1 : str
     table2 : str
     output_loc : str
-    max_p : float or None
     min_r : float or None
     correl_method : str, default 'spearman'
     sparcc_filter : bool, default False
@@ -89,9 +88,6 @@ def between_correls(table1, table2, output_loc, max_p=None, min_r=None, correl_m
         if not path.isdir(output_loc):
             os.makedirs(output_loc)
     logger["output directory"] = path.abspath(output_loc)
-    
-    if max_p is not None:
-        raise ValueError("SCNIC does not currently support module making based on p-values.") # then why is this an option?
 
     # filter tables
     if sparcc_filter is True:

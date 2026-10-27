@@ -68,7 +68,7 @@ def cor_to_dist(cor):
     return 1 - ((cor + 1) / 2)
 
 
-def make_modules_naive(correls, min_r=None, max_p=None, prefix="module"):
+def make_modules_naive(correls, min_r=None, prefix="module"):
     """
     Build modules using hierarchical clustering and a correlation threshold.
 
@@ -76,7 +76,6 @@ def make_modules_naive(correls, min_r=None, max_p=None, prefix="module"):
     ----------
     correls : pandas.DataFrame
     min_r : float or None
-    max_p : float or None
     prefix : str, default 'module'
 
     Returns
@@ -84,14 +83,16 @@ def make_modules_naive(correls, min_r=None, max_p=None, prefix="module"):
     dict
     """
     # read in correlations file and make distance matrix
-    if min_r is not None:
-        min_dist = cor_to_dist(min_r)
-        cor, labels = correls_to_cor(correls)
-        dist = cor_to_dist(cor)
-    elif max_p is not None:
-        raise NotImplementedError('Making modules based on a p-value is not currently supported for method=naive - please specify an r-value instead!')
+    if 'r' in correls.columns:
+        if min_r is not None:
+            min_dist = cor_to_dist(min_r)
+            cor, labels = correls_to_cor(correls)
+            dist = cor_to_dist(cor)
+        elif min_r is None:
+            raise TypeError("please specify a minimum r-value for naive module creation!")
     else:
-        raise TypeError("please specify a minimum r-value for naive module creation!")
+        raise KeyError("there is no column named 'r' in the correlation table!")
+
     # create linkage matrix using complete linkage
     z = complete(dist)
     # make tree from linkage matrix with names from dist
@@ -117,10 +118,11 @@ def make_modules_naive(correls, min_r=None, max_p=None, prefix="module"):
         if len(seen) == all_tips:
             modules = {'%s_%s' % (prefix, i): otus for i, otus in enumerate(sorted(modules, key=len, reverse=True))}
             return modules
-    raise ValueError("Well, how did I get here?")
+    raise ValueError("something went wrong with naive module creation, please open an issue on the scnic github repo:\nhttps://github.com/lozuponelab/SCNIC/issues")
 
-
-def make_modules_k_cliques(correls, min_r=None, max_p=None, k=3, prefix="module"):
+## NOTE: this method is deprecated as of 10/27/2026!!
+## i have left the code in here lest we want to reintroduce it to scnic in the future
+def make_modules_k_cliques(correls, min_r=None, k=3, prefix="module"):
     """
     Build modules from a correlation network using k-clique communities.
 
@@ -128,7 +130,6 @@ def make_modules_k_cliques(correls, min_r=None, max_p=None, k=3, prefix="module"
     ----------
     correls : pandas.DataFrame
     min_r : float or None
-    max_p : float or None
     k : int, default 3
     prefix : str, default 'module'
 
@@ -136,7 +137,7 @@ def make_modules_k_cliques(correls, min_r=None, max_p=None, k=3, prefix="module"
     -------
     dict
     """
-    correls_filt = general.filter_correls(correls, max_p=max_p, min_r=min_r, conet=True)
+    correls_filt = general.filter_correls(correls, min_r=min_r, conet=True)
     net = general.correls_to_net(correls_filt)
     premodules = list(nx.algorithms.community.k_clique_communities(net, k))
     # reverse modules so observations will be added to smallest modules
@@ -154,7 +155,7 @@ def make_modules_k_cliques(correls, min_r=None, max_p=None, k=3, prefix="module"
     return modules
 
 
-def make_modules_louvain(correls, min_r=None, max_p=None, gamma=.01, prefix="module"):
+def make_modules_louvain(correls, min_r=None, gamma=.01, prefix="module"):
     """
     Build modules using the Louvain community detection algorithm.
 
@@ -162,7 +163,6 @@ def make_modules_louvain(correls, min_r=None, max_p=None, gamma=.01, prefix="mod
     ----------
     correls : pandas.DataFrame
     min_r : float or None
-    max_p : float or None
     gamma : float, default .01
     prefix : str, default 'module'
 
@@ -170,7 +170,7 @@ def make_modules_louvain(correls, min_r=None, max_p=None, gamma=.01, prefix="mod
     -------
     dict
     """
-    correls_filt = general.filter_correls(correls, max_p=max_p, min_r=min_r, conet=True)
+    correls_filt = general.filter_correls(correls, min_r=min_r, conet=True)
     net = general.correls_to_net(correls_filt)
     partition = community_louvain.best_partition(net, resolution=gamma) ## was just louvain.best_partition() had to be changed since i dont think that will work
 

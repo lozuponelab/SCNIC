@@ -114,19 +114,14 @@ class TestBasicExecution:
         module_maker(input_correls_loc, output_loc, min_r=0.3, method='naive', table_loc=input_biom_loc)
         assert os.path.isfile(os.path.join(output_loc, "collapsed.biom"))
 
-    def test_module_maker_missing_p_column_for_max_p_raises(self, make_sim_data_files, sim_correls):
+    def test_module_maker_missing_r_column_for_min_r_raises(self, make_sim_data_files, sim_correls):
         input_biom_loc, input_correls_loc, output_loc = make_sim_data_files
-        correls_no_p = sim_correls.drop(columns=["pAdjusted"])
-        correls_no_p.to_csv(input_correls_loc, sep="\t")
-        with pytest.raises(ValueError):
-            module_maker(input_correls_loc, output_loc, max_p=0.05, method="k_cliques", table_loc=input_biom_loc)
+        correls_no_r = sim_correls.drop(columns=["r"])
+        correls_no_r.to_csv(input_correls_loc, sep="\t")
+        with pytest.raises(KeyError):
+            module_maker(input_correls_loc, output_loc, min_r=0.3, method="naive", table_loc=input_biom_loc)
 
-    def test_both_min_r_max_p_raises(self, make_sim_data_files):
-        input_biom_loc, input_correls_loc, output_loc = make_sim_data_files
-        with pytest.raises(TypeError):
-            module_maker(input_correls_loc, output_loc, min_r=0.3, max_p=0.05, table_loc=input_biom_loc)
-
-    def test_no_min_r_max_p_raises(self, make_sim_data_files):
+    def test_no_min_r_raises(self, make_sim_data_files):
         input_biom_loc, input_correls_loc, output_loc = make_sim_data_files
         with pytest.raises(TypeError):
             module_maker(input_correls_loc, output_loc, table_loc=input_biom_loc)
@@ -154,22 +149,12 @@ class TestModuleAnalysis:
         assert ("otu_0", "otu_1", "otu_2") in module_sets
         assert ("otu_3", "otu_4") in module_sets
 
-    def test_make_modules_k_cliques_returns_expected_modules(self, sim_correls):
-        modules = ma.make_modules_k_cliques(sim_correls, min_r=0.5, k=2, prefix="module")
-        modules_as_sets = [set(value) for value in modules.values()]
-        assert {"otu_0", "otu_1", "otu_2"} in modules_as_sets
-        assert {"otu_3", "otu_4"} in modules_as_sets
-
     def test_make_modules_louvain_returns_two_communities(self, sim_correls):
         modules = ma.make_modules_louvain(sim_correls, min_r=0.5, gamma=1.0, prefix="module")
         modules_as_sets = [set(value) for value in modules.values()]
         assert len(modules_as_sets) == 2
         assert {"otu_0", "otu_1", "otu_2"} in modules_as_sets
         assert {"otu_3", "otu_4"} in modules_as_sets
-
-    def test_make_modules_naive_max_p_raises_not_implemented(self, sim_correls):
-        with pytest.raises(NotImplementedError):
-            ma.make_modules_naive(sim_correls, max_p=0.05)
 
 
 # ---------------------------------------------------------------------------
@@ -185,14 +170,6 @@ class TestModuleGML:
         net = nx.read_gml(os.path.join(output_loc, "module_correlation_network.gml"))
         for _, _, data in net.edges(data=True):
             assert float(data["r"]) >= 0.5
-
-    def test_module_gml_respects_max_p(self, make_sim_data_files):
-        _, input_correls_loc, output_loc = make_sim_data_files
-        module_maker(input_correls_loc, output_loc, max_p=0.05, method="k_cliques")
-
-        net = nx.read_gml(os.path.join(output_loc, "module_correlation_network.gml"))
-        for _, _, data in net.edges(data=True):
-            assert float(data["pAdjusted"]) < 0.05
 
     def test_module_maker_preserves_metadata_in_gml(self, make_sim_data_files):
         input_biom_loc, input_correls_loc, output_loc = make_sim_data_files
@@ -242,7 +219,6 @@ class TestModuleEdgeCases:
         with pytest.raises(ValueError):
             ma.make_modules_naive(empty, min_r=0.5)
 
-        assert ma.make_modules_k_cliques(empty, min_r=0.5, k=2) == {}
         assert ma.make_modules_louvain(empty, min_r=0.5, gamma=1.0) == {}
 
     def test_diff_module_prefix(self, make_sim_data_files):

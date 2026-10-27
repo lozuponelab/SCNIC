@@ -118,12 +118,6 @@ class TestBasicExecution:
         with pytest.raises(KeyError):
             between_correls(out_paths["input1_loc"], out_paths["input2_loc"], out_paths["output_loc"], correl_method="not_a_real_method") 
 
-    def test_invalid_pvalue_raises(self, strong_signal_table):
-        out_paths = strong_signal_table
-        with pytest.raises(Exception) as exc_info:
-            between_correls(out_paths["input1_loc"], out_paths["input2_loc"], out_paths["output_loc"], correl_method="pearson", max_p=0.1) 
-        assert exc_info.value.args[0] == "SCNIC does not currently support module making based on p-values."
-
     def test_verbose_flag_does_not_crash(self, strong_signal_table, capsys):
         out_paths = strong_signal_table
         between_correls(out_paths["input1_loc"], out_paths["input2_loc"], out_paths["output_loc"], 

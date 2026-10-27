@@ -158,17 +158,16 @@ def underscore_to_camelcase(str_):
     return ''.join(str_)
 
 
-def filter_correls(correls, max_p=None, min_r=None, conet=False):
+def filter_correls(correls, min_r=None, conet=False):
     """
-    Filter correlation results by p-value and absolute correlation.
+    Filter correlation results by absolute correlation. 
+    NOTE: p-value filtering has been deprecated!!
 
     Parameters
     ----------
     correls : pandas.DataFrame
         Correlation table indexed by feature pairs, with columns including
         ``r`` and optionally ``p`` or ``p_adj``.
-    max_p : float, optional
-        Maximum allowed p-value or adjusted p-value.
     min_r : float, optional
         Minimum absolute correlation coefficient.
     conet : bool, default False
@@ -179,20 +178,15 @@ def filter_correls(correls, max_p=None, min_r=None, conet=False):
     pandas.DataFrame
         Filtered correlation table.
     """
-    # TODO: allow non r column names
-    # TODO: allow non p_adj column names
+    ## first make sure 'r' column is present
+    if 'r' not in correls.columns:
+        raise KeyError("there is no column named 'r' in the correlation table!")
+
+    ## this only takes the positive r-values 
     if conet:
         correls = correls[correls.r > 0]
 
-    if max_p is not None:
-        # filter to only include significant correlations
-        if 'pAdjusted' in correls.columns:
-            correls = correls[correls.pAdjusted < max_p]
-        elif 'p' in correls.columns:
-            correls = correls[correls.p < max_p]
-        else:
-            raise ValueError("No p or pAdjusted in correls")
-
+    ## this makes all r-values positive 
     if min_r is not None:
         correls = correls[np.abs(correls.r) > min_r]
 
@@ -272,6 +266,12 @@ def filter_table(table, max_percent_zero):
     biom.table.Table
         Filtered BIOM table.
     """
+    ## throw a warning if user sets max_percent_zero to higher than 50 
+    if max_percent_zero > 50:
+        warnings.warn(f"you have chosen to include observations that are more than 50% zero, this is NOT advised and may return inaccurate r-values!",
+                      UserWarning,
+                      stacklevel=2)
+    
     table = table.copy()
     # only keep observations that have a percentage of zeros less than or equal to max_percent_zero
     to_keep = [i for i in table.ids(axis='observation')

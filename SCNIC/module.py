@@ -14,13 +14,14 @@ from biom.util import biom_open
 from os import path
 import os
 import networkx as nx
+import warnings
 
 
 from SCNIC import general
 from SCNIC import module_analysis as ma
 
 
-def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', k_size=3, gamma=.4, table_loc=None,
+def module_maker(input_loc, output_loc, min_r=None, method='naive', gamma=.4, table_loc=None,
                  prefix='module', verbose=False):
     """
     Create modules from correlation data and optionally collapse a BIOM table.
@@ -29,10 +30,8 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
     ----------
     input_loc : str
     output_loc : str
-    max_p : float or None
     min_r : float or None
     method : str, default 'naive'
-    k_size : int, default 3
     gamma : float, default .4
     table_loc : str or None
     prefix : str, default 'module'
@@ -58,25 +57,17 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
     logger["module creation method"] = method
 
     # sanity check args
-    if min_r is not None and max_p is not None:
-        raise TypeError("arguments max_p and min_r may not be used concurrently")
-    if min_r is None and max_p is None:
-        raise TypeError("argument max_p or min_r must be used")
-
-    ## save either min_r or max_p threshold values to the log file
-    if min_r is not None:
+    if min_r is None:
+        raise TypeError("argument '--min_r' MUST be used for module creation!")
+    elif min_r is not None:
+        ## save min_r threshold value to the log file
         logger["minimum r-value threshold"] = min_r
-    elif max_p is not None:
-        logger["maximum p-value threshold"] = max_p
 
     # make modules
     if method == 'naive':
-        modules = ma.make_modules_naive(correls, min_r, max_p, prefix=prefix)
-    elif method == 'k_cliques':
-        modules = ma.make_modules_k_cliques(correls, min_r, max_p, k_size, prefix=prefix)
-        logger["k size"] = k_size
+        modules = ma.make_modules_naive(correls, min_r, prefix=prefix)
     elif method == 'louvain':
-        modules = ma.make_modules_louvain(correls, min_r, max_p, gamma, prefix=prefix)
+        modules = ma.make_modules_louvain(correls, min_r, gamma, prefix=prefix)
         logger["gamma value"] = gamma
     else:
         raise KeyError('%s is not a valid module creation method' % method)
@@ -109,7 +100,7 @@ def module_maker(input_loc, output_loc, max_p=None, min_r=None, method='naive', 
 
     # make network
     metadata = ma.add_modules_to_metadata(modules, metadata)
-    correls_filter = general.filter_correls(correls, max_p=max_p, min_r=min_r, conet=True)
+    correls_filter = general.filter_correls(correls, min_r=min_r, conet=True)
     net = general.correls_to_net(correls_filter, metadata=metadata)
 
     nx.write_gml(net, path.join(output_loc, 'module_correlation_network.gml'))

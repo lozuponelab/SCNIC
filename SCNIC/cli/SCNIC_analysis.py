@@ -133,7 +133,8 @@ def build_parser():
                               default="scnic_make_modules_out")
     make_modules.add_argument("--min_r", 
                               help="minimum correlation value to determine edges", 
-                              type=float)
+                              type=float,
+                              required=True)
     make_modules.add_argument("--method", 
                               help="method to be used for determining modules", 
                               default='naive',

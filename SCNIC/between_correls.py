@@ -150,10 +150,18 @@ def between_correls(table1, table2, output_loc, min_r=None, correl_method='spear
     logger["number of nodes"] = net.number_of_nodes()
     logger["number of edges"] = net.number_of_edges()
     nx.write_gml(net, path.join(output_loc, f"between_{pretty_correl_method}_crossnet.gml"))
+    ## return separate node and edge tables along w gml file 
+    nodes_df, edges_df = general.net_to_dataframes(graph=net)
+    nodes_df.to_csv(path.join(output_loc, f"between_{pretty_correl_method}_nodes.txt"), sep="\t")
+    edges_df.to_csv(path.join(output_loc, f"between_{pretty_correl_method}_edges.txt"), sep="\t")
+
     if verbose:
-        print("Network made!")
+        print("Network made")
         print(f"Number of nodes: {net.number_of_nodes()}")
         print(f"Number of edges: {net.number_of_edges()}")
-        print(f"{pretty_correl_method} correlation network: between_{pretty_correl_method}_crossnet.gml written to {path.abspath(output_loc)}\n")
+        print(f"{pretty_correl_method} cross-correlation network: between_{pretty_correl_method}_crossnet.gml written to {path.abspath(output_loc)}\n")
+        print(f"{pretty_correl_method} nodes table: between_{pretty_correl_method}_nodes.txt written to {path.abspath(output_loc)}")
+        print(f"{pretty_correl_method} edges table: between_{pretty_correl_method}_edges.txt written to {path.abspath(output_loc)}")
+        print("")
 
     logger.output_log()

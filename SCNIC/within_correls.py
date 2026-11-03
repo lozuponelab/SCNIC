@@ -10,6 +10,7 @@ import os
 from os import path
 
 import networkx as nx
+import pandas as pd
 
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr, kendalltau
@@ -98,7 +99,7 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
 
     correls.to_csv(path.join(output_loc, f'within_{pretty_correl_method}_correls.txt'), sep='\t', index_label=('feature1', 'feature2'))
     if verbose:
-        print("Features Correlated")
+        print("Features correlated")
         print(f"{pretty_correl_method} correlations: within_{pretty_correl_method}_correls.txt written to {path.abspath(output_loc)}")
         print("")
         
@@ -107,11 +108,18 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
     metadata = general.get_metadata_from_table(table_filt)
     net = general.correls_to_net(correls, metadata=metadata)
     nx.write_gml(net, path.join(output_loc, f'within_{pretty_correl_method}_correlation_network.gml'))
+    ## return separate node and edge tables along w gml file
+    nodes_df, edges_df = general.net_to_dataframes(graph=net)
+    nodes_df.to_csv(path.join(output_loc, f"within_{pretty_correl_method}_nodes.txt"), sep="\t")
+    edges_df.to_csv(path.join(output_loc, f"within_{pretty_correl_method}_edges.txt"), sep="\t")
+
     if verbose:
         print("Network made")
         print(f"Number of nodes: {net.number_of_nodes()}")
         print(f"Number of edges: {net.number_of_edges()}")
         print(f"{pretty_correl_method} correlation network: within_{pretty_correl_method}_correlation_network.gml written to {path.abspath(output_loc)}")
+        print(f"{pretty_correl_method} nodes table: within_{pretty_correl_method}_nodes.txt written to {path.abspath(output_loc)}")
+        print(f"{pretty_correl_method} edges table: within_{pretty_correl_method}_edges.txt written to {path.abspath(output_loc)}")
         print("")
 
     logger.output_log()

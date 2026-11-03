@@ -75,6 +75,8 @@ class TestBasicExecution:
         assert os.path.isfile(os.path.join(output_loc, "SCNIC_within_pearson_log.txt"))
         assert os.path.isfile(os.path.join(output_loc, "within_pearson_correls.txt"))
         assert os.path.isfile(os.path.join(output_loc, "within_pearson_correlation_network.gml"))
+        assert os.path.isfile(os.path.join(output_loc, "within_pearson_nodes.txt"))
+        assert os.path.isfile(os.path.join(output_loc, "within_pearson_edges.txt"))
 
     def test_correls_table_has_expected_columns(self, strong_signal_table):
         input_loc, output_loc, _ = strong_signal_table

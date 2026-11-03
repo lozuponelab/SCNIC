@@ -10,6 +10,7 @@ from __future__ import division
 import re
 
 import numpy as np
+import pandas as pd
 import warnings
 import networkx as nx
 from biom.table import Table
@@ -247,6 +248,35 @@ def correls_to_net(correls, metadata=None):
             graph_key = underscore_to_camelcase(str(i))
             graph.edges[otu_pair][graph_key] = _to_gml_compatible(correl[i])
     return graph
+
+
+## madi note: adding function to grab and return separate dfs for graph edges and nodes 
+## so that those can be output as tsvs as well as the gml file
+## takes the output of the function above it as an input!
+def net_to_dataframes(graph):
+    """
+    Convert NetworkX graph to separate edge and node dataframes.
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph with nodes for each feature and edge attributes for each correlation.
+
+    Returns
+    -------
+    pandas.DataFrame (s)
+        Dataframes containing the node and edge information for the correlation network. 
+    """
+    ## get nodes df 
+    nodes_df = pd.DataFrame([
+        {"node_id": node, **attrs}
+        for node, attrs in graph.nodes(data=True)
+    ])
+    
+    ## get edge list as pandas df
+    edges_df = nx.to_pandas_edgelist(graph)
+    return nodes_df, edges_df
+
 
 
 def filter_table(table, max_percent_zero):

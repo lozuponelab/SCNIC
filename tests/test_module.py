@@ -105,14 +105,16 @@ class TestBasicExecution:
     def test_creates_expected_files(self, make_sim_data_files):
         _, input_correls_loc, output_loc = make_sim_data_files
         module_maker(input_correls_loc, output_loc, min_r=0.3, method='naive')
-        assert os.path.isfile(os.path.join(output_loc, "modules.txt"))
-        assert os.path.isfile(os.path.join(output_loc, "module_correlation_network.gml"))
+        assert os.path.isfile(os.path.join(output_loc, "naive_modules.txt"))
+        assert os.path.isfile(os.path.join(output_loc, "naive_module_correlation_network.gml"))
+        assert os.path.isfile(os.path.join(output_loc, "naive_module_nodes.txt"))
+        assert os.path.isfile(os.path.join(output_loc, "naive_module_edges.txt"))
         assert os.path.isfile(os.path.join(output_loc, "SCNIC_module_log.txt"))
 
     def test_creates_collapsed_biom(self, make_sim_data_files):
         input_biom_loc, input_correls_loc, output_loc = make_sim_data_files
         module_maker(input_correls_loc, output_loc, min_r=0.3, method='naive', table_loc=input_biom_loc)
-        assert os.path.isfile(os.path.join(output_loc, "collapsed.biom"))
+        assert os.path.isfile(os.path.join(output_loc, "naive_collapsed.biom"))
 
     def test_module_maker_missing_r_column_for_min_r_raises(self, make_sim_data_files, sim_correls):
         input_biom_loc, input_correls_loc, output_loc = make_sim_data_files
@@ -135,7 +137,7 @@ class TestBasicExecution:
         input_biom_loc, input_correls_loc, output_loc = make_sim_data_files
         module_maker(input_correls_loc, output_loc, min_r=0.3, method='naive', table_loc=input_biom_loc, verbose=True)
         captured = capsys.readouterr()
-        assert "Modules formed using naive!" and "Network made!" in captured.out
+        assert "Modules formed using naive!" and "Network made" in captured.out
 
 # ---------------------------------------------------------------------------
 # Correctness: does each module creation method recover the known structure?
@@ -167,7 +169,7 @@ class TestModuleGML:
         input_biom_loc, input_correls_loc, output_loc = make_sim_data_files
         module_maker(input_correls_loc, output_loc, min_r=0.5, table_loc=input_biom_loc)
 
-        net = nx.read_gml(os.path.join(output_loc, "module_correlation_network.gml"))
+        net = nx.read_gml(os.path.join(output_loc, "naive_module_correlation_network.gml"))
         for _, _, data in net.edges(data=True):
             assert float(data["r"]) >= 0.5
 
@@ -175,7 +177,7 @@ class TestModuleGML:
         input_biom_loc, input_correls_loc, output_loc = make_sim_data_files
         module_maker(input_correls_loc, output_loc, min_r=0.5, table_loc=input_biom_loc)
 
-        net = nx.read_gml(os.path.join(output_loc, "module_correlation_network.gml"))
+        net = nx.read_gml(os.path.join(output_loc, "naive_module_correlation_network.gml"))
         assert "taxonomy" in net.nodes["otu_0"]
         assert net.nodes["otu_0"]["taxonomy"] == "k__Bacteria;p__Firmicutes;g__OTU0"
 
@@ -225,8 +227,8 @@ class TestModuleEdgeCases:
         input_biom_loc, input_correls_loc, output_loc = make_sim_data_files
         module_maker(input_correls_loc, output_loc, min_r=0.3, table_loc=input_biom_loc, prefix='group')
 
-        net = nx.read_gml(os.path.join(output_loc, "module_correlation_network.gml"))
-        df = pd.read_csv(os.path.join(output_loc, "modules.txt"), sep="\t")
+        net = nx.read_gml(os.path.join(output_loc, "naive_module_correlation_network.gml"))
+        df = pd.read_csv(os.path.join(output_loc, "naive_modules.txt"), sep="\t")
         assert "group" in net.nodes["otu_0"]["module"]
         assert df.columns.str.contains("group").any()
 

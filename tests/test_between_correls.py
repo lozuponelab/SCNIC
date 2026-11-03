@@ -93,6 +93,8 @@ class TestBasicExecution:
         assert os.path.isfile(os.path.join(out_paths["output_loc"], "SCNIC_between_pearson_log.txt"))
         assert os.path.isfile(os.path.join(out_paths["output_loc"], "between_pearson_correls.txt"))
         assert os.path.isfile(os.path.join(out_paths["output_loc"], "between_pearson_crossnet.gml"))
+        assert os.path.isfile(os.path.join(out_paths["output_loc"], "between_pearson_nodes.txt"))
+        assert os.path.isfile(os.path.join(out_paths["output_loc"], "between_pearson_edges.txt"))
 
     def test_creates_expected_values_minr(self, strong_signal_table):
         out_paths = strong_signal_table

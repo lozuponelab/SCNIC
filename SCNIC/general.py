@@ -68,7 +68,7 @@ def p_adjust(pvalues, method='fdr_bh'):
         Adjusted p-values.
     """
     if np.isnan(pvalues).any(): 
-        warnings.warn("p-values contain NaN or missing values! adjusted p-values will be returned as NaNs\nto fix, recalculate correlations excluding constant inputs (--max_percent_zero filtering)",
+        warnings.warn("p-values contain NaN or missing values! adjusted p-values will be returned as NaNs\nto fix, recalculate correlations excluding constant inputs (--prevalence filtering)",
                       UserWarning,
                       stacklevel=2)
     
@@ -279,33 +279,26 @@ def net_to_dataframes(graph):
 
 
 
-def filter_table(table, max_percent_zero):
+def filter_table(table, prevalence):
     """
-    Remove observations with greater than the specified percentage of zero values across all samples.
-    By default, only keep observations that are 50% zero or less (you want less).
+    Remove observations with less than the specified ratio (0-1) of non-zero values across all samples.
 
     Parameters
     ----------
     table : biom.table.Table
         Input BIOM table.
-    max_percent_zero : int
-        Maximum percent of zeros allowed in observations (greater than 50% is NOT recommended). 
+    prevalence : int
+        Minimum ratio of non-zero samples allowed in observations (value between 0 and 1). 
 
     Returns
     -------
     biom.table.Table
         Filtered BIOM table.
     """
-    ## throw a warning if user sets max_percent_zero to higher than 50 
-    if max_percent_zero > 50:
-        warnings.warn(f"you have chosen to include observations that are more than 50% zero, this is NOT advised and may return inaccurate r-values!",
-                      UserWarning,
-                      stacklevel=2)
-    
     table = table.copy()
-    # only keep observations that have a percentage of zeros less than or equal to max_percent_zero
+    # only keep observations that have non-zero values greater than or equal to prevalence
     to_keep = [i for i in table.ids(axis='observation')
-               if ((sum(table.data(i, axis='observation') == 0)/len(table.ids(axis='sample')))*100) <= max_percent_zero]
+               if ((sum(table.data(i, axis='observation') != 0)/len(table.ids(axis='sample')))) >= np.float64(prevalence)]
     table.filter(to_keep, axis='observation')
     return table
 

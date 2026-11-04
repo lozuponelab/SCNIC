@@ -37,7 +37,7 @@ def spearmanr(x, y):
 
 ## added verbose argument to be consistent with within and modules 
 def between_correls(table1, table2, output_loc, min_r=None, correl_method='spearman', sparcc_filter=False,
-                    max_percent_zero=None, p_adjust='fdr_bh', procs=1, force=False, verbose=False):
+                    prevalence=None, p_adjust='fdr_bh', procs=1, force=False, verbose=False):
     """
     Compute correlations between two BIOM tables and write network output.
 
@@ -49,7 +49,7 @@ def between_correls(table1, table2, output_loc, min_r=None, correl_method='spear
     min_r : float or None
     correl_method : str, default 'spearman'
     sparcc_filter : bool, default False
-    max_percent_zero : int or None
+    prevalence : int or None
     p_adjust : str, default 'fdr_bh'
     procs : int, default 1
     force : bool, default False
@@ -99,15 +99,15 @@ def between_correls(table1, table2, output_loc, min_r=None, correl_method='spear
         logger["sparcc paper filter"] = True
         logger["number of observations present in table 1 after sparcc filter"] = table1_filt.shape[0]
         logger["number of observations present in table 2 after sparcc filter"] = table2_filt.shape[0]
-    elif max_percent_zero is not None:
-        table1_filt = general.filter_table(table1, max_percent_zero)
-        table2_filt = general.filter_table(table2, max_percent_zero)
-        logger["max percentage of zeros allowed per observation"] = max_percent_zero
-        logger["number of observations present in table 1 after max percent zero filter"] = table1_filt.shape[0]
-        logger["number of observations present in table 2 after max percent zero filter"] = table2_filt.shape[0]
+    elif prevalence is not None:
+        table1_filt = general.filter_table(table1, prevalence)
+        table2_filt = general.filter_table(table2, prevalence)
+        logger["minimum ratio of non-zero values allowed per observation"] = prevalence
+        logger["number of observations present in table 1 after prevalence filter"] = table1_filt.shape[0]
+        logger["number of observations present in table 2 after prevalence filter"] = table2_filt.shape[0]
         if verbose:
-            print(f"Table 1 - observations present after maximum percent zero ({max_percent_zero}%) filtering: {str(table1_filt.shape[0])}\n")
-            print(f"Table 2 - observations present after maximum percent zero ({max_percent_zero}%) filtering: {str(table2_filt.shape[0])}\n")
+            print(f"Table 1 - observations present after prevalence ({prevalence}%) filtering: {str(table1_filt.shape[0])}\n")
+            print(f"Table 2 - observations present after prevalence ({prevalence}%) filtering: {str(table2_filt.shape[0])}\n")
     else:
         table1_filt = table1
         table2_filt = table2

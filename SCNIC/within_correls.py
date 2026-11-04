@@ -19,7 +19,7 @@ from SCNIC import general
 from SCNIC import correlation_analysis as ca
 
 
-def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=False, max_percent_zero=None, procs=1,
+def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=False, prevalence=None, procs=1,
                    sparcc_p=1000, p_adjust='fdr_bh', verbose=False):
     """
     Run a within-table SCNIC correlation analysis and write outputs.
@@ -30,7 +30,7 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
     output_loc : str
     correl_method : str, default 'sparcc'
     sparcc_filter : bool, default False
-    max_percent_zero : int or None
+    prevalence : int or None
     procs : int, default 1
     sparcc_p : int, default 1000
     p_adjust : str, default 'fdr_bh'
@@ -69,13 +69,13 @@ def within_correls(input_loc, output_loc, correl_method='sparcc', sparcc_filter=
             print("")
         logger["sparcc paper filter"] = True
         logger["number of observations present after sparcc filter"] = table_filt.shape[0]
-    elif max_percent_zero is not None:
-        table_filt = general.filter_table(table, max_percent_zero)
+    elif prevalence is not None:
+        table_filt = general.filter_table(table, prevalence)
         if verbose:
-            print("Observations present in table after max_percent_zero filtering: %s " % str(table_filt.shape[0]))
+            print("Observations present in table after prevalence filtering: %s " % str(table_filt.shape[0]))
             print("")
-        logger["max percentage of zeros allowed per observation"] = max_percent_zero
-        logger["number of observations present after max percent zero filter"] = table_filt.shape[0]
+        logger["minimum ratio of non-zero values allowed per observation"] = prevalence
+        logger["number of observations present after prevalence filter"] = table_filt.shape[0]
     else:
         table_filt = table
 

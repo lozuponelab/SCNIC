@@ -197,7 +197,7 @@ class TestFiltering:
         involved = set(df["feature1"]) | set(df["feature2"])
         assert len(involved) <= table.shape[0]
 
-    def test_max_percent_zero_filter_drops_sparse_features(self, tmp_paths):
+    def test_prevalence_filter_drops_sparse_features(self, tmp_paths):
         input_loc, output_loc = tmp_paths
         table = simulate_correls(size=20, noncors=5)
         data = table.matrix_data.toarray()
@@ -207,17 +207,17 @@ class TestFiltering:
         with biom_open(input_loc, "w") as f:
             sparse_table.to_hdf5(f, "test")
 
-        within_correls(input_loc, output_loc, correl_method="pearson", max_percent_zero=50)
+        within_correls(input_loc, output_loc, correl_method="pearson", prevalence=0.2)
         df = pd.read_csv(os.path.join(output_loc, "within_pearson_correls.txt"), sep="\t")
         involved = set(df["feature1"]) | set(df["feature2"])
         assert "Observ_0" not in involved
 
-    def test_max_percent_zero_and_sparcc_filter_both_set_prefers_sparcc(self, strong_signal_table):
+    def test_prevalence_and_sparcc_filter_both_set_prefers_sparcc(self, strong_signal_table):
         """When both filters are given, sparcc_filter branch should win
         (per current if/elif ordering) -- document/lock in that behavior."""
         input_loc, output_loc, _ = strong_signal_table
         within_correls(input_loc, output_loc, correl_method="pearson",
-                        sparcc_filter=True, max_percent_zero=50)
+                        sparcc_filter=True, prevalence=0.2)
 
 
 # ---------------------------------------------------------------------------

@@ -1,11 +1,11 @@
 name: unit tests for scnic
-run-name: testing-after-major-changes-fix-conda
 
 on:
   workflow_dispatch:
   push:
     branches:
       - dev_MA_2026
+      - v1.0.0
   pull_request:
 
 permissions:

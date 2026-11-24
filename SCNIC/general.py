@@ -278,7 +278,6 @@ def net_to_dataframes(graph):
     return nodes_df, edges_df
 
 
-
 def filter_table(table, prevalence):
     """
     Remove observations with less than the specified ratio (0-1) of non-zero values across all samples.
@@ -301,6 +300,7 @@ def filter_table(table, prevalence):
                if ((sum(table.data(i, axis='observation') != 0)/len(table.ids(axis='sample')))) >= np.float64(prevalence)]
     table.filter(to_keep, axis='observation')
     return table
+
 
 
 def simulate_correls(corr_stren=(.99, .99), std=(1, 1, 1, 2, 2), means=(100, 100, 100, 100, 100), size=30,

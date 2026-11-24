@@ -6,6 +6,7 @@ results for downstream SCNIC analysis.
 """
 
 import os
+import pandas as pd 
 from os import path
 from biom import load_table
 from scipy.stats import spearmanr, pearsonr

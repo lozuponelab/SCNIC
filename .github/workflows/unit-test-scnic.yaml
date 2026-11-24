@@ -59,6 +59,7 @@ jobs:
         run: |
           git describe --tags --always
           git tag --list
+          python -m pip install setuptools-scm
           python -m setuptools_scm
       
       - name: run smoke tests

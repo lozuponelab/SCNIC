@@ -44,7 +44,7 @@ jobs:
           conda-remove-defaults: true
           auto-activate-base: false
           activate-environment: test
-          environment-file: gh_actions_env.yml ## temp use dev conda env instead of environment.yml 
+          environment-file: .github/gh_actions_env.yml
           mamba-version: "*"
           use-mamba: true
         

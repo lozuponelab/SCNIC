@@ -4,7 +4,7 @@ on:
   push:
     branches: [master, dev_MA_2026]
     tags:
-      - "v*"
+      - '[0-9]*'
   pull_request:
     branches: [master, dev_MA_2026]
   workflow_dispatch:

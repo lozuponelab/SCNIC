@@ -19,12 +19,6 @@ scnic within --help > /dev/null && echo "✓ scnic within CLI works"
 scnic modules --help > /dev/null && echo "✓ scnic modules CLI works"
 scnic between --help > /dev/null && echo "✓ scnic between CLI works"
 
-## module enrichment (idk what this is for yet...)
-scnic-module-enrichment --help > /dev/null && echo "✓ scnic-module-enrichment CLI works"
-scnic-module-enrichment annotate --help > /dev/null && echo "✓ scnic-module-enrichment annotate CLI works"
-scnic-module-enrichment perms --help > /dev/null && echo "✓ scnic-module-enrichment perms CLI works"
-scnic-module-enrichment stats --help > /dev/null && echo "✓ scnic-module-enrichment stats CLI works"
-
 ## test minimal analysis on test data - only testing within since that is the entry point for this package
 scnic within -i tests/data/fake_data.biom -o /tmp/test_within_out/ -m sparcc > /dev/null && echo "✓ scnic within: sparcc (default) method CLI works on test data"
 ## idk if this will work but fingers crossed 

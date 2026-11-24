@@ -54,6 +54,5 @@ include = ["SCNIC*"]
 
 [tool.setuptools_scm]
 version_file = "SCNIC/_version.py"
-##fallback_version = "0.0.0"
 local_scheme = "no-local-version" ## excludes local distance hash for uncomitted changes 
 version_scheme = "no-guess-dev" ## default: "guess-next-dev", other options: "post-release", "no-guess-dev"

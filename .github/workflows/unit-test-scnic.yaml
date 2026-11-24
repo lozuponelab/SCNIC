@@ -6,7 +6,6 @@ on:
     branches:
       - master
       - dev_MA_2026
-      - v1.0.0
     tags:
       - "v*"
   pull_request:

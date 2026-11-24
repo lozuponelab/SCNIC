@@ -1,4 +1,4 @@
-[![Bioconda version](https://img.shields.io/conda/vn/bioconda/scnic.svg)](https://anaconda.org/bioconda/scnic) ![PyPI](https://img.shields.io/pypi/v/SCNIC.svg?style=flat) ![Build Status](https://github.com/lozuponelab/SCNIC/actions/workflows/main.yaml/badge.svg)
+[![Bioconda version](https://img.shields.io/conda/vn/bioconda/scnic.svg)](https://anaconda.org/bioconda/scnic) ![PyPI](https://img.shields.io/pypi/v/SCNIC.svg?style=flat) ![Build Status](https://github.com/lozuponelab/SCNIC/actions/workflows/unit-test-scnic.yaml/badge.svg)
 
 > [!WARNING]
 > SCNIC>=1.0.0 is **NOT** supported in PyPI! Please use the `bioconda` install instructions instead (linked below)!

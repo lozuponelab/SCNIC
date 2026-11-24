@@ -12,7 +12,7 @@ authors = [
     { name = "Lozupone Lab", email = "lozuponelab.dev@olucdenver.onmicrosoft.com" }
 ]
 urls = { Homepage = "https://github.com/lozuponelab/SCNIC/", Download = "https://github.com/lozuponelab/SCNIC/tarball/0.6.6" }
-requires-python = ">=3.10" ##<3.13"
+requires-python = ">=3.10"
 dependencies = [
     "numpy",
     "networkx>=2",
@@ -48,7 +48,7 @@ scnic = "SCNIC.cli.SCNIC_analysis:main"
 include = ["SCNIC*"]
 
 [tool.setuptools_scm]
-write_to = "SCNIC/_version.py"
-fallback_version = "0.0.0"
+version_file = "SCNIC/_version.py"
+##fallback_version = "0.0.0"
 local_scheme = "no-local-version" ## excludes local distance hash for uncomitted changes 
 version_scheme = "no-guess-dev" ## default: "guess-next-dev", other options: "post-release", "no-guess-dev"
